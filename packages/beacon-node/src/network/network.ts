@@ -17,6 +17,7 @@ import {
   SignedBeaconBlock,
   SingleAttestation,
   SlotRootHex,
+  SubnetID,
   WithBytes,
   altair,
   capella,
@@ -297,7 +298,7 @@ export class Network implements INetwork {
     return this.subscribedToCoreTopics;
   }
 
-  shouldAggregate(subnet: number, slot: number): boolean {
+  shouldAggregate(subnet: SubnetID, slot: number): boolean {
     return this.aggregatorTracker.shouldAggregate(subnet, slot);
   }
 
@@ -329,7 +330,7 @@ export class Network implements INetwork {
     );
   }
 
-  async publishBeaconAttestation(attestation: SingleAttestation, subnet: number): Promise<number> {
+  async publishBeaconAttestation(attestation: SingleAttestation, subnet: SubnetID): Promise<number> {
     const fork = this.config.getForkName(attestation.data.slot);
     return this.publishGossip<GossipType.beacon_attestation>(
       {type: GossipType.beacon_attestation, fork, subnet},
@@ -380,7 +381,7 @@ export class Network implements INetwork {
     );
   }
 
-  async publishSyncCommitteeSignature(signature: altair.SyncCommitteeMessage, subnet: number): Promise<number> {
+  async publishSyncCommitteeSignature(signature: altair.SyncCommitteeMessage, subnet: SubnetID): Promise<number> {
     const fork = this.config.getForkName(signature.slot);
     return this.publishGossip<GossipType.sync_committee>({type: GossipType.sync_committee, fork, subnet}, signature, {
       ignoreDuplicatePublishError: true,

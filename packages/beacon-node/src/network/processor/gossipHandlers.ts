@@ -2,7 +2,17 @@ import {routes} from "@lodestar/api";
 import {BeaconConfig, ChainForkConfig} from "@lodestar/config";
 import {ForkName, ForkPostElectra, ForkPreElectra, ForkSeq, isForkPostElectra} from "@lodestar/params";
 import {computeTimeAtSlot} from "@lodestar/state-transition";
-import {Root, SignedBeaconBlock, SingleAttestation, Slot, UintNum64, deneb, ssz, sszTypesFor} from "@lodestar/types";
+import {
+  Root,
+  SignedBeaconBlock,
+  SingleAttestation,
+  Slot,
+  SubnetID,
+  UintNum64,
+  deneb,
+  ssz,
+  sszTypesFor,
+} from "@lodestar/types";
 import {LogLevel, Logger, prettyBytes, toRootHex} from "@lodestar/utils";
 import {
   BlobSidecarValidation,
@@ -180,7 +190,7 @@ function getSequentialHandlers(modules: ValidatorFnsModules, options: GossipHand
   async function validateBeaconBlob(
     blobSidecar: deneb.BlobSidecar,
     blobBytes: Uint8Array,
-    subnet: number,
+    subnet: SubnetID,
     peerIdStr: string,
     seenTimestampSec: number
   ): Promise<BlockInput | NullBlockInput> {

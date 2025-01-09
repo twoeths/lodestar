@@ -6,7 +6,7 @@ import {
   isForkPostElectra,
 } from "@lodestar/params";
 import {computeStartSlotAtEpoch, getBlockHeaderProposerSignatureSet} from "@lodestar/state-transition";
-import {BlobIndex, Root, Slot, deneb, ssz} from "@lodestar/types";
+import {BlobIndex, Root, Slot, SubnetID, deneb, ssz} from "@lodestar/types";
 import {toRootHex, verifyMerkleBranch} from "@lodestar/utils";
 
 import {byteArrayEquals} from "../../util/bytes.js";
@@ -20,7 +20,7 @@ export async function validateGossipBlobSidecar(
   fork: ForkName,
   chain: IBeaconChain,
   blobSidecar: deneb.BlobSidecar,
-  subnet: number
+  subnet: SubnetID
 ): Promise<void> {
   const blobSlot = blobSidecar.signedBlockHeader.message.slot;
 
@@ -243,7 +243,7 @@ function validateInclusionProof(blobSidecar: deneb.BlobSidecar): boolean {
   );
 }
 
-function computeSubnetForBlobSidecar(fork: ForkName, config: ChainConfig, blobIndex: BlobIndex): number {
+function computeSubnetForBlobSidecar(fork: ForkName, config: ChainConfig, blobIndex: BlobIndex): SubnetID {
   return (
     blobIndex % (isForkPostElectra(fork) ? config.BLOB_SIDECAR_SUBNET_COUNT_ELECTRA : config.BLOB_SIDECAR_SUBNET_COUNT)
   );
