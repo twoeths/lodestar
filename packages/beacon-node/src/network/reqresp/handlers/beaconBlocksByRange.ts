@@ -85,6 +85,7 @@ export function validateBeaconBlocksByRangeRequest(
   // step > 1 is deprecated, see https://github.com/ethereum/consensus-specs/pull/2856
 
   if (count > MAX_REQUEST_BLOCKS) {
+    // TODO: This is probably not right as `BeaconBlocksByRangeV2` takes at most `MAX_REQUEST_BLOCKS_DENEB`
     count = MAX_REQUEST_BLOCKS;
   }
 

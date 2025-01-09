@@ -186,6 +186,7 @@ function getSequentialHandlers(modules: ValidatorFnsModules, options: GossipHand
   ): Promise<BlockInput | NullBlockInput> {
     const blobBlockHeader = blobSidecar.signedBlockHeader.message;
     const slot = blobBlockHeader.slot;
+    const fork = config.getForkName(slot);
     const blockRoot = ssz.phase0.BeaconBlockHeader.hashTreeRoot(blobBlockHeader);
     const blockHex = prettyBytes(blockRoot);
 
@@ -203,7 +204,7 @@ function getSequentialHandlers(modules: ValidatorFnsModules, options: GossipHand
     );
 
     try {
-      await validateGossipBlobSidecar(chain, blobSidecar, subnet);
+      await validateGossipBlobSidecar(fork, chain, blobSidecar, subnet);
       const recvToValidation = Date.now() / 1000 - seenTimestampSec;
       const validationTime = recvToValidation - recvToValLatency;
 

@@ -34,11 +34,13 @@ export const rateLimitQuotas: (config: ChainConfig) => Record<ReqRespMethod, Inb
   },
   [ReqRespMethod.BlobSidecarsByRange]: {
     // Rationale: MAX_REQUEST_BLOCKS_DENEB * MAX_BLOBS_PER_BLOCK
+    // TODO Electra: Stays as `MAX_REQUEST_BLOB_SIDECARS` until we have fork-aware `byPeer` and set it to `MAX_REQUEST_BLOB_SIDECARS_ELECTRA`
     byPeer: {quota: config.MAX_REQUEST_BLOB_SIDECARS, quotaTimeMs: 10_000},
     getRequestCount: getRequestCountFn(config, ReqRespMethod.BlobSidecarsByRange, (req) => req.count),
   },
   [ReqRespMethod.BlobSidecarsByRoot]: {
     // Rationale: quota of BeaconBlocksByRoot * MAX_BLOBS_PER_BLOCK
+    // TODO Electra: Stays as `MAX_REQUEST_BLOB_SIDECARS` until we have fork-aware `byPeer` and set it to `MAX_REQUEST_BLOB_SIDECARS_ELECTRA`
     byPeer: {quota: config.MAX_REQUEST_BLOB_SIDECARS, quotaTimeMs: 10_000},
     getRequestCount: getRequestCountFn(config, ReqRespMethod.BlobSidecarsByRoot, (req) => req.length),
   },
