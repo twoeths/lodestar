@@ -110,8 +110,7 @@ export function getAttDataFromAttestationSerialized(data: Uint8Array): AttDataBa
  * This is used for GossipQueue.
  */
 export function getBeaconAttestationGossipIndex(fork: ForkName, data: Uint8Array): AttDataBase64 | null {
-  const forkSeq = ForkSeq[fork];
-  return forkSeq >= ForkSeq.electra
+  return ForkSeq[fork] >= ForkSeq.electra
     ? getAttDataFromSingleAttestationSerialized(data)
     : getAttDataFromAttestationSerialized(data);
 }
@@ -120,8 +119,7 @@ export function getBeaconAttestationGossipIndex(fork: ForkName, data: Uint8Array
  * Extract slot from `beacon_attestation` gossip message serialized bytes.
  */
 export function getSlotFromBeaconAttestationSerialized(fork: ForkName, data: Uint8Array): Slot | null {
-  const forkSeq = ForkSeq[fork];
-  return forkSeq >= ForkSeq.electra
+  return ForkSeq[fork] >= ForkSeq.electra
     ? getSlotFromSingleAttestationSerialized(data)
     : getSlotFromAttestationSerialized(data);
 }
@@ -130,8 +128,7 @@ export function getSlotFromBeaconAttestationSerialized(fork: ForkName, data: Uin
  * Extract block root from `beacon_attestation` gossip message serialized bytes.
  */
 export function getBlockRootFromBeaconAttestationSerialized(fork: ForkName, data: Uint8Array): BlockRootHex | null {
-  const forkSeq = ForkSeq[fork];
-  return forkSeq >= ForkSeq.electra
+  return ForkSeq[fork] >= ForkSeq.electra
     ? getBlockRootFromSingleAttestationSerialized(data)
     : getBlockRootFromAttestationSerialized(data);
 }
@@ -181,7 +178,6 @@ export function getSlotFromSingleAttestationSerialized(data: Uint8Array): Slot |
 /**
  * Extract committee index from SingleAttestation serialized bytes.
  * Return null if data is not long enough to extract slot.
- * TODO Electra: Rename getSlotFromOffset to reflect generic usage
  */
 export function getCommitteeIndexFromSingleAttestationSerialized(
   fork: ForkName,
@@ -192,27 +188,26 @@ export function getCommitteeIndexFromSingleAttestationSerialized(
       return null;
     }
 
-    return getSlotFromOffset(data, SINGLE_ATTESTATION_COMMITTEE_INDEX_OFFSET);
+    return getIndexFromOffset(data, SINGLE_ATTESTATION_COMMITTEE_INDEX_OFFSET);
   }
 
   if (data.length < VARIABLE_FIELD_OFFSET + SLOT_SIZE + COMMITTEE_INDEX_SIZE) {
     return null;
   }
 
-  return getSlotFromOffset(data, VARIABLE_FIELD_OFFSET + SLOT_SIZE);
+  return getIndexFromOffset(data, VARIABLE_FIELD_OFFSET + SLOT_SIZE);
 }
 
 /**
  * Extract attester index from SingleAttestation serialized bytes.
  * Return null if data is not long enough to extract index.
- * TODO Electra: Rename getSlotFromOffset to reflect generic usage
  */
 export function getAttesterIndexFromSingleAttestationSerialized(data: Uint8Array): ValidatorIndex | null {
   if (data.length !== SINGLE_ATTESTATION_SIZE) {
     return null;
   }
 
-  return getSlotFromOffset(data, SINGLE_ATTESTATION_ATTESTER_INDEX_OFFSET);
+  return getIndexFromOffset(data, SINGLE_ATTESTATION_ATTESTER_INDEX_OFFSET);
 }
 
 /**
@@ -407,6 +402,13 @@ export function getSlotFromBlobSidecarSerialized(data: Uint8Array): Slot | null 
  */
 function getSlotFromOffset(data: Uint8Array, offset: number): Slot | null {
   return checkSlotHighBytes(data, offset) ? getSlotFromOffsetTrusted(data, offset) : null;
+}
+
+/**
+ * Alias of `getSlotFromOffset` for readability
+ */
+function getIndexFromOffset(data: Uint8Array, offset: number): (ValidatorIndex | CommitteeIndex) | null {
+  return getSlotFromOffset(data, offset);
 }
 
 /**
