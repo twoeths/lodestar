@@ -29,10 +29,6 @@ export const generateLighthouseBeaconNode: BeaconNodeGenerator<BeaconClient.Ligh
     "testnet-dir": rootDirMounted,
     datadir: rootDirMounted,
     http: null,
-    //  Enable the RESTful HTTP API server. Disabled by default.
-    // Forces the HTTP to indicate that the node is synced when sync is actually
-    // stalled. This is useful for very small testnets. TESTING ONLY. DO NOT USE ON MAINNET.
-    "http-allow-sync-stalled": null,
     "http-address": "0.0.0.0",
     "http-port": ports.beacon.httpPort,
     "http-allow-origin": "*",
@@ -74,7 +70,7 @@ export const generateLighthouseBeaconNode: BeaconNodeGenerator<BeaconClient.Ligh
         : undefined,
       bootstrap: async () => {
         await writeFile(path.join(rootDir, "config.yaml"), yaml.dump(chainConfigToJson(forkConfig)));
-        await writeFile(path.join(rootDir, "deploy_block.txt"), "0");
+        await writeFile(path.join(rootDir, "deposit_contract_block.txt"), "0");
       },
       cli: {
         command: isDocker ? "lighthouse" : (process.env.LIGHTHOUSE_BINARY_PATH as string),
