@@ -207,7 +207,8 @@ export class ReqRespBeaconNode extends ReqResp {
     versions: number[],
     request: Req
   ): AsyncIterable<ResponseIncoming> {
-    const requestType = requestSszTypeByMethod(this.config)[method];
+    const fork = ForkName[ForkSeq[this.currentRegisteredFork] as ForkName];
+    const requestType = requestSszTypeByMethod(this.config, fork)[method];
     const requestData = requestType ? requestType.serialize(request as never) : new Uint8Array();
     return this.sendRequestWithoutEncoding(peerId, method, versions, requestData);
   }

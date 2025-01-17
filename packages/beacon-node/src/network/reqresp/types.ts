@@ -1,5 +1,5 @@
 import {Type} from "@chainsafe/ssz";
-import {ChainConfig} from "@lodestar/config";
+import {BeaconConfig} from "@lodestar/config";
 import {ForkLightClient, ForkName, isForkLightClient} from "@lodestar/params";
 import {Protocol, ProtocolHandler, ReqRespRequest} from "@lodestar/reqresp";
 import {
@@ -70,9 +70,13 @@ type ResponseBodyByMethod = {
 };
 
 /** Request SSZ type for each method and ForkName */
-export const requestSszTypeByMethod: (config: ChainConfig) => {
+// TODO Electra: Currently setting default fork to deneb because not every caller of requestSszTypeByMethod can provide fork info
+export const requestSszTypeByMethod: (
+  config: BeaconConfig,
+  fork?: ForkName
+) => {
   [K in ReqRespMethod]: RequestBodyByMethod[K] extends null ? null : Type<RequestBodyByMethod[K]>;
-} = (config) => ({
+} = (config, fork = ForkName.deneb) => ({
   [ReqRespMethod.Status]: ssz.phase0.Status,
   [ReqRespMethod.Goodbye]: ssz.phase0.Goodbye,
   [ReqRespMethod.Ping]: ssz.phase0.Ping,
@@ -80,7 +84,7 @@ export const requestSszTypeByMethod: (config: ChainConfig) => {
   [ReqRespMethod.BeaconBlocksByRange]: ssz.phase0.BeaconBlocksByRangeRequest,
   [ReqRespMethod.BeaconBlocksByRoot]: ssz.phase0.BeaconBlocksByRootRequest,
   [ReqRespMethod.BlobSidecarsByRange]: ssz.deneb.BlobSidecarsByRangeRequest,
-  [ReqRespMethod.BlobSidecarsByRoot]: BlobSidecarsByRootRequestType(config),
+  [ReqRespMethod.BlobSidecarsByRoot]: BlobSidecarsByRootRequestType(fork, config),
   [ReqRespMethod.LightClientBootstrap]: ssz.Root,
   [ReqRespMethod.LightClientUpdatesByRange]: ssz.altair.LightClientUpdatesByRange,
   [ReqRespMethod.LightClientFinalityUpdate]: null,
