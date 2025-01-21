@@ -2,6 +2,7 @@ import {ENR} from "@chainsafe/enr";
 import {PeerScoreStatsDump} from "@chainsafe/libp2p-gossipsub/dist/src/score/peer-score.js";
 import {PublishOpts} from "@chainsafe/libp2p-gossipsub/types";
 import {Connection, PeerId} from "@libp2p/interface";
+import {multiaddr} from "@multiformats/multiaddr";
 import {routes} from "@lodestar/api";
 import {BeaconConfig} from "@lodestar/config";
 import type {LoggerNode} from "@lodestar/logger/node";
@@ -9,29 +10,28 @@ import {ForkName} from "@lodestar/params";
 import {ResponseIncoming} from "@lodestar/reqresp";
 import {Epoch, phase0} from "@lodestar/types";
 import {fromHex, withTimeout} from "@lodestar/utils";
-import {multiaddr} from "@multiformats/multiaddr";
+import {Libp2p} from "../interface.js";
+import {PeerManager} from "../peers/peerManager.js";
+import {ReqRespBeaconNode} from "../reqresp/ReqRespBeaconNode.js";
+import {OutgoingRequestArgs, GetReqRespHandlerFn} from "../reqresp/types.js";
+import {Eth2Gossipsub, getCoreTopicsAtFork} from "../gossip/index.js";
+import {SyncnetsService} from "../subnets/syncnetsService.js";
+import {FORK_EPOCH_LOOKAHEAD, getActiveForks} from "../forks.js";
+import {NetworkOptions} from "../options.js";
+import {CommitteeSubscription, IAttnetsService, computeNodeId} from "../subnets/interface.js";
+import {MetadataController} from "../metadata.js";
+import {createNodeJsLibp2p} from "../libp2p/index.js";
+import {PeersData} from "../peers/peersData.js";
+import {PeerAction, PeerRpcScoreStore, PeerScoreStats} from "../peers/index.js";
+import {getConnectionsMap} from "../util.js";
+import {IClock, ClockEvent} from "../../util/clock.js";
 import {formatNodePeer} from "../../api/impl/node/utils.js";
 import {RegistryMetricCreator} from "../../metrics/index.js";
-import {ClockEvent, IClock} from "../../util/clock.js";
 import {peerIdFromString, peerIdToString} from "../../util/peerId.js";
 import {Discv5Worker} from "../discv5/index.js";
 import {NetworkEventBus} from "../events.js";
-import {FORK_EPOCH_LOOKAHEAD, getActiveForks} from "../forks.js";
-import {Eth2Gossipsub, getCoreTopicsAtFork} from "../gossip/index.js";
-import {Libp2p} from "../interface.js";
-import {createNodeJsLibp2p} from "../libp2p/index.js";
-import {MetadataController} from "../metadata.js";
-import {NetworkOptions} from "../options.js";
-import {PeerAction, PeerRpcScoreStore, PeerScoreStats} from "../peers/index.js";
-import {PeerManager} from "../peers/peerManager.js";
-import {PeersData} from "../peers/peersData.js";
-import {ReqRespBeaconNode} from "../reqresp/ReqRespBeaconNode.js";
-import {GetReqRespHandlerFn, OutgoingRequestArgs} from "../reqresp/types.js";
 import {LocalStatusCache} from "../statusCache.js";
 import {AttnetsService} from "../subnets/attnetsService.js";
-import {CommitteeSubscription, IAttnetsService} from "../subnets/interface.js";
-import {SyncnetsService} from "../subnets/syncnetsService.js";
-import {getConnectionsMap} from "../util.js";
 import {NetworkCoreMetrics, createNetworkCoreMetrics} from "./metrics.js";
 import {INetworkCore, MultiaddrStr, PeerIdStr} from "./types.js";
 
@@ -144,7 +144,7 @@ export class NetworkCore implements INetworkCore {
 
     const metrics = metricsRegistry ? createNetworkCoreMetrics(metricsRegistry) : null;
     const peersData = new PeersData();
-    const peerRpcScores = new PeerRpcScoreStore(opts, metrics);
+    const peerRpcScores = new PeerRpcScoreStore(opts, metrics, logger);
     const statusCache = new LocalStatusCache(initialStatus);
 
     // Bind discv5's ENR to local metadata
@@ -193,13 +193,13 @@ export class NetworkCore implements INetworkCore {
     // should be called before AttnetsService constructor so that node subscribe to deterministic attnet topics
     await gossip.start();
 
-    const enr = opts.discv5?.enr;
-    const nodeId = enr ? fromHex(ENR.decodeTxt(enr).nodeId) : null;
+    const nodeId = computeNodeId(peerId);
     const attnetsService = new AttnetsService(config, clock, gossip, metadata, logger, metrics, nodeId, opts);
     const syncnetsService = new SyncnetsService(config, clock, gossip, metadata, logger, metrics, opts);
 
     const peerManager = await PeerManager.init(
       {
+        nodeId,
         libp2p,
         gossip: gossip,
         reqResp,

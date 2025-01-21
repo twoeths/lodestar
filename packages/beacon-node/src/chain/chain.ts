@@ -51,6 +51,8 @@ import {isOptimisticBlock} from "../util/forkChoice.js";
 import {Archiver} from "./archiver/archiver.js";
 import {CheckpointBalancesCache} from "./balancesCache.js";
 import {BeaconProposerCache} from "./beaconProposerCache.js";
+import {NodeId} from "../network/subnets/interface.js";
+import {getCustodyConfig} from "../util/dataColumns.js";
 import {BlockProcessor, ImportBlockOpts} from "./blocks/index.js";
 import {BlockInput} from "./blocks/types.js";
 import {BlsMultiThreadWorkerPool, BlsSingleThreadVerifier, IBlsVerifier} from "./bls/index.js";
@@ -147,7 +149,7 @@ export class BeaconChain implements IBeaconChain {
   readonly seenSyncCommitteeMessages = new SeenSyncCommitteeMessages();
   readonly seenContributionAndProof: SeenContributionAndProof;
   readonly seenAttestationDatas: SeenAttestationDatas;
-  readonly seenGossipBlockInput = new SeenGossipBlockInput();
+  readonly seenGossipBlockInput: SeenGossipBlockInput;
   // Seen cache for liveness checks
   readonly seenBlockAttesters = new SeenBlockAttesters();
 
@@ -178,6 +180,7 @@ export class BeaconChain implements IBeaconChain {
   constructor(
     opts: IChainOptions,
     {
+      nodeId,
       config,
       db,
       logger,
@@ -190,6 +193,7 @@ export class BeaconChain implements IBeaconChain {
       executionBuilder,
       historicalStateRegen,
     }: {
+      nodeId: NodeId;
       config: BeaconConfig;
       db: IBeaconDb;
       logger: Logger;
@@ -243,6 +247,8 @@ export class BeaconChain implements IBeaconChain {
     this.seenAggregatedAttestations = new SeenAggregatedAttestations(metrics);
     this.seenContributionAndProof = new SeenContributionAndProof(metrics);
     this.seenAttestationDatas = new SeenAttestationDatas(metrics, this.opts?.attDataCacheSlotDistance);
+    const custodyConfig = getCustodyConfig(nodeId, config);
+    this.seenGossipBlockInput = new SeenGossipBlockInput(custodyConfig);
 
     this.beaconProposerCache = new BeaconProposerCache(opts);
     this.checkpointBalancesCache = new CheckpointBalancesCache();

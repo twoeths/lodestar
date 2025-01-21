@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import {itBench, setBenchOpts} from "@dapplion/benchmark";
 import {config} from "@lodestar/config/default";
 import {LevelDbController} from "@lodestar/db";
@@ -88,6 +89,7 @@ describe.skip("verify+import blocks - range sync perf test", () => {
           stateArchiveMode: StateArchiveMode.Frequency,
         },
         {
+          nodeId: Buffer.alloc(32, crypto.randomBytes(32)),
           config: state.config,
           db,
           logger,

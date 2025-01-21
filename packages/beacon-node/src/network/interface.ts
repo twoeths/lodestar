@@ -28,16 +28,21 @@ import {
   capella,
   deneb,
   phase0,
+  peerdas,
 } from "@lodestar/types";
 import type {Datastore} from "interface-datastore";
 import {Libp2p as ILibp2p} from "libp2p";
 import {PeerIdStr} from "../util/peerId.js";
 import {BlobSidecarsByRootRequest} from "../util/types.js";
-import {INetworkCorePublic} from "./core/types.js";
+import {CustodyConfig} from "../util/dataColumns.js";
 import {INetworkEventBus} from "./events.js";
+import {INetworkCorePublic} from "./core/types.js";
 import {GossipType} from "./gossip/interface.js";
 import {PeerAction} from "./peers/index.js";
 import {PendingGossipsubMessage} from "./processor/types.js";
+import {NodeId} from "./subnets/interface.js";
+
+export type WithOptionalBytes<T> = {data: T; bytes: Uint8Array | null};
 
 /**
  * The architecture of the network looks like so:
@@ -49,10 +54,15 @@ import {PendingGossipsubMessage} from "./processor/types.js";
  */
 
 export interface INetwork extends INetworkCorePublic {
+  readonly nodeId: NodeId;
+  readonly peerId: PeerId;
+  readonly custodyConfig: CustodyConfig;
   readonly closed: boolean;
   events: INetworkEventBus;
 
   getConnectedPeers(): PeerIdStr[];
+  getConnectedPeerCustody(peerId: PeerIdStr): number[];
+  getConnectedPeerClientAgent(peerId: PeerIdStr): string;
   getConnectedPeerCount(): number;
   isSubscribedToGossipCoreTopics(): boolean;
   reportPeer(peer: PeerIdStr, action: PeerAction, actionName: string): void;
@@ -70,12 +80,21 @@ export interface INetwork extends INetworkCorePublic {
   ): Promise<WithBytes<SignedBeaconBlock>[]>;
   sendBlobSidecarsByRange(peerId: PeerIdStr, request: deneb.BlobSidecarsByRangeRequest): Promise<deneb.BlobSidecar[]>;
   sendBlobSidecarsByRoot(peerId: PeerIdStr, request: BlobSidecarsByRootRequest): Promise<deneb.BlobSidecar[]>;
+  sendDataColumnSidecarsByRange(
+    peerId: PeerIdStr,
+    request: peerdas.DataColumnSidecarsByRangeRequest
+  ): Promise<peerdas.DataColumnSidecar[]>;
+  sendDataColumnSidecarsByRoot(
+    peerId: PeerIdStr,
+    request: peerdas.DataColumnSidecarsByRootRequest
+  ): Promise<peerdas.DataColumnSidecar[]>;
 
   // Gossip
   publishBeaconBlock(signedBlock: SignedBeaconBlock): Promise<number>;
   publishBlobSidecar(blobSidecar: deneb.BlobSidecar): Promise<number>;
   publishBeaconAggregateAndProof(aggregateAndProof: SignedAggregateAndProof): Promise<number>;
   publishBeaconAttestation(attestation: SingleAttestation, subnet: SubnetID): Promise<number>;
+  publishDataColumnSidecar(dataColumnSideCar: peerdas.DataColumnSidecar): Promise<number>;
   publishVoluntaryExit(voluntaryExit: phase0.SignedVoluntaryExit): Promise<number>;
   publishBlsToExecutionChange(blsToExecutionChange: capella.SignedBLSToExecutionChange): Promise<number>;
   publishProposerSlashing(proposerSlashing: phase0.ProposerSlashing): Promise<number>;

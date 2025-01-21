@@ -7,12 +7,13 @@ import {
   ForkPostElectra,
   ForkPreBlobs,
 } from "@lodestar/params";
+import {ts as phase0} from "./phase0/index.js";
 import {ts as altair} from "./altair/index.js";
 import {ts as bellatrix} from "./bellatrix/index.js";
 import {ts as capella} from "./capella/index.js";
 import {ts as deneb} from "./deneb/index.js";
 import {ts as electra} from "./electra/index.js";
-import {ts as phase0} from "./phase0/index.js";
+import {ts as peerdas} from "./peerdas/index.js";
 import {Slot} from "./primitive/types.js";
 
 export * from "./primitive/types.js";
@@ -22,6 +23,7 @@ export {ts as bellatrix} from "./bellatrix/index.js";
 export {ts as capella} from "./capella/index.js";
 export {ts as deneb} from "./deneb/index.js";
 export {ts as electra} from "./electra/index.js";
+export {ts as peerdas} from "./peerdas/index.js";
 
 /** Common non-spec type to represent roots as strings */
 export type RootHex = string;
@@ -226,6 +228,36 @@ type TypesByFork = {
     AggregateAndProof: electra.AggregateAndProof;
     SignedAggregateAndProof: electra.SignedAggregateAndProof;
     ExecutionRequests: electra.ExecutionRequests;
+  };
+  [ForkName.peerdas]: {
+    BeaconBlockHeader: phase0.BeaconBlockHeader;
+    SignedBeaconBlockHeader: phase0.SignedBeaconBlockHeader;
+    BeaconBlock: peerdas.BeaconBlock;
+    BeaconBlockBody: peerdas.BeaconBlockBody;
+    BeaconState: peerdas.BeaconState;
+    SignedBeaconBlock: peerdas.SignedBeaconBlock;
+    Metadata: peerdas.Metadata;
+    LightClientHeader: peerdas.LightClientHeader;
+    LightClientBootstrap: peerdas.LightClientBootstrap;
+    LightClientUpdate: peerdas.LightClientUpdate;
+    LightClientFinalityUpdate: peerdas.LightClientFinalityUpdate;
+    LightClientOptimisticUpdate: peerdas.LightClientOptimisticUpdate;
+    LightClientStore: peerdas.LightClientStore;
+    BlindedBeaconBlock: peerdas.BlindedBeaconBlock;
+    BlindedBeaconBlockBody: peerdas.BlindedBeaconBlockBody;
+    SignedBlindedBeaconBlock: peerdas.SignedBlindedBeaconBlock;
+    ExecutionPayload: peerdas.ExecutionPayload;
+    ExecutionPayloadHeader: peerdas.ExecutionPayloadHeader;
+    BuilderBid: peerdas.BuilderBid;
+    SignedBuilderBid: peerdas.SignedBuilderBid;
+    SSEPayloadAttributes: peerdas.SSEPayloadAttributes;
+    BlockContents: peerdas.BlockContents;
+    SignedBlockContents: peerdas.SignedBlockContents;
+    ExecutionPayloadAndBlobsBundle: deneb.ExecutionPayloadAndBlobsBundle;
+    BlobsBundle: deneb.BlobsBundle;
+    Contents: deneb.Contents;
+    SyncCommittee: altair.SyncCommittee;
+    SyncAggregate: altair.SyncAggregate;
   };
 };
 

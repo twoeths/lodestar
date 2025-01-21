@@ -5,7 +5,9 @@ import {
   createChainConfig,
   createChainForkConfig,
 } from "@lodestar/config";
-import {NetworkName, getNetworkBeaconParams} from "../networks/index.js";
+import {DATA_COLUMN_SIDECAR_SUBNET_COUNT} from "@lodestar/params";
+import {readFile} from "../util/index.js";
+import {getNetworkBeaconParams, NetworkName} from "../networks/index.js";
 import {
   GlobalArgs,
   ITerminalPowArgs,
@@ -13,7 +15,6 @@ import {
   parseBeaconParamsArgs,
   parseTerminalPowArgs,
 } from "../options/index.js";
-import {readFile} from "../util/index.js";
 import {IBeaconParamsUnparsed} from "./types.js";
 
 type BeaconParamsArgs = {
@@ -39,7 +40,7 @@ export function getBeaconConfigFromArgs(args: GlobalArgs): {config: ChainForkCon
  * @see getBeaconParams
  */
 export function getBeaconParamsFromArgs(args: GlobalArgs): ChainConfig {
-  return getBeaconParams({
+  const beaconParams = getBeaconParams({
     network: args.network,
     paramsFile: args.paramsFile,
     additionalParamsCli: {
@@ -47,6 +48,15 @@ export function getBeaconParamsFromArgs(args: GlobalArgs): ChainConfig {
       ...parseTerminalPowArgs(args as ITerminalPowArgs),
     },
   });
+
+  // Temp
+  beaconParams["PEERDAS_FORK_EPOCH"] = beaconParams["EIP7594_FORK_EPOCH"];
+  beaconParams["PEERDAS_FORK_VERSION"] = beaconParams["EIP7594_FORK_VERSION"];
+
+  if (args.supernode) {
+    beaconParams["NODE_CUSTODY_REQUIREMENT"] = DATA_COLUMN_SIDECAR_SUBNET_COUNT;
+  }
+  return beaconParams;
 }
 
 /**

@@ -24,6 +24,8 @@ export type NetworkArgs = {
   mdns?: boolean;
   "network.maxPeers"?: number;
   "network.connectToDiscv5Bootnodes"?: boolean;
+  "network.onlyConnectToBiggerDataNodes"?: boolean;
+  "network.onlyConnectToMinimalCustodyOverlapNodes"?: boolean;
   "network.discv5FirstQueryDelayMs"?: number;
   "network.dontSendGossipAttestationsToForkchoice"?: boolean;
   "network.allowPublishToZeroPeers"?: boolean;
@@ -140,6 +142,8 @@ export function parseArgs(args: NetworkArgs): IBeaconNodeOptions["network"] {
       args.slotsToSubscribeBeforeAggregatorDuty ?? defaultOptions.network.slotsToSubscribeBeforeAggregatorDuty,
     disablePeerScoring: args.disablePeerScoring,
     connectToDiscv5Bootnodes: args["network.connectToDiscv5Bootnodes"],
+    onlyConnectToBiggerDataNodes: args["network.onlyConnectToBiggerDataNodes"],
+    onlyConnectToMinimalCustodyOverlapNodes: args["network.onlyConnectToMinimalCustodyOverlapNodes"],
     discv5FirstQueryDelayMs: args["network.discv5FirstQueryDelayMs"],
     dontSendGossipAttestationsToForkchoice: args["network.dontSendGossipAttestationsToForkchoice"],
     allowPublishToZeroPeers: args["network.allowPublishToZeroPeers"],
@@ -268,6 +272,20 @@ export const options: CliCommandOptions<NetworkArgs> = {
     description: "Attempt direct libp2p peer connection to discv5 bootnodes",
     hidden: true,
     defaultDescription: String(defaultOptions.network.connectToDiscv5Bootnodes === true),
+    group: "network",
+  },
+
+  "network.onlyConnectToBiggerDataNodes": {
+    type: "boolean",
+    description: "Only connect to nodes that can serve all data",
+    hidden: true,
+    group: "network",
+  },
+
+  "network.onlyConnectToMinimalCustodyOverlapNodes": {
+    type: "boolean",
+    description: "Only connect to those that can atleast serve minimal custody data to us",
+    hidden: true,
     group: "network",
   },
 

@@ -1,4 +1,7 @@
 import {toRootHex} from "@lodestar/utils";
+import {ForkName, NUMBER_OF_COLUMNS} from "@lodestar/params";
+import {toHex} from "@lodestar/utils";
+import {peerdas, ssz} from "@lodestar/types";
 import {BeaconChain} from "../chain.js";
 import {BlockInput, BlockInputType} from "./types.js";
 
@@ -30,23 +33,76 @@ export async function writeBlockInputToDb(this: BeaconChain, blocksInput: BlockI
     });
 
     if (blockInput.type === BlockInputType.availableData || blockInput.type === BlockInputType.dataPromise) {
-      const blobSidecars =
+      const blockData =
         blockInput.type === BlockInputType.availableData
-          ? blockInput.blockData.blobs
-          : // At this point of import blobs are available and can be safely awaited
-            (await blockInput.cachedData.availabilityPromise).blobs;
+          ? blockInput.blockData
+          : await blockInput.cachedData.availabilityPromise;
 
-      // NOTE: Old blobs are pruned on archive
-      fnPromises.push(this.db.blobSidecars.add({blockRoot, slot: block.message.slot, blobSidecars}));
-      this.logger.debug("Persisted blobSidecars to hot DB", {
-        blobsLen: blobSidecars.length,
-        slot: block.message.slot,
-        root: blockRootHex,
-      });
+      // NOTE: Old data is pruned on archive
+      if (blockData.fork === ForkName.deneb) {
+        const blobSidecars = blockData.blobs;
+        fnPromises.push(this.db.blobSidecars.add({blockRoot, slot: block.message.slot, blobSidecars}));
+        this.logger.debug("Persisted blobSidecars to hot DB", {
+          blobsLen: blobSidecars.length,
+          slot: block.message.slot,
+          root: blockRootHex,
+        });
+      } else {
+        const {custodyConfig} = this.seenGossipBlockInput;
+        const {custodyColumnsLen, custodyColumnsIndex, custodyColumns} = custodyConfig;
+        const blobsLen = (block.message as peerdas.BeaconBlock).body.blobKzgCommitments.length;
+        let dataColumnsLen, dataColumnsIndex;
+        if (blobsLen === 0) {
+          dataColumnsLen = 0;
+          dataColumnsIndex = new Uint8Array(NUMBER_OF_COLUMNS);
+        } else {
+          dataColumnsLen = custodyColumnsLen;
+          dataColumnsIndex = custodyColumnsIndex;
+        }
+
+        const dataColumnSidecars = blockData.dataColumns.filter((dataColumnSidecar) =>
+          custodyColumns.includes(dataColumnSidecar.index)
+        );
+        if (dataColumnSidecars.length !== dataColumnsLen) {
+          console.log({
+            custodyColumns,
+            blockDataColumns: blockData.dataColumns.map((dataColumnSidecar) => dataColumnSidecar.index),
+          });
+          throw Error(
+            `Invalid dataColumnSidecars=${dataColumnSidecars.length} for custody expected custodyColumnsLen=${dataColumnsLen}`
+          );
+        }
+
+        const dataColumnsSize =
+          ssz.peerdas.DataColumnSidecar.minSize +
+          blobsLen * (ssz.peerdas.Cell.fixedSize + ssz.deneb.KZGCommitment.fixedSize + ssz.deneb.KZGProof.fixedSize);
+        const slot = block.message.slot;
+        const writeData = {
+          blockRoot,
+          slot,
+          dataColumnsLen,
+          dataColumnsSize,
+          dataColumnsIndex,
+          dataColumnSidecars,
+        };
+        fnPromises.push(this.db.dataColumnSidecars.add(writeData));
+
+        this.logger.debug("Persisted dataColumnSidecars to hot DB", {
+          dataColumnsSize,
+          dataColumnsLen,
+          dataColumnSidecars: dataColumnSidecars.length,
+          slot: block.message.slot,
+          root: blockRootHex,
+        });
+      }
     }
   }
 
   await Promise.all(fnPromises);
+  this.logger.debug("Persisted blocksInput to db", {
+    blocksInput: blocksInput.length,
+    slots: blocksInput.map((blockInput) => blockInput.block.message.slot).join(" "),
+  });
 }
 
 /**
@@ -55,17 +111,49 @@ export async function writeBlockInputToDb(this: BeaconChain, blocksInput: BlockI
 export async function removeEagerlyPersistedBlockInputs(this: BeaconChain, blockInputs: BlockInput[]): Promise<void> {
   const blockToRemove = [];
   const blobsToRemove = [];
+  const dataColumnsToRemove = [];
 
   for (const blockInput of blockInputs) {
     const {block, type} = blockInput;
-    const blockRoot = this.config.getForkTypes(block.message.slot).BeaconBlock.hashTreeRoot(block.message);
-    const blockRootHex = toRootHex(blockRoot);
+    const slot = block.message.slot;
+    const blockRoot = this.config.getForkTypes(slot).BeaconBlock.hashTreeRoot(block.message);
+    const blockRootHex = toHex(blockRoot);
     if (!this.forkChoice.hasBlockHex(blockRootHex)) {
       blockToRemove.push(block);
 
       if (type === BlockInputType.availableData) {
-        const blobSidecars = blockInput.blockData.blobs;
-        blobsToRemove.push({blockRoot, slot: block.message.slot, blobSidecars});
+        const {blockData} = blockInput;
+        if (blockData.fork === ForkName.deneb) {
+          const blobSidecars = blockData.blobs;
+          blobsToRemove.push({blockRoot, slot, blobSidecars});
+        } else {
+          const {custodyConfig} = this.seenGossipBlockInput;
+          const {
+            custodyColumnsLen: dataColumnsLen,
+            custodyColumnsIndex: dataColumnsIndex,
+            custodyColumns,
+          } = custodyConfig;
+          const dataColumnSidecars = blockData.dataColumns.filter((dataColumnSidecar) =>
+            custodyColumns.includes(dataColumnSidecar.index)
+          );
+          if (dataColumnSidecars.length !== dataColumnsLen) {
+            throw Error(
+              `Invalid dataColumnSidecars=${dataColumnSidecars.length} for custody expected custodyColumnsLen=${dataColumnsLen}`
+            );
+          }
+
+          const blobsLen = (block.message as peerdas.BeaconBlock).body.blobKzgCommitments.length;
+          const dataColumnsSize = ssz.peerdas.Cell.fixedSize * blobsLen;
+
+          dataColumnsToRemove.push({
+            blockRoot,
+            slot,
+            dataColumnsLen,
+            dataColumnsSize,
+            dataColumnsIndex,
+            dataColumnSidecars,
+          });
+        }
       }
     }
   }
@@ -74,5 +162,6 @@ export async function removeEagerlyPersistedBlockInputs(this: BeaconChain, block
     // TODO: Batch DB operations not with Promise.all but with level db ops
     this.db.block.batchRemove(blockToRemove),
     this.db.blobSidecars.batchRemove(blobsToRemove),
+    this.db.dataColumnSidecars.batchRemove(dataColumnsToRemove),
   ]);
 }

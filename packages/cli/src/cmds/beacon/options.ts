@@ -119,6 +119,7 @@ export const beaconExtraOptions: CliCommandOptions<BeaconExtraArgs> = {
 
   persistNetworkIdentity: {
     description: "Whether to reuse the same peer-id across restarts",
+    default: true,
     type: "boolean",
   },
 

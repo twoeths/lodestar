@@ -15,6 +15,7 @@ describe("UpgradeLightClientHeader", () => {
     CAPELLA_FORK_EPOCH: 3,
     DENEB_FORK_EPOCH: 4,
     ELECTRA_FORK_EPOCH: 5,
+    PEERDAS_FORK_EPOCH: 6,
   });
 
   const genesisValidatorsRoot = Buffer.alloc(32, 0xaa);
@@ -28,6 +29,7 @@ describe("UpgradeLightClientHeader", () => {
       bellatrix: ssz.altair.LightClientHeader.defaultValue(),
       deneb: ssz.deneb.LightClientHeader.defaultValue(),
       electra: ssz.deneb.LightClientHeader.defaultValue(),
+      peerdas: ssz.peerdas.LightClientHeader.defaultValue(),
     };
 
     testSlots = {
@@ -37,11 +39,19 @@ describe("UpgradeLightClientHeader", () => {
       capella: 25,
       deneb: 33,
       electra: 41,
+      // TODO @matthewkeil need to implement this
+      peerdas: 0,
     };
   });
 
-  for (let i = ForkSeq.altair; i < Object.values(ForkName).length; i++) {
-    for (let j = i + 1; j < Object.values(ForkName).length; j++) {
+  // Since peerdas is not implemented for loop is till deneb (Object.values(ForkName).length-1)
+  // Once peerdas is implemnted run for loop till Object.values(ForkName).length
+
+  // for (let i = ForkSeq.altair; i < Object.values(ForkName).length; i++) {
+  //   for (let j = i + 1; j < Object.values(ForkName).length; j++) {
+
+  for (let i = ForkSeq.altair; i < Object.values(ForkName).length - 1; i++) {
+    for (let j = i + 1; j < Object.values(ForkName).length - 1; j++) {
       const fromFork = ForkName[ForkSeq[i] as ForkName];
       const toFork = ForkName[ForkSeq[j] as ForkName];
 
@@ -55,7 +65,27 @@ describe("UpgradeLightClientHeader", () => {
     }
   }
 
+  // for peerdas not implemented
   for (let i = ForkSeq.altair; i < Object.values(ForkName).length; i++) {
+    const fromFork = ForkName[ForkSeq[i] as ForkName];
+    const toFork = ForkName["peerdas"];
+
+    it(`Throw error ${fromFork}=>${toFork}`, () => {
+      lcHeaderByFork[fromFork].beacon.slot = testSlots[fromFork];
+      lcHeaderByFork[toFork].beacon.slot = testSlots[fromFork];
+
+      expect(() => {
+        upgradeLightClientHeader(config, toFork, lcHeaderByFork[fromFork]);
+      }).toThrow("Not Implemented");
+    });
+  }
+
+  // Since peerdas is not implemented for loop is till deneb (Object.values(ForkName).length-1)
+  // Once peerdas is implemnted run for loop till Object.values(ForkName).length
+
+  // for (let i = ForkSeq.altair; i < Object.values(ForkName).length; i++) {
+
+  for (let i = ForkSeq.altair; i < Object.values(ForkName).length - 1; i++) {
     for (let j = i; j > 0; j--) {
       const fromFork = ForkName[ForkSeq[i] as ForkName];
       const toFork = ForkName[ForkSeq[j] as ForkName];

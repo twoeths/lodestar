@@ -119,10 +119,10 @@ describe("unavailableBeaconBlobsByRoot", () => {
       config,
       network as unknown as INetwork,
       peerId,
+      "peerClient",
       unavailableBlockInput,
       {
         executionEngine: executionEngine as unknown as IExecutionEngine,
-        metrics: null,
         engineGetBlobsCache,
       }
     );

@@ -10,6 +10,8 @@ import {
   BlockInputType,
   BlockSource,
   CachedData,
+  BlockInputBlobs,
+  BlockInputCachedData,
 } from "../../../../src/chain/blocks/types.js";
 import {ZERO_HASH, ZERO_HASH_HEX} from "../../../../src/constants/constants.js";
 import {ReqRespBridgeEventData} from "../../../../src/network/core/events.js";
@@ -23,9 +25,9 @@ import {
   ReqRespMethod,
   networkEventDirection,
 } from "../../../../src/network/index.js";
-import {CommitteeSubscription} from "../../../../src/network/subnets/interface.js";
 import {IteratorEventType} from "../../../../src/util/asyncIterableToEvents.js";
 import {EventDirection} from "../../../../src/util/workerEvents.js";
+import {CommitteeSubscription} from "../../../../src/network/subnets/interface.js";
 import {getValidPeerId, validPeerIdStr} from "../../../utils/peer.js";
 import {EchoWorker, getEchoWorker} from "./workerEchoHandler.js";
 
@@ -78,7 +80,7 @@ describe("data serialization through worker boundary", () => {
 
   // Defining tests in this notation ensures that any event data is tested and probably safe to send
   const networkEventData = filterByUsedEvents<NetworkEventData>(networkEventDirection, {
-    [NetworkEvent.peerConnected]: {peer, status: statusZero},
+    [NetworkEvent.peerConnected]: {peer, status: statusZero, dataColumns: []},
     [NetworkEvent.peerDisconnected]: {peer},
     [NetworkEvent.reqRespRequest]: {
       request: {method: ReqRespMethod.Status, body: statusZero},
@@ -251,16 +253,21 @@ describe("data serialization through worker boundary", () => {
 type Resolves<T extends Promise<unknown>> = T extends Promise<infer U> ? (U extends void ? null : U) : never;
 
 function getEmptyBlockInput(): BlockInput {
+  let resolveAvailability: ((blobs: BlockInputBlobs) => void) | null = null;
+  const availabilityPromise = new Promise<BlockInputBlobs>((resolveCB) => {
+    resolveAvailability = resolveCB;
+  });
+  if (resolveAvailability === null) {
+    throw Error("Promise Constructor was not executed immediately");
+  }
+  const blobsCache = new Map();
+
   const cachedData = {
     fork: ForkName.deneb,
-    blobsCache: new Map(),
-    // Actual promise raise this error when used in `worker.postMessage`
-    // DataCloneError: #<Promise> could not be cloned.
-    availabilityPromise: null,
-    // Actual function raise this error when used in `worker.postMessage`
-    // DataCloneError: function () { [native code] } could not be cloned
-    resolveAvailability: null,
-  } as unknown as CachedData;
+    blobsCache,
+    availabilityPromise,
+    resolveAvailability,
+  } as BlockInputCachedData;
   return {
     type: BlockInputType.dataPromise,
     block: ssz.deneb.SignedBeaconBlock.defaultValue(),

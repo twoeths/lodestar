@@ -4,7 +4,6 @@ import {PeerId} from "@libp2p/interface";
 import {routes} from "@lodestar/api";
 import {BeaconConfig} from "@lodestar/config";
 import {LoggerNode} from "@lodestar/logger/node";
-import {ForkSeq} from "@lodestar/params";
 import {ResponseIncoming} from "@lodestar/reqresp";
 import {computeStartSlotAtEpoch, computeTimeAtSlot} from "@lodestar/state-transition";
 import {
@@ -23,25 +22,32 @@ import {
   capella,
   deneb,
   phase0,
+  peerdas,
+  ColumnIndex,
 } from "@lodestar/types";
 import {sleep} from "@lodestar/utils";
+import {rutes} from "@lodestar/api";
+import {ForkSeq, MAX_BLOBS_PER_BLOCK, NUMBER_OF_COLUMNS, DATA_COLUMN_SIDECAR_SUBNET_COUNT} from "@lodestar/params";
+import {Metrics, RegistryMetricCreator} from "../metrics/index.js";
 import {IBeaconChain} from "../chain/index.js";
 import {IBeaconDb} from "../db/interface.js";
-import {Metrics, RegistryMetricCreator} from "../metrics/index.js";
 import {IClock} from "../util/clock.js";
 import {PeerIdStr, peerIdToString} from "../util/peerId.js";
 import {BlobSidecarsByRootRequest} from "../util/types.js";
-import {INetworkCore, NetworkCore, WorkerNetworkCore} from "./core/index.js";
-import {INetworkEventBus, NetworkEvent, NetworkEventBus, NetworkEventData} from "./events.js";
-import {getActiveForks} from "./forks.js";
-import {GossipHandlers, GossipTopicMap, GossipType, GossipTypeMap} from "./gossip/index.js";
-import {getGossipSSZType, gossipTopicIgnoreDuplicatePublishError, stringifyGossipTopic} from "./gossip/topic.js";
-import {INetwork} from "./interface.js";
+import {getCustodyConfig, CustodyConfig} from "../util/dataColumns.js";
 import {NetworkOptions} from "./options.js";
-import {PeerAction, PeerScoreStats} from "./peers/index.js";
-import {AggregatorTracker} from "./processor/aggregatorTracker.js";
-import {NetworkProcessor, PendingGossipsubMessage} from "./processor/index.js";
+import {INetwork} from "./interface.js";
 import {ReqRespMethod} from "./reqresp/index.js";
+import {GossipHandlers, GossipTopicMap, GossipType, GossipTypeMap} from "./gossip/index.js";
+import {PeerAction, PeerScoreStats} from "./peers/index.js";
+import {INetworkEventBus, NetworkEvent, NetworkEventBus, NetworkEventData} from "./events.js";
+import {CommitteeSubscription, NodeId} from "./subnets/index.js";
+import {isPublishToZeroPeersError} from "./util.js";
+import {NetworkProcessor, PendingGossipsubMessage} from "./processor/index.js";
+import {INetworkCore, NetworkCore, WorkerNetworkCore} from "./core/index.js";
+import {getActiveForks} from "./forks.js";
+import {getGossipSSZType, gossipTopicIgnoreDuplicatePublishError, stringifyGossipTopic} from "./gossip/topic.js";
+import {AggregatorTracker} from "./processor/aggregatorTracker.js";
 import {GetReqRespHandlerFn, Version, requestSszTypeByMethod, responseSszTypeByMethod} from "./reqresp/types.js";
 import {
   collectExactOneTyped,
@@ -49,12 +55,11 @@ import {
   collectMaxResponseTypedWithBytes,
 } from "./reqresp/utils/collect.js";
 import {collectSequentialBlocksInRange} from "./reqresp/utils/collectSequentialBlocksInRange.js";
-import {CommitteeSubscription} from "./subnets/index.js";
-import {isPublishToZeroPeersError} from "./util.js";
 
 type NetworkModules = {
   opts: NetworkOptions;
   peerId: PeerId;
+  nodeId: NodeId;
   config: BeaconConfig;
   logger: LoggerNode;
   chain: IBeaconChain;
@@ -68,6 +73,7 @@ export type NetworkInitModules = {
   opts: NetworkOptions;
   config: BeaconConfig;
   peerId: PeerId;
+  nodeId: NodeId;
   peerStoreDir?: string;
   logger: LoggerNode;
   metrics: Metrics | null;
@@ -88,6 +94,8 @@ export type NetworkInitModules = {
  */
 export class Network implements INetwork {
   readonly peerId: PeerId;
+  readonly nodeId: NodeId;
+  readonly custodyConfig: CustodyConfig;
   // TODO: Make private
   readonly events: INetworkEventBus;
 
@@ -104,12 +112,15 @@ export class Network implements INetwork {
   private readonly aggregatorTracker: AggregatorTracker;
 
   private subscribedToCoreTopics = false;
-  private connectedPeers = new Set<PeerIdStr>();
+  private connectedPeers = new Map<PeerIdStr, ColumnIndex[]>();
+  private connectedPeerClients = new Map<PeerIdStr, string>();
   private regossipBlsChangesPromise: Promise<void> | null = null;
 
   constructor(modules: NetworkModules) {
     this.peerId = modules.peerId;
+    this.nodeId = modules.nodeId;
     this.config = modules.config;
+    this.custodyConfig = getCustodyConfig(modules.nodeId, modules.config);
     this.logger = modules.logger;
     this.chain = modules.chain;
     this.clock = modules.chain.clock;
@@ -139,6 +150,7 @@ export class Network implements INetwork {
     db,
     gossipHandlers,
     peerId,
+    nodeId,
     peerStoreDir,
     getReqRespHandler,
   }: NetworkInitModules): Promise<Network> {
@@ -194,6 +206,7 @@ export class Network implements INetwork {
     return new Network({
       opts,
       peerId,
+      nodeId,
       config,
       logger,
       chain,
@@ -262,7 +275,23 @@ export class Network implements INetwork {
 
   // REST API queries
   getConnectedPeers(): PeerIdStr[] {
-    return Array.from(this.connectedPeers.values());
+    return Array.from(this.connectedPeers.keys());
+  }
+  getConnectedPeerCustody(peerId: PeerIdStr): number[] {
+    const columns = this.connectedPeers.get(peerId);
+    if (columns === undefined) {
+      throw Error("peerId not in connectedPeers");
+    }
+
+    return columns;
+  }
+  getConnectedPeerClientAgent(peerId: PeerIdStr): string {
+    const clientAgent = this.connectedPeerClients.get(peerId);
+    if (clientAgent === undefined) {
+      throw Error("clientAgent not in connectedPeerClients");
+    }
+
+    return clientAgent;
   }
   getConnectedPeerCount(): number {
     return this.connectedPeers.size;
@@ -319,6 +348,19 @@ export class Network implements INetwork {
     return this.publishGossip<GossipType.blob_sidecar>({type: GossipType.blob_sidecar, fork, subnet}, blobSidecar, {
       ignoreDuplicatePublishError: true,
     });
+  }
+
+  async publishDataColumnSidecar(dataColumnSidecar: peerdas.DataColumnSidecar): Promise<number> {
+    const slot = dataColumnSidecar.signedBlockHeader.message.slot;
+    const fork = this.config.getForkName(slot);
+    const index = dataColumnSidecar.index % DATA_COLUMN_SIDECAR_SUBNET_COUNT;
+    return this.publishGossip<GossipType.data_column_sidecar>(
+      {type: GossipType.data_column_sidecar, fork, index},
+      dataColumnSidecar,
+      {
+        ignoreDuplicatePublishError: true,
+      }
+    );
   }
 
   async publishBeaconAggregateAndProof(aggregateAndProof: SignedAggregateAndProof): Promise<number> {
@@ -519,6 +561,29 @@ export class Network implements INetwork {
     );
   }
 
+  async sendDataColumnSidecarsByRange(
+    peerId: PeerIdStr,
+    request: peerdas.DataColumnSidecarsByRangeRequest
+  ): Promise<peerdas.DataColumnSidecar[]> {
+    return collectMaxResponseTyped(
+      this.sendReqRespRequest(peerId, ReqRespMethod.DataColumnSidecarsByRange, [Version.V1], request),
+      // request's count represent the slots, so the actual max count received could be slots * blobs per slot
+      request.count * NUMBER_OF_COLUMNS,
+      responseSszTypeByMethod[ReqRespMethod.DataColumnSidecarsByRange]
+    );
+  }
+
+  async sendDataColumnSidecarsByRoot(
+    peerId: PeerIdStr,
+    request: peerdas.DataColumnSidecarsByRootRequest
+  ): Promise<peerdas.DataColumnSidecar[]> {
+    return collectMaxResponseTyped(
+      this.sendReqRespRequest(peerId, ReqRespMethod.DataColumnSidecarsByRoot, [Version.V1], request),
+      request.length,
+      responseSszTypeByMethod[ReqRespMethod.DataColumnSidecarsByRoot]
+    );
+  }
+
   private sendReqRespRequest<Req>(
     peerId: PeerIdStr,
     method: ReqRespMethod,
@@ -632,7 +697,9 @@ export class Network implements INetwork {
   };
 
   private onPeerConnected = (data: NetworkEventData[NetworkEvent.peerConnected]): void => {
-    this.connectedPeers.add(data.peer);
+    this.logger.warn("onPeerConnected", {peer: data.peer, dataColumns: data.dataColumns.join(" ")});
+    this.connectedPeers.set(data.peer, data.dataColumns);
+    this.connectedPeerClients.set(data.peer, data.clientAgent);
   };
 
   private onPeerDisconnected = (data: NetworkEventData[NetworkEvent.peerDisconnected]): void => {

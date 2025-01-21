@@ -1,4 +1,6 @@
 import path from "node:path";
+import crypto from "node:crypto";
+import {expect} from "vitest";
 import {toHexString} from "@chainsafe/ssz";
 import {createBeaconConfig} from "@lodestar/config";
 import {CheckpointWithHex, ForkChoice} from "@lodestar/fork-choice";
@@ -17,7 +19,6 @@ import {
   sszTypesFor,
 } from "@lodestar/types";
 import {bnToNum, fromHex} from "@lodestar/utils";
-import {expect} from "vitest";
 import {
   AttestationImportOpt,
   BlobSidecarValidation,
@@ -109,6 +110,7 @@ const forkChoiceTest =
             proposerBoostReorg: true,
           },
           {
+            nodeId: Buffer.alloc(32, crypto.randomBytes(32)),
             config: createBeaconConfig(config, state.genesisValidatorsRoot),
             db: getMockedBeaconDb(),
             logger,

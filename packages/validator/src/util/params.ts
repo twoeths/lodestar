@@ -72,6 +72,7 @@ function getSpecCriticalParams(localConfig: ChainConfig): Record<keyof ConfigWit
   const capellaForkRelevant = localConfig.CAPELLA_FORK_EPOCH < Infinity;
   const denebForkRelevant = localConfig.DENEB_FORK_EPOCH < Infinity;
   const electraForkRelevant = localConfig.ELECTRA_FORK_EPOCH < Infinity;
+  const peerdasForkRelevant = localConfig.PEERDAS_FORK_EPOCH < Infinity;
 
   return {
     // # Config
@@ -107,6 +108,12 @@ function getSpecCriticalParams(localConfig: ChainConfig): Record<keyof ConfigWit
     // electra
     ELECTRA_FORK_VERSION: electraForkRelevant,
     ELECTRA_FORK_EPOCH: electraForkRelevant,
+
+    // peerdas
+    PEERDAS_FORK_VERSION: peerdasForkRelevant,
+    PEERDAS_FORK_EPOCH: peerdasForkRelevant,
+    EIP7594_FORK_VERSION: peerdasForkRelevant,
+    EIP7594_FORK_EPOCH: peerdasForkRelevant,
 
     // Time parameters
     SECONDS_PER_SLOT: true,
@@ -242,5 +249,18 @@ function getSpecCriticalParams(localConfig: ChainConfig): Record<keyof ConfigWit
     MAX_PER_EPOCH_ACTIVATION_EXIT_CHURN_LIMIT: electraForkRelevant,
     MIN_PER_EPOCH_CHURN_LIMIT_ELECTRA: electraForkRelevant,
     MAX_BLOBS_PER_BLOCK_ELECTRA: electraForkRelevant,
+
+    // # PeerdasPreset
+    /////////////////
+    FIELD_ELEMENTS_PER_CELL: peerdasForkRelevant,
+    FIELD_ELEMENTS_PER_EXT_BLOB: peerdasForkRelevant,
+    KZG_COMMITMENTS_INCLUSION_PROOF_DEPTH: peerdasForkRelevant,
+    MAX_REQUEST_DATA_COLUMN_SIDECARS: peerdasForkRelevant,
+    DATA_COLUMN_SIDECAR_SUBNET_COUNT: peerdasForkRelevant,
+
+    // Peerdas
+    SAMPLES_PER_SLOT: peerdasForkRelevant,
+    CUSTODY_REQUIREMENT: peerdasForkRelevant,
+    NODE_CUSTODY_REQUIREMENT: false,
   };
 }

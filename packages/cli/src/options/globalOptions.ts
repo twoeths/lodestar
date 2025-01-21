@@ -11,6 +11,7 @@ type GlobalSingleArgs = {
   preset: string;
   presetFile?: string;
   rcConfig?: string;
+  supernode?: boolean;
 };
 
 export const defaultNetwork: NetworkName = "mainnet";
@@ -49,6 +50,11 @@ const globalSingleOptions: CliCommandOptions<GlobalSingleArgs> = {
   rcConfig: {
     description: "RC file to supplement command line args, accepted formats: .yml, .yaml, .json",
     type: "string",
+  },
+
+  supernode: {
+    description: "custody all subnets, alias to params.NODE_CUSTODY_REQUIREMENT for all subnets",
+    type: "boolean",
   },
 };
 

@@ -48,6 +48,12 @@ export const chainConfig: ChainConfig = {
   ELECTRA_FORK_VERSION: b("0x05000001"),
   ELECTRA_FORK_EPOCH: Infinity,
 
+  // Peerdas
+  PEERDAS_FORK_VERSION: b("0x06000001"),
+  PEERDAS_FORK_EPOCH: Infinity,
+  EIP7594_FORK_VERSION: b("0x06000001"),
+  EIP7594_FORK_EPOCH: Infinity,
+
   // Time parameters
   // ---------------------------------------------------------------
   // [customized] Faster for testing purposes
@@ -112,4 +118,9 @@ export const chainConfig: ChainConfig = {
   MAX_BLOBS_PER_BLOCK_ELECTRA: 9,
   // MAX_REQUEST_BLOCKS_DENEB * MAX_BLOBS_PER_BLOCK_ELECTRA
   MAX_REQUEST_BLOB_SIDECARS_ELECTRA: 1152,
+
+  // Peerdas
+  SAMPLES_PER_SLOT: 8,
+  CUSTODY_REQUIREMENT: 4,
+  NODE_CUSTODY_REQUIREMENT: 1,
 };

@@ -11,14 +11,14 @@ import {IReqRespBeaconNodePeerManager, PeerManager, PeerRpcScoreStore} from "../
 import {PeersData} from "../../../../src/network/peers/peersData.js";
 import {ReqRespMethod} from "../../../../src/network/reqresp/ReqRespBeaconNode.js";
 import {LocalStatusCache} from "../../../../src/network/statusCache.js";
-import {IAttnetsService} from "../../../../src/network/subnets/index.js";
-import {Clock} from "../../../../src/util/clock.js";
-import {waitForEvent} from "../../../utils/events/resolver.js";
-import {testLogger} from "../../../utils/logger.js";
 import {createNode} from "../../../utils/network.js";
 import {getAttnets, getSyncnets} from "../../../utils/network.js";
-import {getValidPeerId} from "../../../utils/peer.js";
 import {generateState} from "../../../utils/state.js";
+import {waitForEvent} from "../../../utils/events/resolver.js";
+import {testLogger} from "../../../utils/logger.js";
+import {getValidPeerId} from "../../../utils/peer.js";
+import {IAttnetsService, computeNodeId} from "../../../../src/network/subnets/index.js";
+import {Clock} from "../../../../src/util/clock.js";
 
 const logger = testLogger("peerManager");
 
@@ -81,6 +81,7 @@ describe("network / peers / PeerManager", () => {
         syncnetsService: mockSubnetsService,
         gossip: {getScore: () => 0, scoreParams: {decayInterval: 1000}} as unknown as Eth2Gossipsub,
         peersData: new PeersData(),
+        nodeId: computeNodeId(peerId1),
       },
       {
         targetPeers: 30,

@@ -6,7 +6,16 @@ import {ErrorAborted, Logger} from "@lodestar/utils";
 import {Metrics} from "../../metrics/metrics.js";
 import {BlockError, BlockErrorCode} from "../errors/index.js";
 import {validateBlobSidecars} from "../validation/blobSidecar.js";
-import {BlobSidecarValidation, BlockInput, BlockInputType, ImportBlockOpts, getBlockInput} from "./types.js";
+import {
+  BlockInputAvailableData,
+  BlobSidecarValidation,
+  BlockInput,
+  BlockInputType,
+  ImportBlockOpts,
+  getBlockInput,
+} from "./types.js";
+import {ForkName} from "@lodestar/params";
+import {validateDataColumnsSidecars} from "../validation/dataColumnSidecar.js";
 
 // we can now wait for full 12 seconds because unavailable block sync will try pulling
 // the blobs from the network anyway after 500ms of seeing the block
@@ -93,27 +102,37 @@ async function maybeValidateBlobs(
       // run full validation
       const {block} = blockInput;
       const blockSlot = block.message.slot;
-
-      const blobsData =
-        blockInput.type === BlockInputType.availableData
-          ? blockInput.blockData
-          : await raceWithCutoff(chain, blockInput, blockInput.cachedData.availabilityPromise, signal);
-      const {blobs} = blobsData;
-
       const {blobKzgCommitments} = (block as deneb.SignedBeaconBlock).message.body;
       const beaconBlockRoot = chain.config.getForkTypes(blockSlot).BeaconBlock.hashTreeRoot(block.message);
+      const blockData =
+        blockInput.type === BlockInputType.availableData
+          ? blockInput.blockData
+          : await raceWithCutoff(
+              chain,
+              blockInput,
+              blockInput.cachedData.availabilityPromise as Promise<BlockInputAvailableData>,
+              signal
+            );
 
-      // if the blob siddecars have been individually verified then we can skip kzg proof check
-      // but other checks to match blobs with block data still need to be performed
-      const skipProofsCheck = opts.validBlobSidecars === BlobSidecarValidation.Individual;
-      validateBlobSidecars(blockSlot, beaconBlockRoot, blobKzgCommitments, blobs, {skipProofsCheck});
+      if (blockData.fork === ForkName.deneb) {
+        const {blobs} = blockData;
+
+        // if the blob siddecars have been individually verified then we can skip kzg proof check
+        // but other checks to match blobs with block data still need to be performed
+        const skipProofsCheck = opts.validBlobSidecars === BlobSidecarValidation.Individual;
+        validateBlobSidecars(blockSlot, beaconBlockRoot, blobKzgCommitments, blobs, {skipProofsCheck});
+      } else if (blockData.fork === ForkName.peerdas) {
+        const {dataColumns} = blockData;
+        const skipProofsCheck = opts.validBlobSidecars === BlobSidecarValidation.Individual;
+        validateDataColumnsSidecars(blockSlot, beaconBlockRoot, blobKzgCommitments, dataColumns, {skipProofsCheck});
+      }
 
       const availableBlockInput = getBlockInput.availableData(
         chain.config,
         blockInput.block,
         blockInput.source,
         blockInput.blockBytes,
-        blobsData
+        blockData
       );
       return {dataAvailabilityStatus: DataAvailabilityStatus.Available, availableBlockInput: availableBlockInput};
     }

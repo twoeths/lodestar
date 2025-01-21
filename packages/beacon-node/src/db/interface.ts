@@ -18,6 +18,8 @@ import {
   SyncCommitteeRepository,
   SyncCommitteeWitnessRepository,
   VoluntaryExitRepository,
+  DataColumnSidecarsRepository,
+  DataColumnSidecarsArchiveRepository,
 } from "./repositories/index.js";
 import {PreGenesisState, PreGenesisStateLastProcessedBlock} from "./single/index.js";
 
@@ -34,6 +36,8 @@ export interface IBeaconDb {
 
   blobSidecars: BlobSidecarsRepository;
   blobSidecarsArchive: BlobSidecarsArchiveRepository;
+  dataColumnSidecars: DataColumnSidecarsRepository;
+  dataColumnSidecarsArchive: DataColumnSidecarsArchiveRepository;
 
   // finalized states
   stateArchive: StateArchiveRepository;

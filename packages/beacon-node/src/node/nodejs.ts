@@ -22,8 +22,9 @@ import {Network, getReqRespHandlers} from "../network/index.js";
 import {BackfillSync} from "../sync/backfill/index.js";
 import {BeaconSync, IBeaconSync} from "../sync/index.js";
 import {TrustedFileMode, initCKZG, loadEthereumTrustedSetup} from "../util/kzg.js";
-import {runNodeNotifier} from "./notifier.js";
+import {NodeId} from "../network/subnets/interface.js";
 import {IBeaconNodeOptions} from "./options.js";
+import {runNodeNotifier} from "./notifier.js";
 
 export * from "./options.js";
 
@@ -50,6 +51,7 @@ export type BeaconNodeInitModules = {
   logger: LoggerNode;
   processShutdownCallback: ProcessShutdownCallback;
   peerId: PeerId;
+  nodeId: NodeId;
   peerStoreDir?: string;
   anchorState: BeaconStateAllForks;
   wsCheckpoint?: phase0.Checkpoint;
@@ -147,6 +149,7 @@ export class BeaconNode {
     logger,
     processShutdownCallback,
     peerId,
+    nodeId,
     peerStoreDir,
     anchorState,
     wsCheckpoint,
@@ -161,7 +164,7 @@ export class BeaconNode {
     // If deneb is configured, load the trusted setup
     if (config.DENEB_FORK_EPOCH < Infinity) {
       await initCKZG();
-      loadEthereumTrustedSetup(TrustedFileMode.Txt, opts.chain.trustedSetup);
+      loadEthereumTrustedSetup(opts.chain.trustedSetupPrecompute, opts.chain.trustedSetup);
     }
 
     // Prune hot db repos
@@ -207,6 +210,7 @@ export class BeaconNode {
     });
 
     const chain = new BeaconChain(opts.chain, {
+      nodeId,
       config,
       db,
       logger: logger.child({module: LoggerModule.chain}),
@@ -244,6 +248,7 @@ export class BeaconNode {
       chain,
       db,
       peerId,
+      nodeId,
       peerStoreDir,
       getReqRespHandler: getReqRespHandlers({db, chain}),
     });

@@ -1,9 +1,9 @@
-import {BitArray} from "@chainsafe/ssz";
+import {BitArray, toHexString} from "@chainsafe/ssz";
 import {Connection, PeerId} from "@libp2p/interface";
 import {BeaconConfig} from "@lodestar/config";
 import {LoggerNode} from "@lodestar/logger/node";
 import {SYNC_COMMITTEE_SUBNET_COUNT} from "@lodestar/params";
-import {Metadata, altair, phase0} from "@lodestar/types";
+import {Metadata, altair, phase0, peerdas} from "@lodestar/types";
 import {withTimeout} from "@lodestar/utils";
 import {GOODBYE_KNOWN_CODES, GoodByeReasonCode, Libp2pEvent} from "../../constants/index.js";
 import {IClock} from "../../util/clock.js";
@@ -15,9 +15,10 @@ import {Libp2p} from "../interface.js";
 import {SubnetType} from "../metadata.js";
 import {ReqRespMethod} from "../reqresp/ReqRespBeaconNode.js";
 import {StatusCache} from "../statusCache.js";
-import {SubnetsService} from "../subnets/index.js";
 import {getConnection, getConnectionsMap, prettyPrintPeerId} from "../util.js";
 import {ClientKind, getKnownClientFromAgentVersion} from "./client.js";
+import {NodeId, SubnetsService, computeNodeId} from "../subnets/index.js";
+import {getDataColumnSubnets, getDataColumns} from "../../util/dataColumns.js";
 import {PeerDiscovery, SubnetDiscvQueryMs} from "./discover.js";
 import {PeerData, PeersData} from "./peersData.js";
 import {IPeerRpcScoreStore, PeerAction, PeerScoreStats, ScoreState, updateGossipsubScores} from "./score/index.js";
@@ -81,6 +82,9 @@ export type PeerManagerOpts = {
    * If set to true, connect to Discv5 bootnodes. If not set or false, do not connect
    */
   connectToDiscv5Bootnodes?: boolean;
+  // experimental flags for debugging
+  onlyConnectToBiggerDataNodes?: boolean;
+  onlyConnectToMinimalCustodyOverlapNodes?: boolean;
 };
 
 /**
@@ -94,6 +98,7 @@ export interface IReqRespBeaconNodePeerManager {
 }
 
 export type PeerManagerModules = {
+  nodeId: NodeId;
   libp2p: Libp2p;
   logger: LoggerNode;
   metrics: NetworkCoreMetrics | null;
@@ -126,6 +131,8 @@ enum RelevantPeerStatus {
  * - Disconnect peers if over target peers
  */
 export class PeerManager {
+  private nodeId: NodeId;
+  private sampleSubnets: number[];
   private readonly libp2p: Libp2p;
   private readonly logger: LoggerNode;
   private readonly metrics: NetworkCoreMetrics | null;
@@ -163,6 +170,12 @@ export class PeerManager {
     this.connectedPeers = modules.peersData.connectedPeers;
     this.opts = opts;
     this.discovery = discovery;
+    this.nodeId = modules.nodeId;
+    // we will only connect to peers that can provide us custody
+    this.sampleSubnets = getDataColumnSubnets(
+      this.nodeId,
+      Math.max(this.config.CUSTODY_REQUIREMENT, this.config.NODE_CUSTODY_REQUIREMENT, this.config.SAMPLES_PER_SLOT)
+    );
 
     const {metrics} = modules;
     if (metrics) {
@@ -193,6 +206,8 @@ export class PeerManager {
           discv5FirstQueryDelayMs: opts.discv5FirstQueryDelayMs ?? DEFAULT_DISCV5_FIRST_QUERY_DELAY_MS,
           discv5: opts.discv5,
           connectToDiscv5Bootnodes: opts.connectToDiscv5Bootnodes,
+          onlyConnectToBiggerDataNodes: opts.onlyConnectToBiggerDataNodes,
+          onlyConnectToMinimalCustodyOverlapNodes: opts.onlyConnectToMinimalCustodyOverlapNodes,
         })
       : null;
 
@@ -296,6 +311,11 @@ export class PeerManager {
   private onPing(peer: PeerId, seqNumber: phase0.Ping): void {
     // if the sequence number is unknown update the peer's metadata
     const metadata = this.connectedPeers.get(peer.toString())?.metadata;
+    this.logger.warn("onPing", {
+      seqNumber,
+      metaSeqNumber: metadata?.seqNumber,
+      cond: !metadata || metadata.seqNumber < seqNumber,
+    });
     if (!metadata || metadata.seqNumber < seqNumber) {
       void this.requestMetadata(peer);
     }
@@ -308,12 +328,25 @@ export class PeerManager {
     // Store metadata always in case the peer updates attnets but not the sequence number
     // Trust that the peer always sends the latest metadata (From Lighthouse)
     const peerData = this.connectedPeers.get(peer.toString());
+    this.logger.warn("onMetadata", {
+      peer: peer.toString(),
+      peerData: peerData !== undefined,
+      csc: (metadata as Partial<peerdas.Metadata>).csc,
+    });
     if (peerData) {
+      const oldMetadata = peerData.metadata;
       peerData.metadata = {
         seqNumber: metadata.seqNumber,
         attnets: metadata.attnets,
-        syncnets: (metadata as Partial<altair.Metadata>).syncnets ?? BitArray.fromBitLen(SYNC_COMMITTEE_SUBNET_COUNT),
+        syncnets: (metadata as Partial<peerdas.Metadata>).syncnets ?? BitArray.fromBitLen(SYNC_COMMITTEE_SUBNET_COUNT),
+        csc:
+          (metadata as Partial<peerdas.Metadata>).csc ??
+          this.discovery?.["peerIdToCustodySubnetCount"].get(peer.toString()) ??
+          this.config.CUSTODY_REQUIREMENT,
       };
+      if (oldMetadata === null || oldMetadata.csc !== peerData.metadata.csc) {
+        void this.requestStatus(peer, this.statusCache.get());
+      }
     }
   }
 
@@ -379,20 +412,71 @@ export class PeerManager {
       peerData.relevantStatus = RelevantPeerStatus.relevant;
     }
     if (getConnection(this.libp2p, peer.toString())) {
-      this.networkEventBus.emit(NetworkEvent.peerConnected, {peer: peer.toString(), status});
+      const nodeId = peerData?.nodeId ?? computeNodeId(peer);
+      const custodySubnetCount = peerData?.metadata?.csc;
+
+      const peerCustodySubnetCount = custodySubnetCount ?? this.config.CUSTODY_REQUIREMENT;
+      const peerCustodySubnets = getDataColumnSubnets(nodeId, peerCustodySubnetCount);
+
+      const matchingSubnetsNum = this.sampleSubnets.reduce(
+        (acc, elem) => acc + (peerCustodySubnets.includes(elem) ? 1 : 0),
+        0
+      );
+      const hasAllColumns = matchingSubnetsNum === this.sampleSubnets.length;
+      const hasMinCustodyMatchingColumns = matchingSubnetsNum >= this.config.CUSTODY_REQUIREMENT;
+      const clientAgent = peerData?.agentClient ?? ClientKind.Unknown;
+
+      this.logger.warn(`onStatus ${custodySubnetCount == undefined ? "undefined custody count assuming 4" : ""}`, {
+        nodeId: toHexString(nodeId),
+        myNodeId: toHexString(this.nodeId),
+        peerId: peer.toString(),
+        custodySubnetCount,
+        hasAllColumns,
+        peerCustodySubnets: peerCustodySubnets.join(" "),
+        mySampleSubnets: this.sampleSubnets.join(" "),
+        clientAgent,
+      });
+
+      if (this.opts.onlyConnectToBiggerDataNodes && !hasAllColumns) {
+        this.logger.debug(`ignoring peercontected onlyConnectToBiggerDataNodes=true hasAllColumns=${hasAllColumns}`, {
+          nodeId: toHexString(nodeId),
+          peerId: peer.toString(),
+        });
+        return;
+      }
+
+      if (this.opts.onlyConnectToMinimalCustodyOverlapNodes && !hasMinCustodyMatchingColumns) {
+        this.logger.debug(
+          `ignoring peercontected onlyConnectToMinimalCustodyOverlapNodes=true hasMinCustodyMatchingColumns=${hasMinCustodyMatchingColumns}`,
+          {nodeId: toHexString(nodeId), peerId: peer.toString()}
+        );
+        return;
+      }
+
+      // coule be optimized by directly using the previously calculated subnet
+      const dataColumns = getDataColumns(nodeId, peerCustodySubnetCount);
+      this.networkEventBus.emit(NetworkEvent.peerConnected, {
+        peer: peer.toString(),
+        status,
+        dataColumns,
+        clientAgent: `${clientAgent}-csc:${peerCustodySubnets.length}`,
+      });
     }
   }
 
   private async requestMetadata(peer: PeerId): Promise<void> {
     try {
+      this.logger.warn("requestMetadata", {peer: peer.toString()});
       this.onMetadata(peer, await this.reqResp.sendMetadata(peer));
-    } catch (_e) {
+    } catch (e) {
+      console.log("requestMetadata", e);
       // TODO: Downvote peer here or in the reqResp layer
     }
   }
 
   private async requestPing(peer: PeerId): Promise<void> {
     try {
+      this.logger.warn("requestPing", {peer: peer.toString()});
       this.onPing(peer, await this.reqResp.sendPing(peer));
 
       // If peer replies a PING request also update lastReceivedMsg
@@ -589,6 +673,7 @@ export class PeerManager {
     // NOTE: libp2p may emit two "peer:connect" events: One for inbound, one for outbound
     // If that happens, it's okay. Only the "outbound" connection triggers immediate action
     const now = Date.now();
+    const nodeId = computeNodeId(remotePeer);
     const peerData: PeerData = {
       lastReceivedMsgUnixTsMs: direction === "outbound" ? 0 : now,
       // If inbound, request after STATUS_INBOUND_GRACE_PERIOD
@@ -596,6 +681,7 @@ export class PeerManager {
       connectedUnixTsMs: now,
       relevantStatus: RelevantPeerStatus.Unknown,
       direction,
+      nodeId,
       peerId: remotePeer,
       metadata: null,
       agentVersion: null,
@@ -605,7 +691,7 @@ export class PeerManager {
     this.connectedPeers.set(remotePeer.toString(), peerData);
 
     if (direction === "outbound") {
-      //this.pingAndStatusTimeouts();
+      // this.pingAndStatusTimeouts();
       void this.requestPing(remotePeer);
       void this.requestStatus(remotePeer, this.statusCache.get());
     }
@@ -653,6 +739,7 @@ export class PeerManager {
     try {
       const reason = GOODBYE_KNOWN_CODES[goodbye.toString()] || "";
       this.metrics?.peerGoodbyeSent.inc({reason});
+      this.logger.debug("disconnected peer", {reason, peerId: prettyPrintPeerId(peer)});
 
       const conn = getConnection(this.libp2p, peer.toString());
       if (conn && Date.now() - conn.timeline.open > LONG_PEER_CONNECTION_MS) {

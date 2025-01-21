@@ -6,6 +6,7 @@ import {
   SYNC_COMMITTEE_SUBNET_COUNT,
   isForkLightClient,
   isForkPostElectra,
+  DATA_COLUMN_SIDECAR_SUBNET_COUNT,
 } from "@lodestar/params";
 import {Attestation, SingleAttestation, ssz, sszTypesFor} from "@lodestar/types";
 
@@ -75,6 +76,8 @@ function stringifyGossipTopicType(topic: GossipTopic): string {
       return `${topic.type}_${topic.subnet}`;
     case GossipType.blob_sidecar:
       return `${topic.type}_${topic.subnet}`;
+    case GossipType.data_column_sidecar:
+      return `${topic.type}_${topic.index}`;
   }
 }
 
@@ -85,6 +88,8 @@ export function getGossipSSZType(topic: GossipTopic) {
       return ssz[topic.fork].SignedBeaconBlock;
     case GossipType.blob_sidecar:
       return ssz.deneb.BlobSidecar;
+    case GossipType.data_column_sidecar:
+      return ssz.peerdas.DataColumnSidecar;
     case GossipType.beacon_aggregate_and_proof:
       return sszTypesFor(topic.fork).SignedAggregateAndProof;
     case GossipType.beacon_attestation:
@@ -204,6 +209,13 @@ export function parseGossipTopic(forkDigestContext: ForkDigestContext, topicStr:
       return {type: GossipType.blob_sidecar, subnet, fork, encoding};
     }
 
+    if (gossipTypeStr.startsWith(GossipType.data_column_sidecar)) {
+      const indexStr = gossipTypeStr.slice(GossipType.data_column_sidecar.length + 1); // +1 for '_' concatenating the topic name and the index
+      const index = parseInt(indexStr, 10);
+      if (Number.isNaN(index)) throw Error(`index ${indexStr} is not a number`);
+      return {type: GossipType.data_column_sidecar, index, fork, encoding};
+    }
+
     throw Error(`Unknown gossip type ${gossipTypeStr}`);
   } catch (e) {
     (e as Error).message = `Invalid gossip topic ${topicStr}: ${(e as Error).message}`;
@@ -227,6 +239,13 @@ export function getCoreTopicsAtFork(
     {type: GossipType.proposer_slashing},
     {type: GossipType.attester_slashing},
   ];
+
+  // After Peerdas also track data_column_sidecar_{index}
+  if (ForkSeq[fork] >= ForkSeq.peerdas) {
+    for (let index = 0; index < DATA_COLUMN_SIDECAR_SUBNET_COUNT; index++) {
+      topics.push({type: GossipType.data_column_sidecar, index});
+    }
+  }
 
   // After Deneb also track blob_sidecar_{subnet_id}
   if (ForkSeq[fork] >= ForkSeq.deneb) {
@@ -284,6 +303,7 @@ function parseEncodingStr(encodingStr: string): GossipEncoding {
 export const gossipTopicIgnoreDuplicatePublishError: Record<GossipType, boolean> = {
   [GossipType.beacon_block]: true,
   [GossipType.blob_sidecar]: true,
+  [GossipType.data_column_sidecar]: true,
   [GossipType.beacon_aggregate_and_proof]: true,
   [GossipType.beacon_attestation]: true,
   [GossipType.voluntary_exit]: true,

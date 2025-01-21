@@ -1,11 +1,14 @@
 import {createBeaconConfig, createChainForkConfig, defaultChainConfig} from "@lodestar/config";
 import {BLOB_TX_TYPE, BYTES_PER_FIELD_ELEMENT} from "@lodestar/params";
-import {bellatrix, deneb, ssz} from "@lodestar/types";
-import {afterEach, beforeAll, describe, expect, it} from "vitest";
 import {validateBlobSidecars, validateGossipBlobSidecar} from "../../../src/chain/validation/blobSidecar.js";
-import {computeBlobSidecars, kzgCommitmentToVersionedHash} from "../../../src/util/blobs.js";
 import {FIELD_ELEMENTS_PER_BLOB_MAINNET, ckzg, initCKZG, loadEthereumTrustedSetup} from "../../../src/util/kzg.js";
 import {getMockedBeaconChain} from "../../mocks/mockedBeaconChain.js";
+import {describe, it, expect, afterEach, beforeAll} from "vitest";
+import {deneb, ssz} from "@lodestar/types";
+import {signedBlockToSignedHeader} from "@lodestar/state-transition";
+import {generateRandomBlob, transactionForKzgCommitment} from "../../utils/kzg.js";
+import {computeBlobSidecars, computeDataColumnSidecars} from "../../../src/util/blobs.js";
+import {getBlobCellAndProofs} from "../../utils/getBlobCellAndProofs.js";
 
 describe("C-KZG", () => {
   const afterEachCallbacks: (() => Promise<unknown> | void)[] = [];
@@ -73,26 +76,49 @@ describe("C-KZG", () => {
       }
     }
   });
+
+  it("DataColumnSidecars", () => {
+    const config = createChainForkConfig({
+      ...defaultChainConfig,
+      ALTAIR_FORK_EPOCH: 0,
+      BELLATRIX_FORK_EPOCH: 0,
+      DENEB_FORK_EPOCH: 0,
+      ELECTRA_FORK_EPOCH: 0,
+    });
+    const signedBeaconBlock = ssz.deneb.SignedBeaconBlock.defaultValue();
+    const mocks = getBlobCellAndProofs();
+    const blobs = mocks.map(({blob}) => blob);
+    const kzgCommitments = blobs.map(ckzg.blobToKzgCommitment);
+    for (const commitment of kzgCommitments) {
+      signedBeaconBlock.message.body.executionPayload.transactions.push(transactionForKzgCommitment(commitment));
+      signedBeaconBlock.message.body.blobKzgCommitments.push(commitment);
+    }
+
+    const sidecars = computeDataColumnSidecars(config, signedBeaconBlock, {blobs});
+    const signedBlockHeader = signedBlockToSignedHeader(config, signedBeaconBlock);
+
+    sidecars.forEach((sidecar, column) => {
+      expect(sidecar.index).toBe(column);
+      expect(sidecar.signedBlockHeader).toStrictEqual(signedBlockHeader);
+      expect(sidecar.kzgCommitments).toStrictEqual(kzgCommitments);
+      expect(sidecar.column.length).toBe(blobs.length);
+      expect(sidecar.kzgProofs.length).toBe(blobs.length);
+      sidecar.column.forEach((cell, row) => {
+        expect(Uint8Array.from(cell)).toStrictEqual(mocks[row].cells[column]);
+        const proof = sidecar.kzgProofs[row];
+        expect(Uint8Array.from(proof)).toStrictEqual(mocks[row].proofs[column]);
+        const commitment = sidecar.kzgCommitments[row];
+        const cellIndex = sidecar.index;
+        expect(ckzg.verifyCellKzgProofBatch([commitment], [cellIndex], [cell], [proof])).toBeTruthy();
+      });
+      expect(
+        ckzg.verifyCellKzgProofBatch(
+          sidecar.kzgCommitments,
+          Array.from({length: sidecar.column.length}, () => sidecar.index),
+          sidecar.column,
+          sidecar.kzgProofs
+        )
+      ).toBeTruthy();
+    });
+  });
 });
-
-function transactionForKzgCommitment(kzgCommitment: deneb.KZGCommitment): bellatrix.Transaction {
-  // Just use versionedHash as the transaction encoding to mock newPayloadV3 verification
-  // prefixed with BLOB_TX_TYPE
-  const transaction = new Uint8Array(33);
-  const versionedHash = kzgCommitmentToVersionedHash(kzgCommitment);
-  transaction[0] = BLOB_TX_TYPE;
-  transaction.set(versionedHash, 1);
-  return transaction;
-}
-
-/**
- * Generate random blob of sequential integers such that each element is < BLS_MODULUS
- */
-function generateRandomBlob(): deneb.Blob {
-  const blob = new Uint8Array(FIELD_ELEMENTS_PER_BLOB_MAINNET * BYTES_PER_FIELD_ELEMENT);
-  const dv = new DataView(blob.buffer, blob.byteOffset, blob.byteLength);
-  for (let i = 0; i < FIELD_ELEMENTS_PER_BLOB_MAINNET; i++) {
-    dv.setUint32(i * BYTES_PER_FIELD_ELEMENT, i);
-  }
-  return blob;
-}

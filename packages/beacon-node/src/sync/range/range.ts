@@ -199,8 +199,22 @@ export class RangeSync extends (EventEmitter as {new (): RangeSyncEmitter}) {
   };
 
   /** Convenience method for `SyncChain` */
-  private downloadBeaconBlocksByRange: SyncChainFns["downloadBeaconBlocksByRange"] = async (peerId, request) => {
-    return beaconBlocksMaybeBlobsByRange(this.config, this.network, peerId, request, this.chain.clock.currentEpoch);
+  private downloadBeaconBlocksByRange: SyncChainFns["downloadBeaconBlocksByRange"] = async (
+    peerId,
+    request,
+    partialDownload,
+    peerClient
+  ) => {
+    return beaconBlocksMaybeBlobsByRange(
+      this.config,
+      this.network,
+      peerId,
+      request,
+      this.chain.clock.currentEpoch,
+      partialDownload,
+      peerClient,
+      this.logger
+    );
   };
 
   /** Convenience method for `SyncChain` */
@@ -244,7 +258,12 @@ export class RangeSync extends (EventEmitter as {new (): RangeSyncEmitter}) {
       });
     }
 
-    syncChain.addPeer(peer, target);
+    syncChain.addPeer(
+      peer,
+      target,
+      this.network.getConnectedPeerCustody(peer),
+      this.network.getConnectedPeerClientAgent(peer)
+    );
   }
 
   private update(localFinalizedEpoch: Epoch): void {

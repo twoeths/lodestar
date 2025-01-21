@@ -68,10 +68,18 @@ export function createForkConfig(config: ChainConfig): ForkConfig {
     prevVersion: config.DENEB_FORK_VERSION,
     prevForkName: ForkName.deneb,
   };
+  const peerdas: ForkInfo = {
+    name: ForkName.peerdas,
+    seq: ForkSeq.peerdas,
+    epoch: config.PEERDAS_FORK_EPOCH,
+    version: config.PEERDAS_FORK_VERSION,
+    prevVersion: config.ELECTRA_FORK_VERSION,
+    prevForkName: ForkName.electra,
+  };
 
   /** Forks in order order of occurence, `phase0` first */
   // Note: Downstream code relies on proper ordering.
-  const forks = {phase0, altair, bellatrix, capella, deneb, electra};
+  const forks = {phase0, altair, bellatrix, capella, deneb, electra, peerdas};
 
   // Prevents allocating an array on every getForkInfo() call
   const forksAscendingEpochOrder = Object.values(forks);

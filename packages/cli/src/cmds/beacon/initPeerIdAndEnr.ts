@@ -4,8 +4,10 @@ import path from "node:path";
 import {SignableENR, createPrivateKeyFromPeerId} from "@chainsafe/enr";
 import type {PeerId} from "@libp2p/interface";
 import {createSecp256k1PeerId} from "@libp2p/peer-id-factory";
-import {Logger} from "@lodestar/utils";
 import {Multiaddr} from "@multiformats/multiaddr";
+import {Logger, fromHex} from "@lodestar/utils";
+import {ChainForkConfig} from "@lodestar/config";
+import {intToBytes} from "@lodestar/utils";
 import {exportToJSON, readPeerId} from "../../config/index.js";
 import {parseListenArgs} from "../../options/beaconNodeOptions/network.js";
 import {writeFile600Perm} from "../../util/file.js";
@@ -67,6 +69,7 @@ function maybeUpdateEnr<T extends "ip" | "tcp" | "udp" | "ip6" | "tcp6" | "udp6"
 }
 
 export function overwriteEnrWithCliArgs(
+  config: ChainForkConfig,
   enr: SignableENR,
   args: BeaconArgs,
   logger: Logger,
@@ -74,6 +77,7 @@ export function overwriteEnrWithCliArgs(
 ): void {
   const preSeq = enr.seq;
   const {port, discoveryPort, port6, discoveryPort6} = parseListenArgs(args);
+  // TODO remove the hardcoding serialize count
   maybeUpdateEnr(enr, "ip", args["enr.ip"] ?? enr.ip);
   maybeUpdateEnr(enr, "ip6", args["enr.ip6"] ?? enr.ip6);
   maybeUpdateEnr(enr, "udp", args["enr.udp"] ?? discoveryPort ?? enr.udp);
@@ -82,6 +86,10 @@ export function overwriteEnrWithCliArgs(
     maybeUpdateEnr(enr, "tcp", args["enr.tcp"] ?? port ?? enr.tcp);
     maybeUpdateEnr(enr, "tcp6", args["enr.tcp6"] ?? port6 ?? enr.tcp6);
   }
+
+  // csc is big ending but since 1 bytes suffices for now so its the same
+  const csc = Math.max(config.CUSTODY_REQUIREMENT, config.NODE_CUSTODY_REQUIREMENT);
+  enr.set("csc", intToBytes(csc, Math.ceil(Math.log2(csc + 1) / 8), "be"));
 
   function testMultiaddrForLocal(mu: Multiaddr, ip4: boolean): void {
     const isLocal = isLocalMultiAddr(mu);
@@ -134,11 +142,12 @@ export function overwriteEnrWithCliArgs(
  * Create new PeerId and ENR by default, unless persistNetworkIdentity is provided
  */
 export async function initPeerIdAndEnr(
+  config: ChainForkConfig,
   args: BeaconArgs,
   beaconDir: string,
   logger: Logger,
   bootnode?: boolean
-): Promise<{peerId: PeerId; enr: SignableENR}> {
+): Promise<{peerId: PeerId; enr: SignableENR; nodeId: Uint8Array}> {
   const {persistNetworkIdentity} = args;
 
   const newPeerIdAndENR = async (): Promise<{peerId: PeerId; enr: SignableENR}> => {
@@ -178,17 +187,22 @@ export async function initPeerIdAndEnr(
     return {peerId, enr, newEnr: false};
   };
 
+  console.log({persistNetworkIdentity});
+
   if (persistNetworkIdentity) {
     const enrFile = path.join(beaconDir, "enr");
     const peerIdFile = path.join(beaconDir, "peer-id.json");
     const {peerId, enr, newEnr} = await readPersistedPeerIdAndENR(peerIdFile, enrFile);
-    overwriteEnrWithCliArgs(enr, args, logger, {newEnr, bootnode});
+    overwriteEnrWithCliArgs(config, enr, args, logger, {newEnr, bootnode});
     // Re-persist peer-id and enr
     writeFile600Perm(peerIdFile, exportToJSON(peerId));
     writeFile600Perm(enrFile, enr.encodeTxt());
-    return {peerId, enr};
+    const nodeId = fromHex(enr.nodeId);
+    return {peerId, enr, nodeId};
+  } else {
+    const {peerId, enr} = await newPeerIdAndENR();
+    overwriteEnrWithCliArgs(config, enr, args, logger, {newEnr: true, bootnode});
+    const nodeId = fromHex(enr.nodeId);
+    return {peerId, enr, nodeId};
   }
-  const {peerId, enr} = await newPeerIdAndENR();
-  overwriteEnrWithCliArgs(enr, args, logger, {newEnr: true, bootnode});
-  return {peerId, enr};
 }

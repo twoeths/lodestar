@@ -1,6 +1,7 @@
 import {PeerId} from "@libp2p/interface";
 import {Encoding} from "@lodestar/reqresp";
-import {altair} from "@lodestar/types";
+import {altair, peerdas} from "@lodestar/types";
+import {NodeId} from "../subnets/interface.js";
 import {ClientKind} from "./client.js";
 
 type PeerIdStr = string;
@@ -18,7 +19,8 @@ export type PeerData = {
   relevantStatus: RelevantPeerStatus;
   direction: "inbound" | "outbound";
   peerId: PeerId;
-  metadata: altair.Metadata | null;
+  nodeId: NodeId | null;
+  metadata: peerdas.Metadata | null;
   agentVersion: string | null;
   agentClient: ClientKind | null;
   encodingPreference: Encoding | null;

@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import {createSecp256k1PeerId} from "@libp2p/peer-id-factory";
 import {ChainForkConfig, createBeaconConfig} from "@lodestar/config";
 import {ssz} from "@lodestar/types";
@@ -9,6 +10,7 @@ import {GossipHandlers, Network, NetworkInitModules, getReqRespHandlers} from ".
 import {NetworkOptions, defaultNetworkOptions} from "../../src/network/options.js";
 import {GetReqRespHandlerFn} from "../../src/network/reqresp/types.js";
 import {getMockedBeaconDb} from "../mocks/mockedBeaconDb.js";
+import {computeNodeId} from "../../src/network/subnets/index.js";
 import {createCachedBeaconStateTest} from "./cachedBeaconState.js";
 import {ClockStatic} from "./clock.js";
 import {testLogger} from "./logger.js";
@@ -58,6 +60,7 @@ export async function getNetworkForTest(
       stateArchiveMode: StateArchiveMode.Frequency,
     },
     {
+      nodeId: Buffer.alloc(32, crypto.randomBytes(32)),
       config: beaconConfig,
       db,
       logger,
@@ -72,7 +75,7 @@ export async function getNetworkForTest(
     }
   );
 
-  const modules: Omit<NetworkInitModules, "opts" | "peerId" | "logger"> = {
+  const modules: Omit<NetworkInitModules, "opts" | "peerId" | "logger" | "nodeId"> = {
     config: beaconConfig,
     chain,
     db,
@@ -81,9 +84,11 @@ export async function getNetworkForTest(
     metrics: null,
   };
 
+  const peerId = await createSecp256k1PeerId();
   const network = await Network.init({
     ...modules,
-    peerId: await createSecp256k1PeerId(),
+    peerId,
+    nodeId: computeNodeId(peerId),
     opts: {
       ...defaultNetworkOptions,
       maxPeers: 1,

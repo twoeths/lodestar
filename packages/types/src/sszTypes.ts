@@ -1,14 +1,15 @@
 import {CompositeType, CompositeView, CompositeViewDU, ContainerType, ValueOf} from "@chainsafe/ssz";
 import {ForkName} from "@lodestar/params";
+import {ssz as phase0} from "./phase0/index.js";
 import {ssz as altair} from "./altair/index.js";
 import {ssz as bellatrix} from "./bellatrix/index.js";
 import {ssz as capella} from "./capella/index.js";
 import {ssz as deneb} from "./deneb/index.js";
 import {ssz as electra} from "./electra/index.js";
-import {ssz as phase0} from "./phase0/index.js";
+import {ssz as peerdas} from "./peerdas/index.js";
 
 export * from "./primitive/sszTypes.js";
-export {phase0, altair, bellatrix, capella, deneb, electra};
+export {phase0, altair, bellatrix, capella, deneb, electra, peerdas};
 
 /**
  * Index the ssz types that differ by fork
@@ -20,7 +21,7 @@ const typesByFork = {
   [ForkName.bellatrix]: {...phase0, ...altair, ...bellatrix},
   [ForkName.capella]: {...phase0, ...altair, ...bellatrix, ...capella},
   [ForkName.deneb]: {...phase0, ...altair, ...bellatrix, ...capella, ...deneb},
-  [ForkName.electra]: {...phase0, ...altair, ...bellatrix, ...capella, ...deneb, ...electra},
+  [ForkName.electra]: {...phase0, ...altair, ...bellatrix, ...capella, ...deneb, ...electra, ...peerdas},
 };
 
 /**
