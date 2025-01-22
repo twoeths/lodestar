@@ -44,7 +44,7 @@ export async function archiveBlocks(
 
   // NOTE: The finalized block will be exactly the first block of `epoch` or previous
   const finalizedPostDeneb = finalizedCheckpoint.epoch >= config.DENEB_FORK_EPOCH;
-  const finalizedPostPeerDAS = finalizedCheckpoint.epoch >= config.PEERDAS_FORK_EPOCH;
+  const finalizedPostFulu = finalizedCheckpoint.epoch >= config.FULU_FORK_EPOCH;
 
   const finalizedCanonicalBlockRoots: BlockRootSlot[] = finalizedCanonicalBlocks.map((block) => ({
     slot: block.slot,
@@ -64,7 +64,7 @@ export async function archiveBlocks(
       logger.verbose("Migrated blobSidecars from hot DB to cold DB", {migratedEntries});
     }
 
-    if (finalizedPostPeerDAS) {
+    if (finalizedPostFulu) {
       const migratedEntries = await migrateDataColumnSidecarsFromHotToColdDb(config, db, finalizedCanonicalBlockRoots);
       logger.verbose("Migrated dataColumnSidecars from hot DB to cold DB", {migratedEntries});
     }
@@ -85,7 +85,7 @@ export async function archiveBlocks(
       logger.verbose("Deleted non canonical blobSidecars from hot DB");
     }
 
-    if (finalizedPostPeerDAS) {
+    if (finalizedPostFulu) {
       await db.dataColumnSidecars.batchDelete(nonCanonicalBlockRoots);
       logger.verbose("Deleted non canonical dataColumnSidecars from hot DB");
     }
@@ -114,7 +114,7 @@ export async function archiveBlocks(
     }
   }
 
-  if (finalizedPostPeerDAS) {
+  if (finalizedPostFulu) {
     // TODO
     // Keep only `[current_epoch - max(MIN_EPOCHS_FOR_BLOB_SIDECARS_REQUESTS, archiveBlobEpochs)]
   }
@@ -195,7 +195,7 @@ async function migrateBlobSidecarsFromHotToColdDb(
       canonicalBlocks
         .filter((block) => {
           const blkSeq = config.getForkSeq(block.slot);
-          return blkSeq >= ForkSeq.deneb && blkSeq < ForkSeq.peerdas;
+          return blkSeq >= ForkSeq.deneb && blkSeq < ForkSeq.fulu;
         })
         .map(async (block) => {
           const bytes = await db.blobSidecars.getBinary(block.root);
@@ -233,7 +233,7 @@ async function migrateDataColumnSidecarsFromHotToColdDb(
     // load Buffer instead of ssz deserialized to improve performance
     const canonicalDataColumnSidecarsEntries: KeyValue<Slot, Uint8Array>[] = await Promise.all(
       canonicalBlocks
-        .filter((block) => config.getForkSeq(block.slot) >= ForkSeq.peerdas)
+        .filter((block) => config.getForkSeq(block.slot) >= ForkSeq.fulu)
         .map(async (block) => {
           const bytes = await db.dataColumnSidecars.getBinary(block.root);
           if (!bytes) {

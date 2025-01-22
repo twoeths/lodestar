@@ -1,7 +1,7 @@
 import {toRootHex} from "@lodestar/utils";
 import {ForkName, NUMBER_OF_COLUMNS} from "@lodestar/params";
 import {toHex} from "@lodestar/utils";
-import {peerdas, ssz} from "@lodestar/types";
+import {fulu, ssz} from "@lodestar/types";
 import {BeaconChain} from "../chain.js";
 import {BlockInput, BlockInputType} from "./types.js";
 
@@ -50,7 +50,7 @@ export async function writeBlockInputToDb(this: BeaconChain, blocksInput: BlockI
       } else {
         const {custodyConfig} = this.seenGossipBlockInput;
         const {custodyColumnsLen, custodyColumnsIndex, custodyColumns} = custodyConfig;
-        const blobsLen = (block.message as peerdas.BeaconBlock).body.blobKzgCommitments.length;
+        const blobsLen = (block.message as fulu.BeaconBlock).body.blobKzgCommitments.length;
         let dataColumnsLen, dataColumnsIndex;
         if (blobsLen === 0) {
           dataColumnsLen = 0;
@@ -74,8 +74,8 @@ export async function writeBlockInputToDb(this: BeaconChain, blocksInput: BlockI
         }
 
         const dataColumnsSize =
-          ssz.peerdas.DataColumnSidecar.minSize +
-          blobsLen * (ssz.peerdas.Cell.fixedSize + ssz.deneb.KZGCommitment.fixedSize + ssz.deneb.KZGProof.fixedSize);
+          ssz.fulu.DataColumnSidecar.minSize +
+          blobsLen * (ssz.fulu.Cell.fixedSize + ssz.deneb.KZGCommitment.fixedSize + ssz.deneb.KZGProof.fixedSize);
         const slot = block.message.slot;
         const writeData = {
           blockRoot,
@@ -142,8 +142,8 @@ export async function removeEagerlyPersistedBlockInputs(this: BeaconChain, block
             );
           }
 
-          const blobsLen = (block.message as peerdas.BeaconBlock).body.blobKzgCommitments.length;
-          const dataColumnsSize = ssz.peerdas.Cell.fixedSize * blobsLen;
+          const blobsLen = (block.message as fulu.BeaconBlock).body.blobKzgCommitments.length;
+          const dataColumnsSize = ssz.fulu.Cell.fixedSize * blobsLen;
 
           dataColumnsToRemove.push({
             blockRoot,

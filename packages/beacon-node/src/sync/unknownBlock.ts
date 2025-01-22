@@ -20,7 +20,7 @@ import {Result, wrapError} from "../util/wrapError.js";
 import {PendingBlock, PendingBlockStatus, PendingBlockType, UnknownBlock} from "./interface.js";
 import {getDescendantBlocks, getAllDescendantBlocks, getUnknownAndAncestorBlocks} from "./utils/pendingBlocksTree.js";
 import {SyncOptions} from "./options.js";
-import { fromHexString, toHexString } from "@chainsafe/ssz";
+import {fromHexString, toHexString} from "@chainsafe/ssz";
 
 const MAX_ATTEMPTS_PER_BLOCK = 5;
 const MAX_KNOWN_BAD_BLOCKS = 500;
@@ -299,7 +299,7 @@ export class UnknownBlockSync {
       res = await wrapError(this.fetchUnknownBlockRoot(fromHexString(block.blockRootHex), connectedPeers));
     } else {
       const {cachedData} = block.blockInput;
-      if (cachedData.fork === ForkName.peerdas) {
+      if (cachedData.fork === ForkName.fulu) {
         const {dataColumnsCache} = cachedData;
         const {custodyConfig} = this.network;
         const neededColumns = custodyConfig.sampledColumns.reduce((acc, elem) => {
@@ -545,7 +545,7 @@ export class UnknownBlockSync {
           throw Error(`prevBlockInput=${prevBlockInput?.type} in partialDownload`);
         }
         const {cachedData} = prevBlockInput;
-        if (cachedData.fork === ForkName.peerdas) {
+        if (cachedData.fork === ForkName.fulu) {
           const {dataColumnsCache} = cachedData;
           const {custodyConfig} = this.network;
           const neededColumns = custodyConfig.sampledColumns.reduce((acc, elem) => {
@@ -655,7 +655,7 @@ export class UnknownBlockSync {
       if (cachedData.fork === ForkName.deneb) {
         const pendingBlobs = blobKzgCommitmentsLen - cachedData.blobsCache.size;
         Object.assign(dataMeta, {pendingBlobs});
-      } else if (cachedData.fork === ForkName.peerdas) {
+      } else if (cachedData.fork === ForkName.fulu) {
         const pendingColumns = this.network.custodyConfig.sampledColumns.length - cachedData.dataColumnsCache.size;
         Object.assign(dataMeta, {pendingColumns});
       }
@@ -666,7 +666,7 @@ export class UnknownBlockSync {
       const peer = shuffledPeers[i % shuffledPeers.length];
       if (unavailableBlockInput.block !== null) {
         const {cachedData} = unavailableBlockInput;
-        if (cachedData.fork === ForkName.peerdas) {
+        if (cachedData.fork === ForkName.fulu) {
           const {dataColumnsCache} = cachedData;
           const {custodyConfig} = this.network;
           const neededColumns = custodyConfig.sampledColumns.reduce((acc, elem) => {

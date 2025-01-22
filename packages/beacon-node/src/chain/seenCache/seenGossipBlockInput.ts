@@ -1,7 +1,7 @@
 import {ChainForkConfig} from "@lodestar/config";
 import {pruneSetToMax, toRootHex} from "@lodestar/utils";
 import {toHexString} from "@chainsafe/ssz";
-import {deneb, RootHex, SignedBeaconBlock, ssz, peerdas} from "@lodestar/types";
+import {deneb, RootHex, SignedBeaconBlock, ssz, fulu} from "@lodestar/types";
 import {BLOBSIDECAR_FIXED_SIZE, isForkBlobs, ForkName, NUMBER_OF_COLUMNS} from "@lodestar/params";
 
 import {Metrics} from "../../metrics/index.js";
@@ -32,7 +32,7 @@ type GossipedBlockInput =
   | {type: GossipedInputType.blob; blobSidecar: deneb.BlobSidecar; blobBytes: Uint8Array | null}
   | {
       type: GossipedInputType.dataColumn;
-      dataColumnSidecar: peerdas.DataColumnSidecar;
+      dataColumnSidecar: fulu.DataColumnSidecar;
       dataColumnBytes: Uint8Array | null;
     };
 
@@ -129,8 +129,8 @@ export class SeenGossipBlockInput {
 
       blockHex = toHexString(blockRoot);
       blockCache = this.blockInputCache.get(blockHex) ?? getEmptyBlockInputCacheEntry(fork, ++this.globalCacheId);
-      if (blockCache.cachedData?.fork !== ForkName.peerdas) {
-        throw Error(`blob data at non peerdas fork=${blockCache.fork}`);
+      if (blockCache.cachedData?.fork !== ForkName.fulu) {
+        throw Error(`blob data at non fulu fork=${blockCache.fork}`);
       }
 
       // TODO: freetheblobs check if its the same blob or a duplicate and throw/take actions
@@ -219,7 +219,7 @@ export class SeenGossipBlockInput {
             },
           };
         }
-      } else if (cachedData.fork === ForkName.peerdas) {
+      } else if (cachedData.fork === ForkName.fulu) {
         const {dataColumnsCache, resolveAvailability, cacheId} = cachedData;
         console.log("seenGossipBlockInput", {cacheId, dataColumnsCache: dataColumnsCache.size});
 
@@ -336,7 +336,7 @@ export class SeenGossipBlockInput {
           },
           blockInputMeta: {pending: GossipedInputType.block, haveBlobs: blobsCache.size, expectedBlobs: null},
         };
-      } else if (fork === ForkName.peerdas) {
+      } else if (fork === ForkName.fulu) {
         const {dataColumnsCache} = cachedData;
 
         return {
@@ -404,7 +404,7 @@ export function getEmptyBlockInputCacheEntry(fork: ForkName, globalCacheId: numb
       cacheId: ++globalCacheId,
     };
     return {fork, blockInputPromise, resolveBlockInput, cachedData};
-  } else if (fork === ForkName.peerdas) {
+  } else if (fork === ForkName.fulu) {
     let resolveAvailability: ((blobs: BlockInputDataColumns) => void) | null = null;
     const availabilityPromise = new Promise<BlockInputDataColumns>((resolveCB) => {
       resolveAvailability = resolveCB;

@@ -2,7 +2,7 @@ import {BitArray} from "@chainsafe/ssz";
 import {BeaconConfig} from "@lodestar/config";
 import {ForkSeq} from "@lodestar/params";
 import {computeStartSlotAtEpoch} from "@lodestar/state-transition";
-import {altair, Epoch, phase0, ssz, peerdas} from "@lodestar/types";
+import {altair, Epoch, phase0, ssz, fulu} from "@lodestar/types";
 import {intToBytes} from "@lodestar/utils";
 import {FAR_FUTURE_EPOCH} from "../constants/index.js";
 import {getCurrentAndNextFork} from "./forks.js";
@@ -20,7 +20,7 @@ export enum SubnetType {
 }
 
 export type MetadataOpts = {
-  metadata?: peerdas.Metadata;
+  metadata?: fulu.Metadata;
 };
 
 export type MetadataModules = {
@@ -36,13 +36,13 @@ export type MetadataModules = {
 export class MetadataController {
   private onSetValue: (key: string, value: Uint8Array) => void;
   private config: BeaconConfig;
-  private _metadata: peerdas.Metadata;
+  private _metadata: fulu.Metadata;
 
   constructor(opts: MetadataOpts, modules: MetadataModules) {
     this.config = modules.config;
     this.onSetValue = modules.onSetValue;
     this._metadata = opts.metadata ?? {
-      ...ssz.peerdas.Metadata.defaultValue(),
+      ...ssz.fulu.Metadata.defaultValue(),
       csc: Math.max(this.config.CUSTODY_REQUIREMENT, this.config.NODE_CUSTODY_REQUIREMENT),
     };
   }
@@ -59,7 +59,7 @@ export class MetadataController {
       this.onSetValue(ENRKey.syncnets, ssz.phase0.AttestationSubnets.serialize(this._metadata.syncnets));
     }
 
-    if (this.config.getForkSeq(computeStartSlotAtEpoch(currentEpoch)) >= ForkSeq.peerdas) {
+    if (this.config.getForkSeq(computeStartSlotAtEpoch(currentEpoch)) >= ForkSeq.fulu) {
       this.onSetValue(
         ENRKey.csc,
         intToBytes(this._metadata.csc, Math.ceil(Math.log2(this._metadata.csc + 1) / 8), "be")
@@ -100,7 +100,7 @@ export class MetadataController {
   }
 
   /** Consumers that need the phase0.Metadata type can just ignore the .syncnets property */
-  get json(): peerdas.Metadata {
+  get json(): fulu.Metadata {
     return this._metadata;
   }
 

@@ -28,7 +28,7 @@ import {
   capella,
   deneb,
   phase0,
-  peerdas,
+  fulu,
 } from "@lodestar/types";
 import type {Datastore} from "interface-datastore";
 import {Libp2p as ILibp2p} from "libp2p";
@@ -82,19 +82,19 @@ export interface INetwork extends INetworkCorePublic {
   sendBlobSidecarsByRoot(peerId: PeerIdStr, request: BlobSidecarsByRootRequest): Promise<deneb.BlobSidecar[]>;
   sendDataColumnSidecarsByRange(
     peerId: PeerIdStr,
-    request: peerdas.DataColumnSidecarsByRangeRequest
-  ): Promise<peerdas.DataColumnSidecar[]>;
+    request: fulu.DataColumnSidecarsByRangeRequest
+  ): Promise<fulu.DataColumnSidecar[]>;
   sendDataColumnSidecarsByRoot(
     peerId: PeerIdStr,
-    request: peerdas.DataColumnSidecarsByRootRequest
-  ): Promise<peerdas.DataColumnSidecar[]>;
+    request: fulu.DataColumnSidecarsByRootRequest
+  ): Promise<fulu.DataColumnSidecar[]>;
 
   // Gossip
   publishBeaconBlock(signedBlock: SignedBeaconBlock): Promise<number>;
   publishBlobSidecar(blobSidecar: deneb.BlobSidecar): Promise<number>;
   publishBeaconAggregateAndProof(aggregateAndProof: SignedAggregateAndProof): Promise<number>;
   publishBeaconAttestation(attestation: SingleAttestation, subnet: SubnetID): Promise<number>;
-  publishDataColumnSidecar(dataColumnSideCar: peerdas.DataColumnSidecar): Promise<number>;
+  publishDataColumnSidecar(dataColumnSideCar: fulu.DataColumnSidecar): Promise<number>;
   publishVoluntaryExit(voluntaryExit: phase0.SignedVoluntaryExit): Promise<number>;
   publishBlsToExecutionChange(blsToExecutionChange: capella.SignedBLSToExecutionChange): Promise<number>;
   publishProposerSlashing(proposerSlashing: phase0.ProposerSlashing): Promise<number>;

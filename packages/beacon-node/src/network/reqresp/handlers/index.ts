@@ -49,11 +49,11 @@ export function getReqRespHandlers({db, chain}: {db: IBeaconDb; chain: IBeaconCh
       return onBlobSidecarsByRange(body, chain, db);
     },
     [ReqRespMethod.DataColumnSidecarsByRange]: (req) => {
-      const body = ssz.peerdas.DataColumnSidecarsByRangeRequest.deserialize(req.data);
+      const body = ssz.fulu.DataColumnSidecarsByRangeRequest.deserialize(req.data);
       return onDataColumnSidecarsByRange(body, chain, db);
     },
     [ReqRespMethod.DataColumnSidecarsByRoot]: (req) => {
-      const body = ssz.peerdas.DataColumnSidecarsByRootRequest.deserialize(req.data);
+      const body = ssz.fulu.DataColumnSidecarsByRootRequest.deserialize(req.data);
       return onDataColumnSidecarsByRoot(body, chain, db);
     },
 

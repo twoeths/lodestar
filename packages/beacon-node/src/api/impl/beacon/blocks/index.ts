@@ -9,8 +9,8 @@ import {
 } from "@lodestar/state-transition";
 import {sleep, fromHex, toHex, toRootHex} from "@lodestar/utils";
 import {
-  peerdas,
   deneb,
+  fulu,
   isSignedBlockContents,
   ProducedBlockSource,
   SignedBeaconBlock,
@@ -73,13 +73,13 @@ export function getBeaconBlockApi({
     let blockForImport: BlockInput,
       signedBlock: SignedBeaconBlock,
       blobSidecars: deneb.BlobSidecars,
-      dataColumnSidecars: peerdas.DataColumnSidecars;
+      dataColumnSidecars: fulu.DataColumnSidecars;
 
     if (isSignedBlockContents(signedBlockOrContents)) {
       ({signedBlock} = signedBlockOrContents);
       const fork = config.getForkName(signedBlock.message.slot);
       let blockData: BlockInputAvailableData;
-      if (fork === ForkName.peerdas) {
+      if (fork === ForkName.fulu) {
         dataColumnSidecars = computeDataColumnSidecars(config, signedBlock, signedBlockOrContents);
         blockData = {
           fork,

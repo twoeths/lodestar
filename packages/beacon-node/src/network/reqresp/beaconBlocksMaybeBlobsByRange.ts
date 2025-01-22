@@ -1,7 +1,7 @@
 import {toHexString} from "@chainsafe/ssz";
 import {ChainForkConfig} from "@lodestar/config";
 import {computeEpochAtSlot} from "@lodestar/state-transition";
-import {Epoch, SignedBeaconBlock, Slot, WithBytes, deneb, phase0, peerdas, ssz} from "@lodestar/types";
+import {Epoch, SignedBeaconBlock, Slot, WithBytes, deneb, phase0, fulu, ssz} from "@lodestar/types";
 import {PeerIdStr} from "../../util/peerId.js";
 import {ForkSeq, NUMBER_OF_COLUMNS, ForkName} from "@lodestar/params";
 import {Logger} from "@lodestar/utils";
@@ -62,7 +62,7 @@ export async function beaconBlocksMaybeBlobsByRange(
   // From Deneb
   // Only request blobs if they are recent enough
   if (startEpoch >= currentEpoch - config.MIN_EPOCHS_FOR_BLOB_SIDECARS_REQUESTS) {
-    if (forkSeq < ForkSeq.peerdas) {
+    if (forkSeq < ForkSeq.fulu) {
       const [allBlocks, allBlobSidecars] = await Promise.all([
         network.sendBeaconBlocksByRange(peerId, request),
         network.sendBlobSidecarsByRange(peerId, request),
@@ -113,7 +113,7 @@ export async function beaconBlocksMaybeBlobsByRange(
       ]);
       logger?.debug("ByRange requests", {
         beaconBlocksRequest: JSON.stringify(ssz.phase0.BeaconBlocksByRangeRequest.toJson(request)),
-        dataColumnRequest: JSON.stringify(ssz.peerdas.DataColumnSidecarsByRangeRequest.toJson(dataColumnRequest)),
+        dataColumnRequest: JSON.stringify(ssz.fulu.DataColumnSidecarsByRangeRequest.toJson(dataColumnRequest)),
         [`allBlocks(${allBlocks.length})`]: allBlocks.map((blk) => blk.data.message.slot).join(" "),
         [`allDataColumnSidecars(${allDataColumnSidecars.length})`]: allDataColumnSidecars
           .map((dCol) => `${dCol.signedBlockHeader.message.slot}:${dCol.index}`)
@@ -149,8 +149,8 @@ export async function beaconBlocksMaybeBlobsByRange(
   return {
     blocks: blocks.map((block) => getBlockInput.outOfRangeData(config, block.data, BlockSource.byRange, block.bytes)),
     // TODO: (@matthewkeil) this was a merge conflict when rebased on electra. Should this be a null or an empty array?  Should it
-    //       depend on which fork we are in?  Need to revisit 
-    pendingDataColumns: null
+    //       depend on which fork we are in?  Need to revisit
+    pendingDataColumns: null,
   };
 }
 
@@ -236,7 +236,7 @@ export function matchBlockWithDataColumns(
   custodyConfig: CustodyConfig,
   requestedColumns: number[],
   allBlocks: WithOptionalBytes<SignedBeaconBlock>[],
-  allDataColumnSidecars: peerdas.DataColumnSidecar[],
+  allDataColumnSidecars: fulu.DataColumnSidecar[],
   endSlot: Slot,
   blockSource: BlockSource,
   dataColumnsSource: DataColumnsSource,
@@ -261,11 +261,11 @@ export function matchBlockWithDataColumns(
     const block = allBlocks[i];
 
     const forkSeq = config.getForkSeq(block.data.message.slot);
-    if (forkSeq < ForkSeq.peerdas) {
-      throw Error(`Invalid block forkSeq=${forkSeq} < ForSeq.peerdas for matchBlockWithDataColumns`);
+    if (forkSeq < ForkSeq.fulu) {
+      throw Error(`Invalid block forkSeq=${forkSeq} < ForSeq.fulu for matchBlockWithDataColumns`);
     } else {
-      const dataColumnSidecars: peerdas.DataColumnSidecar[] = [];
-      let dataColumnSidecar: peerdas.DataColumnSidecar;
+      const dataColumnSidecars: fulu.DataColumnSidecar[] = [];
+      let dataColumnSidecar: fulu.DataColumnSidecar;
       while (
         (dataColumnSidecar = allDataColumnSidecars[dataColumnSideCarIndex])?.signedBlockHeader.message.slot ===
         block.data.message.slot
@@ -346,7 +346,7 @@ export function matchBlockWithDataColumns(
           }
         }
 
-        if (cachedData.fork !== ForkName.peerdas) {
+        if (cachedData.fork !== ForkName.fulu) {
           throw Error("Invalid fork for cachedData on dataColumns");
         }
 

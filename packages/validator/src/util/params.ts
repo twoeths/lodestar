@@ -72,7 +72,7 @@ function getSpecCriticalParams(localConfig: ChainConfig): Record<keyof ConfigWit
   const capellaForkRelevant = localConfig.CAPELLA_FORK_EPOCH < Infinity;
   const denebForkRelevant = localConfig.DENEB_FORK_EPOCH < Infinity;
   const electraForkRelevant = localConfig.ELECTRA_FORK_EPOCH < Infinity;
-  const peerdasForkRelevant = localConfig.PEERDAS_FORK_EPOCH < Infinity;
+  const fuluForkRelevant = localConfig.FULU_FORK_EPOCH < Infinity;
 
   return {
     // # Config
@@ -108,12 +108,9 @@ function getSpecCriticalParams(localConfig: ChainConfig): Record<keyof ConfigWit
     // electra
     ELECTRA_FORK_VERSION: electraForkRelevant,
     ELECTRA_FORK_EPOCH: electraForkRelevant,
-
-    // peerdas
-    PEERDAS_FORK_VERSION: peerdasForkRelevant,
-    PEERDAS_FORK_EPOCH: peerdasForkRelevant,
-    EIP7594_FORK_VERSION: peerdasForkRelevant,
-    EIP7594_FORK_EPOCH: peerdasForkRelevant,
+    // fulu
+    FULU_FORK_VERSION: fuluForkRelevant,
+    FULU_FORK_EPOCH: fuluForkRelevant,
 
     // Time parameters
     SECONDS_PER_SLOT: true,
@@ -250,17 +247,15 @@ function getSpecCriticalParams(localConfig: ChainConfig): Record<keyof ConfigWit
     MIN_PER_EPOCH_CHURN_LIMIT_ELECTRA: electraForkRelevant,
     MAX_BLOBS_PER_BLOCK_ELECTRA: electraForkRelevant,
 
-    // # PeerdasPreset
+    // FULU
     /////////////////
-    FIELD_ELEMENTS_PER_CELL: peerdasForkRelevant,
-    FIELD_ELEMENTS_PER_EXT_BLOB: peerdasForkRelevant,
-    KZG_COMMITMENTS_INCLUSION_PROOF_DEPTH: peerdasForkRelevant,
-    MAX_REQUEST_DATA_COLUMN_SIDECARS: peerdasForkRelevant,
-    DATA_COLUMN_SIDECAR_SUBNET_COUNT: peerdasForkRelevant,
-
-    // Peerdas
-    SAMPLES_PER_SLOT: peerdasForkRelevant,
-    CUSTODY_REQUIREMENT: peerdasForkRelevant,
+    FIELD_ELEMENTS_PER_CELL: fuluForkRelevant,
+    FIELD_ELEMENTS_PER_EXT_BLOB: fuluForkRelevant,
+    KZG_COMMITMENTS_INCLUSION_PROOF_DEPTH: fuluForkRelevant,
+    MAX_REQUEST_DATA_COLUMN_SIDECARS: fuluForkRelevant,
+    DATA_COLUMN_SIDECAR_SUBNET_COUNT: fuluForkRelevant,
+    SAMPLES_PER_SLOT: fuluForkRelevant,
+    CUSTODY_REQUIREMENT: fuluForkRelevant,
     NODE_CUSTODY_REQUIREMENT: false,
   };
 }

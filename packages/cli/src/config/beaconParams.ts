@@ -49,10 +49,6 @@ export function getBeaconParamsFromArgs(args: GlobalArgs): ChainConfig {
     },
   });
 
-  // Temp
-  beaconParams["PEERDAS_FORK_EPOCH"] = beaconParams["EIP7594_FORK_EPOCH"];
-  beaconParams["PEERDAS_FORK_VERSION"] = beaconParams["EIP7594_FORK_VERSION"];
-
   if (args.supernode) {
     beaconParams["NODE_CUSTODY_REQUIREMENT"] = DATA_COLUMN_SIDECAR_SUBNET_COUNT;
   }

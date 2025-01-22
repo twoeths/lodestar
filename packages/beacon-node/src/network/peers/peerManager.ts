@@ -3,7 +3,7 @@ import {Connection, PeerId} from "@libp2p/interface";
 import {BeaconConfig} from "@lodestar/config";
 import {LoggerNode} from "@lodestar/logger/node";
 import {SYNC_COMMITTEE_SUBNET_COUNT} from "@lodestar/params";
-import {Metadata, altair, phase0, peerdas} from "@lodestar/types";
+import {Metadata, altair, phase0, fulu} from "@lodestar/types";
 import {withTimeout} from "@lodestar/utils";
 import {GOODBYE_KNOWN_CODES, GoodByeReasonCode, Libp2pEvent} from "../../constants/index.js";
 import {IClock} from "../../util/clock.js";
@@ -331,16 +331,16 @@ export class PeerManager {
     this.logger.warn("onMetadata", {
       peer: peer.toString(),
       peerData: peerData !== undefined,
-      csc: (metadata as Partial<peerdas.Metadata>).csc,
+      csc: (metadata as Partial<fulu.Metadata>).csc,
     });
     if (peerData) {
       const oldMetadata = peerData.metadata;
       peerData.metadata = {
         seqNumber: metadata.seqNumber,
         attnets: metadata.attnets,
-        syncnets: (metadata as Partial<peerdas.Metadata>).syncnets ?? BitArray.fromBitLen(SYNC_COMMITTEE_SUBNET_COUNT),
+        syncnets: (metadata as Partial<fulu.Metadata>).syncnets ?? BitArray.fromBitLen(SYNC_COMMITTEE_SUBNET_COUNT),
         csc:
-          (metadata as Partial<peerdas.Metadata>).csc ??
+          (metadata as Partial<fulu.Metadata>).csc ??
           this.discovery?.["peerIdToCustodySubnetCount"].get(peer.toString()) ??
           this.config.CUSTODY_REQUIREMENT,
       };

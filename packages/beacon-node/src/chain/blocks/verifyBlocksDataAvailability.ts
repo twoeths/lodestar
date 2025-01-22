@@ -121,7 +121,7 @@ async function maybeValidateBlobs(
         // but other checks to match blobs with block data still need to be performed
         const skipProofsCheck = opts.validBlobSidecars === BlobSidecarValidation.Individual;
         validateBlobSidecars(blockSlot, beaconBlockRoot, blobKzgCommitments, blobs, {skipProofsCheck});
-      } else if (blockData.fork === ForkName.peerdas) {
+      } else if (blockData.fork === ForkName.fulu) {
         const {dataColumns} = blockData;
         const skipProofsCheck = opts.validBlobSidecars === BlobSidecarValidation.Individual;
         validateDataColumnsSidecars(blockSlot, beaconBlockRoot, blobKzgCommitments, dataColumns, {skipProofsCheck});

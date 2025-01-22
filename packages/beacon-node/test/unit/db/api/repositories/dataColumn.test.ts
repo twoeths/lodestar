@@ -1,7 +1,7 @@
 import {rimraf} from "rimraf";
 import {describe, it, expect, beforeEach, afterEach, beforeAll} from "vitest";
 import {ByteVectorType} from "@chainsafe/ssz";
-import {ssz, peerdas} from "@lodestar/types";
+import {ssz, fulu} from "@lodestar/types";
 import {createChainForkConfig} from "@lodestar/config";
 import {LevelDbController} from "@lodestar/db";
 import {NUMBER_OF_COLUMNS} from "@lodestar/params";
@@ -23,34 +23,34 @@ const config = createChainForkConfig({
   ALTAIR_FORK_EPOCH: 0,
   BELLATRIX_FORK_EPOCH: 0,
   DENEB_FORK_EPOCH: 0,
-  PEERDAS_FORK_EPOCH: 0,
+  FULU_FORK_EPOCH: 0,
 });
-describe("block archive repository", function () {
+describe("block archive repository", () => {
   const testDir = "./.tmp";
   let dataColumnRepo: DataColumnSidecarsRepository;
   let db: LevelDbController;
 
-  beforeEach(async function () {
+  beforeEach(async () => {
     db = await LevelDbController.create({name: testDir}, {logger: testLogger()});
     dataColumnRepo = new DataColumnSidecarsRepository(config, db);
   });
-  afterEach(async function () {
+  afterEach(async () => {
     await db.close();
     rimraf.sync(testDir);
   });
 
-  beforeAll(async function () {
+  beforeAll(async () => {
     await initCKZG();
     loadEthereumTrustedSetup();
   });
 
-  it("should get block by parent root", async function () {
-    const dataColumn = ssz.peerdas.DataColumnSidecar.defaultValue();
+  it("should get block by parent root", async () => {
+    const dataColumn = ssz.fulu.DataColumnSidecar.defaultValue();
     const blockRoot = ssz.phase0.BeaconBlockHeader.hashTreeRoot(dataColumn.signedBlockHeader.message);
     const slot = dataColumn.signedBlockHeader.message.slot;
     const blob = ssz.deneb.Blob.defaultValue();
     const commitment = ssz.deneb.KZGCommitment.defaultValue();
-    const singedBlock = ssz.peerdas.SignedBeaconBlock.defaultValue();
+    const singedBlock = ssz.fulu.SignedBeaconBlock.defaultValue();
 
     singedBlock.message.body.blobKzgCommitments.push(commitment);
     singedBlock.message.body.blobKzgCommitments.push(commitment);
@@ -65,9 +65,9 @@ describe("block archive repository", function () {
 
     const blobKzgCommitmentsLen = 3;
     const columnsSize =
-      ssz.peerdas.DataColumnSidecar.minSize +
+      ssz.fulu.DataColumnSidecar.minSize +
       blobKzgCommitmentsLen *
-        (ssz.peerdas.Cell.fixedSize + ssz.deneb.KZGCommitment.fixedSize + ssz.deneb.KZGProof.fixedSize);
+        (ssz.fulu.Cell.fixedSize + ssz.deneb.KZGCommitment.fixedSize + ssz.deneb.KZGProof.fixedSize);
 
     const dataColumnSidecars = allDataColumnSidecars.slice(0, 7);
     const dataColumnsLen = dataColumnSidecars.length;
@@ -114,7 +114,7 @@ describe("block archive repository", function () {
 
     for (let j = 0; j < dataColumnsLen; j++) {
       const dataColumnBytes = dataColumnSidecarsBytes.slice(j * columnsSize, (j + 1) * columnsSize);
-      const retrivedDataColumnSidecar = ssz.peerdas.DataColumnSidecar.deserialize(dataColumnBytes);
+      const retrivedDataColumnSidecar = ssz.fulu.DataColumnSidecar.deserialize(dataColumnBytes);
       const index = retrivedDataColumnSidecar.index;
       expect(j === index).toBe(true);
     }

@@ -1,7 +1,7 @@
 import {ChainForkConfig} from "@lodestar/config";
 import {ForkName, ForkSeq} from "@lodestar/params";
 import {signedBlockToSignedHeader} from "@lodestar/state-transition";
-import {RootHex, SignedBeaconBlock, deneb, phase0, peerdas, ssz} from "@lodestar/types";
+import {RootHex, SignedBeaconBlock, deneb, phase0, fulu, ssz} from "@lodestar/types";
 import {BlobAndProof} from "@lodestar/types/deneb";
 import {fromHex} from "@lodestar/utils";
 import {fromHexString, toHexString} from "@chainsafe/ssz";
@@ -65,7 +65,7 @@ export async function beaconBlocksMaybeBlobsByRoot(
   let pendingDataColumns = null;
 
   const blobIdentifiers: deneb.BlobIdentifier[] = [];
-  const dataColumnIdentifiers: peerdas.DataColumnIdentifier[] = [];
+  const dataColumnIdentifiers: fulu.DataColumnIdentifier[] = [];
 
   let prevFork = null;
   for (const block of allBlocks) {
@@ -87,7 +87,7 @@ export async function beaconBlocksMaybeBlobsByRoot(
         // try see if the blob is available locally
         blobIdentifiers.push({blockRoot, index});
       }
-    } else if (fork === ForkName.peerdas) {
+    } else if (fork === ForkName.fulu) {
       dataColumnsDataBlocks.push(block);
       const blobKzgCommitmentsLen = (block.data.message.body as deneb.BeaconBlockBody).blobKzgCommitments.length;
       const custodyColumnIndexes = blobKzgCommitmentsLen > 0 ? columns : [];
@@ -132,7 +132,7 @@ export async function beaconBlocksMaybeBlobsByRoot(
       return acc;
     }, [] as number[]);
 
-    let allDataColumnsSidecars: peerdas.DataColumnSidecar[];
+    let allDataColumnsSidecars: fulu.DataColumnSidecar[];
     logger?.debug("allDataColumnsSidecars partialDownload", {
       ...(partialDownload
         ? {blocks: partialDownload.blocks.length, pendingDataColumns: partialDownload.pendingDataColumns.join(" ")}
@@ -203,7 +203,7 @@ export async function unavailableBeaconBlobsByRoot(
     unavailableBlockInput = getBlockInput.dataPromise(config, block, BlockSource.byRoot, blockBytes, cachedData);
     console.log(
       "downloaded sendBeaconBlocksByRoot",
-      ssz.peerdas.SignedBeaconBlock.toJson(block as peerdas.SignedBeaconBlock)
+      ssz.fulu.SignedBeaconBlock.toJson(block as fulu.SignedBeaconBlock)
     );
   } else {
     ({block, cachedData, blockBytes} = unavailableBlockInput);
@@ -211,7 +211,7 @@ export async function unavailableBeaconBlobsByRoot(
 
   const forkSeq = config.getForkSeq(block.message.slot);
 
-  if (forkSeq < ForkSeq.peerdas) {
+  if (forkSeq < ForkSeq.fulu) {
     return unavailableBeaconBlobsByRootPreFulu(
       config,
       network,
@@ -224,7 +224,7 @@ export async function unavailableBeaconBlobsByRoot(
     );
   }
 
-  return unavailableBeaconBlobsByRootPeerDas(
+  return unavailableBeaconBlobsByRootPostFulu(
     config,
     network,
     peerId,
@@ -430,7 +430,7 @@ export async function unavailableBeaconBlobsByRootPreFulu(
   return getBlockInput.availableData(config, block, BlockSource.byRoot, blockBytes, blockData);
 }
 
-export async function unavailableBeaconBlobsByRootPeerDas(
+export async function unavailableBeaconBlobsByRootPostFulu(
   config: ChainForkConfig,
   network: INetwork,
   peerId: PeerIdStr,
@@ -487,11 +487,11 @@ export async function unavailableBeaconBlobsByRootPeerDas(
     resolveAvailability(blockData);
     opts.metrics?.syncUnknownBlock.resolveAvailabilitySource.inc({source: BlockInputAvailabilitySource.UNKNOWN_SYNC});
     availableBlockInput = getBlockInput.availableData(config, block, BlockSource.byRoot, blockBytes, blockData);
-  } else if (cachedData.fork === ForkName.peerdas) {
+  } else if (cachedData.fork === ForkName.fulu) {
     const {dataColumnsCache, resolveAvailability, cacheId} = cachedData;
 
     // resolve missing blobs
-    const dataColumnIdentifiers: peerdas.DataColumnIdentifier[] = [];
+    const dataColumnIdentifiers: fulu.DataColumnIdentifier[] = [];
     const slot = block.message.slot;
     const blockRoot = config.getForkTypes(slot).BeaconBlock.hashTreeRoot(block.message);
 
@@ -545,7 +545,7 @@ export async function unavailableBeaconBlobsByRootPeerDas(
         blockRoot: toHexString(blockRoot),
       });
 
-      let allDataColumnSidecars: peerdas.DataColumnSidecar[];
+      let allDataColumnSidecars: fulu.DataColumnSidecar[];
       if (dataColumnIdentifiers.length > 0) {
         allDataColumnSidecars = await network.sendDataColumnSidecarsByRoot(peerId, dataColumnIdentifiers);
       } else {
@@ -584,7 +584,7 @@ export async function unavailableBeaconBlobsByRootPeerDas(
       // don't forget to resolve availability as the block may be stuck in availability wait
       if (availableBlockInput !== undefined && availableBlockInput.type === BlockInputType.availableData) {
         const {blockData} = availableBlockInput;
-        if (blockData.fork !== ForkName.peerdas) {
+        if (blockData.fork !== ForkName.fulu) {
           throw Error(`unexpected blockData fork=${blockData.fork} returned by matchBlockWithDataColumns`);
         }
         resolveAvailability(blockData);

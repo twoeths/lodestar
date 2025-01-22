@@ -4,7 +4,7 @@ import {
   DATA_COLUMN_SIDECAR_SUBNET_COUNT,
   NUMBER_OF_COLUMNS,
 } from "@lodestar/params";
-import {ssz, deneb, peerdas, Slot, Root} from "@lodestar/types";
+import {ssz, deneb, fulu, Slot, Root} from "@lodestar/types";
 import {toHex, verifyMerkleBranch} from "@lodestar/utils";
 
 import {DataColumnSidecarGossipError, DataColumnSidecarErrorCode} from "../errors/dataColumnSidecarError.js";
@@ -15,7 +15,7 @@ import {byteArrayEquals} from "../../util/bytes.js";
 
 export async function validateGossipDataColumnSidecar(
   chain: IBeaconChain,
-  dataColumnSideCar: peerdas.DataColumnSidecar,
+  dataColumnSideCar: fulu.DataColumnSidecar,
   gossipIndex: number
 ): Promise<void> {
   const dataColumnSlot = dataColumnSideCar.signedBlockHeader.message.slot;
@@ -56,7 +56,7 @@ export function validateDataColumnsSidecars(
   blockSlot: Slot,
   blockRoot: Root,
   blockKzgCommitments: deneb.BlobKzgCommitments,
-  dataColumnSidecars: peerdas.DataColumnSidecars,
+  dataColumnSidecars: fulu.DataColumnSidecars,
   opts: {skipProofsCheck: boolean} = {skipProofsCheck: false}
 ): void {
   const commitmentBytes: Uint8Array[] = [];
@@ -119,7 +119,7 @@ export function validateDataColumnsSidecars(
   }
 }
 
-function validateInclusionProof(dataColumnSidecar: peerdas.DataColumnSidecar): boolean {
+function validateInclusionProof(dataColumnSidecar: fulu.DataColumnSidecar): boolean {
   return verifyMerkleBranch(
     ssz.deneb.BlobKzgCommitments.hashTreeRoot(dataColumnSidecar.kzgCommitments),
     dataColumnSidecar.kzgCommitmentsInclusionProof,

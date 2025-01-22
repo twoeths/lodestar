@@ -2,7 +2,7 @@ import type {ChainForkConfig} from "@lodestar/config";
 import type {DataAvailabilityStatus, MaybeValidExecutionStatus} from "@lodestar/fork-choice";
 import {type ForkName, ForkSeq} from "@lodestar/params";
 import {type CachedBeaconStateAllForks, computeEpochAtSlot} from "@lodestar/state-transition";
-import type {ColumnIndex, RootHex, SignedBeaconBlock, Slot, deneb, peerdas} from "@lodestar/types";
+import type {ColumnIndex, RootHex, SignedBeaconBlock, Slot, deneb, fulu} from "@lodestar/types";
 
 export enum BlockInputType {
   // preData is preDeneb
@@ -78,16 +78,16 @@ export enum DataColumnsSource {
   byRoot = "req_resp_by_root",
 }
 type ForkDataColumnsInfo = {
-  fork: ForkName.peerdas;
+  fork: ForkName.fulu;
 };
 type DataColumnData = {
-  dataColumn: peerdas.DataColumnSidecar;
+  dataColumn: fulu.DataColumnSidecar;
   dataColumnBytes: Uint8Array | null;
 };
 export type DataColumnsCacheMap = Map<number, DataColumnData>;
 export type BlockInputDataColumns = ForkDataColumnsInfo & {
   // marker of that columns are to be custodied
-  dataColumns: peerdas.DataColumnSidecars;
+  dataColumns: fulu.DataColumnSidecars;
   dataColumnsBytes: (Uint8Array | null)[];
   dataColumnsSource: DataColumnsSource;
 };

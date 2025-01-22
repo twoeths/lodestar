@@ -15,7 +15,7 @@ describe("UpgradeLightClientHeader", () => {
     CAPELLA_FORK_EPOCH: 3,
     DENEB_FORK_EPOCH: 4,
     ELECTRA_FORK_EPOCH: 5,
-    PEERDAS_FORK_EPOCH: 6,
+    FULU_FORK_EPOCH: 6,
   });
 
   const genesisValidatorsRoot = Buffer.alloc(32, 0xaa);
@@ -29,7 +29,7 @@ describe("UpgradeLightClientHeader", () => {
       bellatrix: ssz.altair.LightClientHeader.defaultValue(),
       deneb: ssz.deneb.LightClientHeader.defaultValue(),
       electra: ssz.deneb.LightClientHeader.defaultValue(),
-      peerdas: ssz.peerdas.LightClientHeader.defaultValue(),
+      fulu: ssz.fulu.LightClientHeader.defaultValue(),
     };
 
     testSlots = {
@@ -40,12 +40,12 @@ describe("UpgradeLightClientHeader", () => {
       deneb: 33,
       electra: 41,
       // TODO @matthewkeil need to implement this
-      peerdas: 0,
+      fulu: 0,
     };
   });
 
-  // Since peerdas is not implemented for loop is till deneb (Object.values(ForkName).length-1)
-  // Once peerdas is implemnted run for loop till Object.values(ForkName).length
+  // Since fulu is not implemented for loop is till deneb (Object.values(ForkName).length-1)
+  // Once fulu is implemnted run for loop till Object.values(ForkName).length
 
   // for (let i = ForkSeq.altair; i < Object.values(ForkName).length; i++) {
   //   for (let j = i + 1; j < Object.values(ForkName).length; j++) {
@@ -65,10 +65,10 @@ describe("UpgradeLightClientHeader", () => {
     }
   }
 
-  // for peerdas not implemented
+  // for fulu not implemented
   for (let i = ForkSeq.altair; i < Object.values(ForkName).length; i++) {
     const fromFork = ForkName[ForkSeq[i] as ForkName];
-    const toFork = ForkName["peerdas"];
+    const toFork = ForkName["fulu"];
 
     it(`Throw error ${fromFork}=>${toFork}`, () => {
       lcHeaderByFork[fromFork].beacon.slot = testSlots[fromFork];
@@ -80,8 +80,8 @@ describe("UpgradeLightClientHeader", () => {
     });
   }
 
-  // Since peerdas is not implemented for loop is till deneb (Object.values(ForkName).length-1)
-  // Once peerdas is implemnted run for loop till Object.values(ForkName).length
+  // Since fulu is not implemented for loop is till deneb (Object.values(ForkName).length-1)
+  // Once fulu is implemnted run for loop till Object.values(ForkName).length
 
   // for (let i = ForkSeq.altair; i < Object.values(ForkName).length; i++) {
 

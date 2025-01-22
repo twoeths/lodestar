@@ -7,7 +7,7 @@ import {
   deneb,
   UintNum64,
   SignedBeaconBlock,
-  peerdas,
+  fulu,
   SingleAttestation,
   SubnetID,
   sszTypesFor,
@@ -266,7 +266,7 @@ function getSequentialHandlers(modules: ValidatorFnsModules, options: GossipHand
   }
 
   async function validateBeaconDataColumn(
-    dataColumnSidecar: peerdas.DataColumnSidecar,
+    dataColumnSidecar: fulu.DataColumnSidecar,
     dataColumnBytes: Uint8Array,
     gossipIndex: number,
     peerIdStr: string,
@@ -322,7 +322,7 @@ function getSequentialHandlers(modules: ValidatorFnsModules, options: GossipHand
 
         if (e.action === GossipAction.REJECT) {
           chain.persistInvalidSszValue(
-            ssz.peerdas.DataColumnSidecar,
+            ssz.fulu.DataColumnSidecar,
             dataColumnSidecar,
             `gossip_reject_slot_${slot}_index_${dataColumnSidecar.index}`
           );
