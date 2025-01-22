@@ -27,7 +27,7 @@ import {
 } from "@lodestar/types";
 import {sleep} from "@lodestar/utils";
 import {rutes} from "@lodestar/api";
-import {ForkSeq, MAX_BLOBS_PER_BLOCK, NUMBER_OF_COLUMNS, DATA_COLUMN_SIDECAR_SUBNET_COUNT} from "@lodestar/params";
+import {ForkSeq, NUMBER_OF_COLUMNS, DATA_COLUMN_SIDECAR_SUBNET_COUNT} from "@lodestar/params";
 import {Metrics, RegistryMetricCreator} from "../metrics/index.js";
 import {IBeaconChain} from "../chain/index.js";
 import {IBeaconDb} from "../db/interface.js";
