@@ -26,7 +26,6 @@ import {
   ColumnIndex,
 } from "@lodestar/types";
 import {sleep} from "@lodestar/utils";
-import {rutes} from "@lodestar/api";
 import {ForkSeq, NUMBER_OF_COLUMNS, DATA_COLUMN_SIDECAR_SUBNET_COUNT} from "@lodestar/params";
 import {Metrics, RegistryMetricCreator} from "../metrics/index.js";
 import {IBeaconChain} from "../chain/index.js";

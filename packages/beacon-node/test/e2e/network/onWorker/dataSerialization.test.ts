@@ -11,7 +11,7 @@ import {
   BlockSource,
   CachedData,
   BlockInputBlobs,
-  BlockInputCachedData,
+  CachedData,
 } from "../../../../src/chain/blocks/types.js";
 import {ZERO_HASH, ZERO_HASH_HEX} from "../../../../src/constants/constants.js";
 import {ReqRespBridgeEventData} from "../../../../src/network/core/events.js";
@@ -267,7 +267,7 @@ function getEmptyBlockInput(): BlockInput {
     blobsCache,
     availabilityPromise,
     resolveAvailability,
-  } as BlockInputCachedData;
+  } as CachedData;
   return {
     type: BlockInputType.dataPromise,
     block: ssz.deneb.SignedBeaconBlock.defaultValue(),

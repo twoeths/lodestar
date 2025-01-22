@@ -60,7 +60,7 @@ export type BlockInputBlobs = ForkBlobsInfo & {
   blobsSource: BlobsSource;
 };
 export type BlobsCacheMap = Map<number, BlobData>;
-type CachedBlobs = CachedDataItem &
+export type CachedBlobs = CachedDataItem &
   ForkBlobsInfo &
   Availability<BlockInputBlobs> & {
     blobsCache: BlobsCacheMap;
@@ -103,7 +103,7 @@ type CachedDataColumns = CachedDataItem &
  *
  */
 export type BlockInputAvailableData = BlockInputBlobs | BlockInputDataColumns;
-export type BlockInputCachedData = CachedBlobs | CachedDataColumns;
+export type CachedData = CachedBlobs | CachedDataColumns;
 
 export type BlockInput = {
   block: SignedBeaconBlock;
@@ -116,7 +116,7 @@ export type BlockInput = {
     })
   // the blobsSource here is added to BlockInputBlobs when availability is resolved
   | ({type: BlockInputType.dataPromise} & {
-      cachedData: BlockInputCachedData;
+      cachedData: CachedData;
     })
 );
 export type NullBlockInput = {
@@ -124,7 +124,7 @@ export type NullBlockInput = {
   blockRootHex: RootHex;
   blockInputPromise: Promise<BlockInput>;
 } & {
-  cachedData: BlockInputCachedData;
+  cachedData: CachedData;
 };
 
 export function blockRequiresBlobs(config: ChainForkConfig, blockSlot: Slot, clockSlot: Slot): boolean {
@@ -200,7 +200,7 @@ export const getBlockInput = {
     block: SignedBeaconBlock,
     source: BlockSource,
     blockBytes: Uint8Array | null,
-    cachedData: BlockInputCachedData
+    cachedData: CachedData
   ): BlockInput {
     if (config.getForkSeq(block.message.slot) < ForkSeq.deneb) {
       throw Error(`Pre Deneb block slot ${block.message.slot}`);

@@ -2,7 +2,6 @@ import {BeaconConfig} from "@lodestar/config";
 import {
   MAX_REQUEST_BLOCKS,
   MAX_REQUEST_LIGHT_CLIENT_UPDATES,
-  MAX_REQUEST_BLOB_SIDECARS,
   MAX_REQUEST_BLOCKS_DENEB,
   NUMBER_OF_COLUMNS,
 } from "@lodestar/params";
@@ -53,12 +52,12 @@ export const rateLimitQuotas: (config: BeaconConfig) => Record<ReqRespMethod, In
   [ReqRespMethod.DataColumnSidecarsByRange]: {
     // Rationale: MAX_REQUEST_BLOCKS_DENEB * NUMBER_OF_COLUMNS
     byPeer: {quota: MAX_REQUEST_BLOCKS_DENEB * NUMBER_OF_COLUMNS, quotaTimeMs: 10_000},
-    getRequestCount: getRequestCountFn(ReqRespMethod.DataColumnSidecarsByRange, (req) => req.count),
+    getRequestCount: getRequestCountFn(config, ReqRespMethod.DataColumnSidecarsByRange, (req) => req.count),
   },
   [ReqRespMethod.DataColumnSidecarsByRoot]: {
     // Rationale: quota of BeaconBlocksByRoot * NUMBER_OF_COLUMNS
     byPeer: {quota: 128 * NUMBER_OF_COLUMNS, quotaTimeMs: 10_000},
-    getRequestCount: getRequestCountFn(ReqRespMethod.DataColumnSidecarsByRoot, (req) => req.length),
+    getRequestCount: getRequestCountFn(config, ReqRespMethod.DataColumnSidecarsByRoot, (req) => req.length),
   },
   [ReqRespMethod.LightClientBootstrap]: {
     // As similar in the nature of `Status` protocol so we use the same rate limits.

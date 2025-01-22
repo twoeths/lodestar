@@ -8,7 +8,6 @@ import {Logger} from "@lodestar/utils";
 import {
   BlobsSource,
   BlockInput,
-  BlockInputDataBlobs,
   BlockSource,
   getBlockInput,
   BlockInputBlobs,
@@ -147,7 +146,12 @@ export async function beaconBlocksMaybeBlobsByRange(
 
   // Data is out of range, only request blocks
   const blocks = await network.sendBeaconBlocksByRange(peerId, request);
-  return blocks.map((block) => getBlockInput.outOfRangeData(config, block.data, BlockSource.byRange, block.bytes));
+  return {
+    blocks: blocks.map((block) => getBlockInput.outOfRangeData(config, block.data, BlockSource.byRange, block.bytes)),
+    // TODO: (@matthewkeil) this was a merge conflict when rebased on electra. Should this be a null or an empty array?  Should it
+    //       depend on which fork we are in?  Need to revisit 
+    pendingDataColumns: null
+  };
 }
 
 // Assumes that the blobs are in the same sequence as blocks, doesn't require block to be sorted

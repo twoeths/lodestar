@@ -21,7 +21,6 @@ import {
 import {
   BlobsSource,
   BlockInput,
-  BlockInputDataBlobs,
   BlockSource,
   ImportBlockOpts,
   getBlockInput,

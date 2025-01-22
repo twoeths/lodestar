@@ -21,7 +21,7 @@ import {MonitoringService} from "../monitoring/index.js";
 import {Network, getReqRespHandlers} from "../network/index.js";
 import {BackfillSync} from "../sync/backfill/index.js";
 import {BeaconSync, IBeaconSync} from "../sync/index.js";
-import {TrustedFileMode, initCKZG, loadEthereumTrustedSetup} from "../util/kzg.js";
+import {initCKZG, loadEthereumTrustedSetup} from "../util/kzg.js";
 import {NodeId} from "../network/subnets/interface.js";
 import {IBeaconNodeOptions} from "./options.js";
 import {runNodeNotifier} from "./notifier.js";

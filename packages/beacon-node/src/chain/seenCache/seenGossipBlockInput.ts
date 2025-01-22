@@ -8,18 +8,17 @@ import {Metrics} from "../../metrics/index.js";
 import {
   BlobsSource,
   BlockInput,
-  BlockInputDataBlobs,
   BlockSource,
   CachedData,
   NullBlockInput,
   getBlockInput,
   BlockInputBlobs,
-  BlockInputCachedData,
   GossipedInputType,
   getBlockInputBlobs,
   DataColumnsSource,
   getBlockInputDataColumns,
   BlockInputDataColumns,
+  CachedBlobs,
 } from "../blocks/types.js";
 import {CustodyConfig} from "../../util/dataColumns.js";
 
@@ -41,7 +40,7 @@ type BlockInputCacheType = {
   fork: ForkName;
   block?: SignedBeaconBlock;
   blockBytes?: Uint8Array | null;
-  cachedData?: BlockInputCachedData;
+  cachedData?: CachedData;
   // block promise and its callback cached for delayed resolution
   blockInputPromise: Promise<BlockInput>;
   resolveBlockInput: (blockInput: BlockInput) => void;
@@ -358,13 +357,13 @@ export class SeenGossipBlockInput {
     if (cachedData === undefined) {
       throw Error("Missing cachedData for deneb+ blobs");
     }
-    const {blobsCache} = cachedData;
+    const {blobsCache} = cachedData as CachedBlobs;
 
     return {
       blockInput: {
         block: null,
         blockRootHex: blockHex,
-        cachedData,
+        cachedData: cachedData as CachedData,
         blockInputPromise,
       },
       blockInputMeta: {pending: GossipedInputType.block, haveBlobs: blobsCache.size, expectedBlobs: null},
@@ -397,7 +396,7 @@ export function getEmptyBlockInputCacheEntry(fork: ForkName, globalCacheId: numb
     }
 
     const blobsCache = new Map();
-    const cachedData: BlockInputCachedData = {
+    const cachedData: CachedData = {
       fork,
       blobsCache,
       availabilityPromise,
@@ -416,7 +415,7 @@ export function getEmptyBlockInputCacheEntry(fork: ForkName, globalCacheId: numb
     }
 
     const dataColumnsCache = new Map();
-    const cachedData: BlockInputCachedData = {
+    const cachedData: CachedData = {
       fork,
       dataColumnsCache,
       availabilityPromise,

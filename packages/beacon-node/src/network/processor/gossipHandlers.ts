@@ -54,7 +54,6 @@ import {
   validateGossipSyncCommittee,
   validateGossipVoluntaryExit,
   validateSyncCommitteeGossipContributionAndProof,
-  validateGossipAttestation,
   AttestationOrBytes,
   AttestationValidationResult,
 } from "../../chain/validation/index.js";
@@ -428,10 +427,13 @@ function getSequentialHandlers(modules: ValidatorFnsModules, options: GossipHand
       });
     }
 
-    if (blockInput.type === BlockInputType.availableData) {
-      metrics?.blockInputFetchStats.totalDataAvailableBlockInputs.inc();
-      metrics?.blockInputFetchStats.totalDataAvailableBlockInputBlobs.inc(blockInput.blockData.blobs.length);
-    }
+    /**
+     * TODO: this metric was leftover from the rebase onto electra. It is blob specific and should be data type agnostic here
+     */
+    // if (blockInput.type === BlockInputType.availableData) {
+    //   metrics?.blockInputFetchStats.totalDataAvailableBlockInputs.inc();
+    //   metrics?.blockInputFetchStats.totalDataAvailableBlockInputBlobs.inc(blockInput.blockData.blobs.length);
+    // }
   }
 
   return {

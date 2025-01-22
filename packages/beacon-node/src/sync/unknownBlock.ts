@@ -20,6 +20,7 @@ import {Result, wrapError} from "../util/wrapError.js";
 import {PendingBlock, PendingBlockStatus, PendingBlockType, UnknownBlock} from "./interface.js";
 import {getDescendantBlocks, getAllDescendantBlocks, getUnknownAndAncestorBlocks} from "./utils/pendingBlocksTree.js";
 import {SyncOptions} from "./options.js";
+import { fromHexString, toHexString } from "@chainsafe/ssz";
 
 const MAX_ATTEMPTS_PER_BLOCK = 5;
 const MAX_KNOWN_BAD_BLOCKS = 500;

@@ -9,7 +9,6 @@ import {Logger} from "@lodestar/utils";
 import {
   BlobsSource,
   BlockInput,
-  BlockInputDataBlobs,
   BlockInputType,
   BlockSource,
   NullBlockInput,
@@ -229,13 +228,15 @@ export async function unavailableBeaconBlobsByRoot(
     config,
     network,
     peerId,
+    peerClient,
     unavailableBlockInput,
     block,
     blockBytes,
     cachedData,
-    opts.metrics,
-    peerClient,
-    opts.logger
+    {
+      metrics: opts.metrics,
+      logger: opts.logger,
+    }
   );
 }
 
@@ -248,7 +249,7 @@ export async function unavailableBeaconBlobsByRootPreFulu(
   blockBytes: Uint8Array | null,
   cachedData: CachedBlobs,
   opts: {
-    metrics: Metrics | null;
+    metrics?: Metrics | null;
     executionEngine: IExecutionEngine;
     engineGetBlobsCache?: Map<RootHex, BlobAndProof | null>;
     blockInputsRetryTrackerCache?: Set<RootHex>;
@@ -433,13 +434,15 @@ export async function unavailableBeaconBlobsByRootPeerDas(
   config: ChainForkConfig,
   network: INetwork,
   peerId: PeerIdStr,
+  peerClient: string,
   unavailableBlockInput: BlockInput | NullBlockInput,
   block: SignedBeaconBlock,
   blockBytes: Uint8Array | null,
   cachedData: NullBlockInput["cachedData"],
-  metrics: Metrics | null,
-  peerClient: string,
-  logger?: Logger
+  opts: {
+    metrics?: Metrics | null;
+    logger?: Logger;
+  }
 ): Promise<BlockInput> {
   if (unavailableBlockInput.block !== null && unavailableBlockInput.type !== BlockInputType.dataPromise) {
     return unavailableBlockInput;
@@ -482,7 +485,7 @@ export async function unavailableBeaconBlobsByRootPeerDas(
     }
     const blockData = {fork: cachedData.fork, ...allBlobs, blobsSource: BlobsSource.byRoot} as BlockInputBlobs;
     resolveAvailability(blockData);
-    metrics?.syncUnknownBlock.resolveAvailabilitySource.inc({source: BlockInputAvailabilitySource.UNKNOWN_SYNC});
+    opts.metrics?.syncUnknownBlock.resolveAvailabilitySource.inc({source: BlockInputAvailabilitySource.UNKNOWN_SYNC});
     availableBlockInput = getBlockInput.availableData(config, block, BlockSource.byRoot, blockBytes, blockData);
   } else if (cachedData.fork === ForkName.peerdas) {
     const {dataColumnsCache, resolveAvailability, cacheId} = cachedData;
@@ -502,7 +505,7 @@ export async function unavailableBeaconBlobsByRootPeerDas(
       } as BlockInputDataColumns;
 
       resolveAvailability(blockData);
-      metrics?.syncUnknownBlock.resolveAvailabilitySource.inc({source: BlockInputAvailabilitySource.UNKNOWN_SYNC});
+      opts.metrics?.syncUnknownBlock.resolveAvailabilitySource.inc({source: BlockInputAvailabilitySource.UNKNOWN_SYNC});
       availableBlockInput = getBlockInput.availableData(config, block, BlockSource.byRoot, blockBytes, blockData);
     } else {
       const {custodyConfig} = network;
@@ -575,7 +578,7 @@ export async function unavailableBeaconBlobsByRootPeerDas(
           ? {blocks: [unavailableBlockInput], pendingDataColumns: neededColumns}
           : null,
         peerClient,
-        logger
+        opts.logger
       );
 
       // don't forget to resolve availability as the block may be stuck in availability wait
