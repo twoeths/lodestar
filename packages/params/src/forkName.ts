@@ -83,6 +83,15 @@ export function isForkBlobs(fork: ForkName): fork is ForkBlobs {
   return isForkWithdrawals(fork) && fork !== ForkName.capella;
 }
 
+// TODO @matthewkeil Look at updating the above to PreDeneb and PostDeneb and then using the below
+// export type ForkPreBlobs = ForkPreWithdrawals | ForkName.capella;
+// export type ForkPostBlobs = ForkPostFulu;
+// export type ForkBlobs = Exclude<ForkName, ForkPreBlobs | ForkPostBlobs>;
+// export const forkBlobs = [ForkName.deneb, ForkName.electra] as const;
+// export function isForkBlobs(fork: ForkName): fork is ForkBlobs {
+//   return forkBlobs.includes(fork);
+// }
+
 export type ForkPreElectra = ForkPreBlobs | ForkName.deneb;
 export type ForkPostElectra = Exclude<ForkName, ForkPreElectra>;
 export const forkPostElectra = exclude(forkAll, [

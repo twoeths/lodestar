@@ -1,6 +1,13 @@
 import {routes} from "@lodestar/api";
 import {ApiError, ApplicationMethods} from "@lodestar/api/server";
-import {ForkExecution, SLOTS_PER_HISTORICAL_ROOT, isForkExecution, isForkPostElectra, ForkName} from "@lodestar/params";
+import {
+  ForkExecution,
+  SLOTS_PER_HISTORICAL_ROOT,
+  isForkExecution,
+  isForkPostElectra,
+  ForkName,
+  isForkPostFulu,
+} from "@lodestar/params";
 import {
   computeEpochAtSlot,
   computeTimeAtSlot,
@@ -79,7 +86,7 @@ export function getBeaconBlockApi({
       ({signedBlock} = signedBlockOrContents);
       const fork = config.getForkName(signedBlock.message.slot);
       let blockData: BlockInputAvailableData;
-      if (fork === ForkName.fulu) {
+      if (isForkPostFulu(fork)) {
         dataColumnSidecars = computeDataColumnSidecars(config, signedBlock, signedBlockOrContents);
         blockData = {
           fork,
@@ -91,7 +98,7 @@ export function getBeaconBlockApi({
           dataColumnsSource: DataColumnsSource.api,
         } as BlockInputDataColumns;
         blobSidecars = [];
-      } else if (fork === ForkName.deneb) {
+      } else if (fork === ForkName.deneb || fork === ForkName.electra) {
         blobSidecars = computeBlobSidecars(config, signedBlock, signedBlockOrContents);
         blockData = {
           fork,
