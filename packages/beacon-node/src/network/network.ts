@@ -16,6 +16,7 @@ import {
   Root,
   SignedAggregateAndProof,
   SignedBeaconBlock,
+  SingleAttestation,
   SlotRootHex,
   SubnetID,
   WithBytes,
@@ -331,7 +332,7 @@ export class Network implements INetwork {
     );
   }
 
-  async publishBeaconAttestation(attestation: phase0.Attestation, subnet: SubnetID): Promise<number> {
+  async publishBeaconAttestation(attestation: SingleAttestation, subnet: SubnetID): Promise<number> {
     const fork = this.config.getForkName(attestation.data.slot);
     return this.publishGossip<GossipType.beacon_attestation>(
       {type: GossipType.beacon_attestation, fork, subnet},
@@ -503,10 +504,11 @@ export class Network implements INetwork {
     peerId: PeerIdStr,
     request: deneb.BlobSidecarsByRangeRequest
   ): Promise<deneb.BlobSidecar[]> {
+    const fork = this.config.getForkName(request.startSlot);
     return collectMaxResponseTyped(
       this.sendReqRespRequest(peerId, ReqRespMethod.BlobSidecarsByRange, [Version.V1], request),
       // request's count represent the slots, so the actual max count received could be slots * blobs per slot
-      request.count * this.config.MAX_BLOBS_PER_BLOCK,
+      request.count * this.config.getMaxBlobsPerBlock(fork),
       responseSszTypeByMethod[ReqRespMethod.BlobSidecarsByRange]
     );
   }
@@ -525,7 +527,8 @@ export class Network implements INetwork {
     versions: number[],
     request: Req
   ): AsyncIterable<ResponseIncoming> {
-    const requestType = requestSszTypeByMethod(this.config)[method];
+    const fork = this.config.getForkName(this.clock.currentSlot);
+    const requestType = requestSszTypeByMethod(this.config, fork)[method];
     const requestData = requestType ? requestType.serialize(request as never) : new Uint8Array();
 
     // ReqResp outgoing request, emit from main thread to worker

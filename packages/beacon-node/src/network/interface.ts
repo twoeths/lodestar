@@ -20,6 +20,7 @@ import {
   LightClientOptimisticUpdate,
   SignedAggregateAndProof,
   SignedBeaconBlock,
+  SingleAttestation,
   Slot,
   SlotRootHex,
   SubnetID,
@@ -75,7 +76,7 @@ export interface INetwork extends INetworkCorePublic {
   publishBeaconBlock(signedBlock: SignedBeaconBlock): Promise<number>;
   publishBlobSidecar(blobSidecar: deneb.BlobSidecar): Promise<number>;
   publishBeaconAggregateAndProof(aggregateAndProof: SignedAggregateAndProof): Promise<number>;
-  publishBeaconAttestation(attestation: phase0.Attestation, subnet: SubnetID): Promise<number>;
+  publishBeaconAttestation(attestation: SingleAttestation, subnet: SubnetID): Promise<number>;
   publishVoluntaryExit(voluntaryExit: phase0.SignedVoluntaryExit): Promise<number>;
   publishBlsToExecutionChange(blsToExecutionChange: capella.SignedBLSToExecutionChange): Promise<number>;
   publishProposerSlashing(proposerSlashing: phase0.ProposerSlashing): Promise<number>;
