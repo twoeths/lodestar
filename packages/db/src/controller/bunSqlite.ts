@@ -153,6 +153,8 @@ export class BunSqliteController implements DatabaseController<Uint8Array, Uint8
   }
 
   valuesStream(opts: ControllerFilterOptions<Uint8Array>): AsyncIterable<Uint8Array> {
+    // biome-ignore lint/suspicious/noConsoleLog: <explanation>
+    console.log(`SELECT value from ${opts.bucketId} ${filterOptsToClauses(opts)}`, filterOptsToParams(opts));
     const query = this.db.query<{value: Uint8Array}, Uint8Array[]>(
       `SELECT value from ${opts.bucketId} ${filterOptsToClauses(opts)}`
     );
