@@ -120,7 +120,7 @@ export class BunSqliteController implements DatabaseController<Uint8Array, Uint8
     this.metrics?.dbWriteReq.inc({bucket: opts.bucketId}, 1);
     this.metrics?.dbWriteItems.inc({bucket: opts.bucketId}, items.length);
 
-    const query = this.db.query(`INSERT INTO ${opts.bucketId} VALUES (?1, ?2)`);
+    const query = this.db.query(`INSERT OR REPLACE INTO ${opts.bucketId} VALUES (?1, ?2)`);
 
     const batch = this.db.transaction((items: KeyValue<Uint8Array, Uint8Array>[]) => {
       for (const {key, value} of items) {
