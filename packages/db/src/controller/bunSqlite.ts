@@ -153,16 +153,11 @@ export class BunSqliteController implements DatabaseController<Uint8Array, Uint8
   }
 
   valuesStream(opts: ControllerFilterOptions<Uint8Array>): AsyncIterable<Uint8Array> {
-    try {
-      const query = this.db.query<{value: Uint8Array}, Uint8Array[]>(
-        `SELECT value from ${opts.bucketId} ${filterOptsToClauses(opts)}`
-      );
-      const iterator = query.iterate(...filterOptsToParams(opts));
-      return this.metricsIterator(iterator, (value) => value.value, opts.bucketId);
-    } catch (e) {
-      this.logger.debug("Db error", {opts: JSON.stringify(opts)}, e as Error);
-      throw e;
-    }
+    const query = this.db.query<{value: Uint8Array}, Uint8Array[]>(
+      `SELECT value from ${opts.bucketId} ${filterOptsToClauses(opts)}`
+    );
+    const iterator = query.iterate(...filterOptsToParams(opts));
+    return this.metricsIterator(iterator, (value) => value.value, opts.bucketId);
   }
 
   entriesStream(opts: ControllerFilterOptions<Uint8Array>): AsyncIterable<KeyValue<Uint8Array, Uint8Array>> {

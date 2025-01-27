@@ -116,6 +116,8 @@ export class Eth1DepositsCache {
     lastProcessedDepositBlockNumber: number | null
   ): Promise<(phase0.Eth1Data & Eth1Block)[]> {
     const highestBlock = blocks[blocks.length - 1]?.blockNumber;
+    // biome-ignore lint/suspicious/noConsoleLog: <explanation>
+    console.log("getEthDataForBlocks", highestBlock, blocks.length, blocks[blocks.length - 1]);
     return getEth1DataForBlocks(
       blocks,
       this.db.depositEvent.valuesStream({lte: highestBlock, reverse: true}),
