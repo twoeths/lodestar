@@ -207,6 +207,7 @@ export class Eth1DepositDataTracker {
           await sleep(RATE_LIMITED_WAIT_MS, this.signal);
           // only log error if state switched from online to some other state
         } else if (!isErrorAborted(e)) {
+          this.logger.debug("Eth1 provider error", {}, e as Error);
           await sleep(MIN_WAIT_ON_ERROR_MS, this.signal);
         }
       }
