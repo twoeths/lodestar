@@ -1872,10 +1872,9 @@
     uint8arraylist "^2.4.8"
     uint8arrays "^5.1.0"
 
-"@libp2p/prometheus-metrics@^4.1.2":
+"@libp2p/prometheus-metrics@https://github.com/ChainSafe/js-libp2p/raw/refs/heads/bun/packages/metrics-prometheus/libp2p-prometheus-metrics-4.3.0.tgz":
   version "4.3.0"
-  resolved "https://registry.yarnpkg.com/@libp2p/prometheus-metrics/-/prometheus-metrics-4.3.0.tgz#62c5cfd9ed614f83d5691f18f0a814f3e55062ed"
-  integrity sha512-Pr+3n7hKKh0sSDCE2QF9UCTE4mLYhPyugfDy9UNAwICrNrV25raVGQfgkeSwJjtRhQVfAq3sjoD5ykqKCfXRWw==
+  resolved "https://github.com/ChainSafe/js-libp2p/raw/refs/heads/bun/packages/metrics-prometheus/libp2p-prometheus-metrics-4.3.0.tgz#d0b977a5ef8d6f90a515c6e52bd4137ebeac06e8"
   dependencies:
     "@libp2p/interface" "^2.4.0"
     it-foreach "^2.1.1"
