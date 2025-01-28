@@ -1,4 +1,4 @@
-import {BaseDatastore, MemoryDatastore} from "datastore-core";
+import {MemoryDatastore} from "datastore-core";
 // import {LevelDatastore} from "datastore-level";
 // import {Key, KeyQuery, Pair, Query} from "interface-datastore";
 
@@ -65,7 +65,7 @@ export class Eth2PeerDataStore extends MemoryDatastore {
 //     return this._dbDatastore.close();
 //   }
 
-//   async put(key: Key, val: Uint8Array): Promise<Key> {
+//   async put(key: Key, val: Uint8Array, _options?: AbortOptions): Promise<Key> {
 //     return this._put(key, val, false);
 //   }
 
