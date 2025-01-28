@@ -456,36 +456,35 @@
     "@chainsafe/blst-linux-x64-musl" "2.1.0"
     "@chainsafe/blst-win32-x64-msvc" "2.1.0"
 
-"@chainsafe/discv5@^10.0.1":
-  version "10.0.1"
-  resolved "https://registry.yarnpkg.com/@chainsafe/discv5/-/discv5-10.0.1.tgz#1aefe3826b19b1f66e76c737a7a49ae7c77d7664"
-  integrity sha512-YpvqOMOn/sQMHU97lonvRnbtLZQW1Vqjcwtofd0hOJ6ohtxn+Ne7Cos8qCOFkhRHirGG6irHej4akh/BlBscSA==
+"@chainsafe/discv5@^11.0.0":
+  version "11.0.0"
+  resolved "https://registry.yarnpkg.com/@chainsafe/discv5/-/discv5-11.0.0.tgz#346a11ad25f552d29e8b1956b539e08d14bde361"
+  integrity sha512-g/x79Y5b7g6CrNuWazSzXTtnNguC0Sl8xkf9CPMlZ0BrsXmXPzwTp3zgtAiuJcG9x7zDUSDFOejrb4iFcJ0/FQ==
   dependencies:
-    "@chainsafe/enr" "^4.0.1"
+    "@chainsafe/enr" "^5.0.0"
+    "@ethereumjs/rlp" "^5.0.2"
     "@libp2p/crypto" "^5.0.1"
     "@libp2p/interface" "^2.0.1"
     "@multiformats/multiaddr" "^12.1.10"
-    bcrypto "^5.4.0"
-    bigint-buffer "^1.1.5"
+    "@noble/hashes" "^1.7.0"
+    "@noble/secp256k1" "^2.2.2"
     debug "^4.3.1"
     lru-cache "^10.1.0"
-    rlp "^2.2.6"
     strict-event-emitter-types "^2.0.0"
 
-"@chainsafe/enr@^4.0.1":
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/@chainsafe/enr/-/enr-4.0.1.tgz#9c9ad8cd84aedc1242d7e7ac99d670c0f8ee3c0d"
-  integrity sha512-eYGZC6Wq9UNtD5AZLO21w9DctRkEAhMZ/kIa+eggT5lVRcVSI06O7PmSXOSRW6z+Td/9MQKGEDtuyYa1esWlSg==
+"@chainsafe/enr@^5.0.0":
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/@chainsafe/enr/-/enr-5.0.0.tgz#0486d6d3ba9cb8c4a6e2190921b2dd33ec60bb7b"
+  integrity sha512-xqWBsdFFHy/sLqddsyCT4BH/5PFheyK8Grho27tmiwg/a95nANYANsqXXUP8/HbgCx3F5VDl0/xFacV3Ik7kDA==
   dependencies:
+    "@ethereumjs/rlp" "^5.0.2"
     "@libp2p/crypto" "^5.0.1"
     "@libp2p/interface" "^2.0.1"
     "@libp2p/peer-id" "^5.0.1"
     "@multiformats/multiaddr" "^12.1.10"
-    bigint-buffer "^1.1.5"
+    "@scure/base" "^1.2.1"
     ethereum-cryptography "^2.2.0"
-    rlp "^2.2.6"
     uint8-varint "^2.0.2"
-    uint8arrays "^5.0.1"
 
 "@chainsafe/fast-crc32c@^4.1.1":
   version "4.1.1"
@@ -956,6 +955,11 @@
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/@ethereumjs/rlp/-/rlp-4.0.1.tgz#626fabfd9081baab3d0a3074b0c7ecaf674aaa41"
   integrity sha512-tqsQiBQDQdmPWE1xkkBq4rlSW5QZpLOUJ5RJh2/9fug+q9tnUhuZoVLk7s0scUIKTOzEtR72DFBXI4WiZcMpvw==
+
+"@ethereumjs/rlp@^5.0.2":
+  version "5.0.2"
+  resolved "https://registry.yarnpkg.com/@ethereumjs/rlp/-/rlp-5.0.2.tgz#c89bd82f2f3bec248ab2d517ae25f5bbc4aac842"
+  integrity sha512-DziebCdg4JpGlEqEdGgXmjqcFoJi+JGulUXwEjsZGAscAQ7MyD/7LE/GVCP29vEQxKc7AAwjT3A2ywHp2xfoCA==
 
 "@ethereumjs/statemanager@^1.0.5":
   version "1.0.5"
@@ -2130,7 +2134,7 @@
   resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-1.4.0.tgz#45814aa329f30e4fe0ba49426f49dfccdd066426"
   integrity sha512-V1JJ1WTRUqHHrOSh597hURcMqVKVGL/ea3kv0gSnEdsEZ0/+VyPghM1lMNGc00z7CIQorSvbKpuJkxvuHbvdbg==
 
-"@noble/hashes@1.7.1", "@noble/hashes@^1.0.0", "@noble/hashes@^1.3.0", "@noble/hashes@^1.3.1", "@noble/hashes@^1.6.1":
+"@noble/hashes@1.7.1", "@noble/hashes@^1.0.0", "@noble/hashes@^1.3.0", "@noble/hashes@^1.3.1", "@noble/hashes@^1.6.1", "@noble/hashes@^1.7.0":
   version "1.7.1"
   resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-1.7.1.tgz#5738f6d765710921e7a751e00c20ae091ed8db0f"
   integrity sha512-B8XBPsn4vT/KJAGqDzbwztd+6Yte3P4V7iafm24bxgDe/mlRuK6xmWPuCNrKt2vDafZ8MfJLlchDG/vYafQEjQ==
@@ -2144,6 +2148,11 @@
   version "1.7.1"
   resolved "https://registry.yarnpkg.com/@noble/secp256k1/-/secp256k1-1.7.1.tgz#b251c70f824ce3ca7f8dc3df08d58f005cc0507c"
   integrity sha512-hOUk6AyBFmqVrv7k5WAw/LpszxVbj9gGN4JRkIX52fdFAj1UA61KXmZDvqVEm+pOyec3+fIeZB02LYa/pWOArw==
+
+"@noble/secp256k1@^2.2.2":
+  version "2.2.3"
+  resolved "https://registry.yarnpkg.com/@noble/secp256k1/-/secp256k1-2.2.3.tgz#c505ced542328ed13315a8d811684d042f7acc5b"
+  integrity sha512-l7r5oEQym9Us7EAigzg30/PQAvynhMt2uoYtT3t26eGDVm9Yii5mZ5jWSWmZ/oSIR2Et0xfc6DXrG0bZ787V3w==
 
 "@node-rs/crc32-android-arm-eabi@1.6.0":
   version "1.6.0"
@@ -2865,6 +2874,11 @@
     "@types/argparse" "1.0.38"
     argparse "~1.0.9"
     string-argv "~0.3.1"
+
+"@scure/base@^1.2.1":
+  version "1.2.4"
+  resolved "https://registry.yarnpkg.com/@scure/base/-/base-1.2.4.tgz#002eb571a35d69bdb4c214d0995dff76a8dcd2a9"
+  integrity sha512-5Yy9czTO47mqz+/J8GM6GIId4umdCk1wc1q8rKERQulIoc8VP9pzDcghv10Tl2E7R96ZUx/PhND3ESYUQX8NuQ==
 
 "@scure/base@~1.0.0":
   version "1.0.0"
@@ -4249,14 +4263,6 @@ bcrypt-pbkdf@^1.0.2:
   dependencies:
     tweetnacl "^0.14.3"
 
-bcrypto@^5.4.0:
-  version "5.4.0"
-  resolved "https://registry.npmjs.org/bcrypto/-/bcrypto-5.4.0.tgz"
-  integrity sha512-KDX2CR29o6ZoqpQndcCxFZAtYA1jDMnXU3jmCfzP44g++Cu7AHHtZN/JbrN/MXAg9SLvtQ8XISG+eVD9zH1+Jg==
-  dependencies:
-    bufio "~1.0.7"
-    loady "~0.0.5"
-
 bech32@1.1.4:
   version "1.1.4"
   resolved "https://registry.npmjs.org/bech32/-/bech32-1.1.4.tgz"
@@ -4337,7 +4343,7 @@ bluebird@~3.4.1:
   resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.4.7.tgz#f72d760be09b7f76d08ed8fae98b289a8d05fab3"
   integrity sha512-iD3898SR7sWVRHbiQv+sHUtHnMvC1o3nW5rAcqnq3uOn07DSAppZYUkIGslDz6gXC7HfunPe7YVBgoEJASPcHA==
 
-bn.js@^4.0.0, bn.js@^4.1.0, bn.js@^4.11.1, bn.js@^4.11.9:
+bn.js@^4.0.0, bn.js@^4.1.0, bn.js@^4.11.9:
   version "4.12.0"
   resolved "https://registry.npmjs.org/bn.js/-/bn.js-4.12.0.tgz"
   integrity sha512-c98Bf3tPniI+scsdk237ku1Dc3ujXQTSgyiPUDEOe7tRkhrqridvh8klBv0HCEso1OLOYcHuCv/cS6DNxKH+ZA==
@@ -4528,11 +4534,6 @@ buffers@~0.1.1:
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/buffers/-/buffers-0.1.1.tgz#b24579c3bed4d6d396aeee6d9a8ae7f5482ab7bb"
   integrity sha512-9q/rDEGSb/Qsvv2qvzIzdluL5k7AaJOTrw23z9reQthrbF7is4CtlT0DXyO1oei2DCp4uojjzQ7igaSHp1kAEQ==
-
-bufio@~1.0.7:
-  version "1.0.7"
-  resolved "https://registry.npmjs.org/bufio/-/bufio-1.0.7.tgz"
-  integrity sha512-bd1dDQhiC+bEbEfg56IdBv7faWa6OipMs/AFFFvtFnB3wAYjlwQpQRZ0pm6ZkgtfL0pILRXhKxOiQj6UzoMR7A==
 
 buildcheck@~0.0.6:
   version "0.0.6"
@@ -8494,11 +8495,6 @@ load-json-file@^4.0.0:
     pify "^3.0.0"
     strip-bom "^3.0.0"
 
-loady@~0.0.5:
-  version "0.0.5"
-  resolved "https://registry.npmjs.org/loady/-/loady-0.0.5.tgz"
-  integrity sha512-uxKD2HIj042/HBx77NBcmEPsD+hxCgAtjEWlYNScuUjIsh/62Uyu39GOR68TBR68v+jqDL9zfftCWoUo4y03sQ==
-
 locate-app@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/locate-app/-/locate-app-2.1.0.tgz#97bbbeb3be59eec55368d20f69c77ebaaddacac1"
@@ -11034,13 +11030,6 @@ ripemd160@^2.0.0, ripemd160@^2.0.1:
   dependencies:
     hash-base "^3.0.0"
     inherits "^2.0.1"
-
-rlp@^2.2.6:
-  version "2.2.6"
-  resolved "https://registry.npmjs.org/rlp/-/rlp-2.2.6.tgz"
-  integrity sha512-HAfAmL6SDYNWPUOJNrM500x4Thn4PZsEy5pijPh40U9WfNk0z15hUYzO9xVIMAdIHdFtD8CBDHd75Td1g36Mjg==
-  dependencies:
-    bn.js "^4.11.1"
 
 roarr@^2.15.3:
   version "2.15.4"
