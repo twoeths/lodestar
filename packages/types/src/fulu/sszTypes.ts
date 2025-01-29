@@ -12,6 +12,7 @@ import {ssz as primitiveSsz} from "../primitive/index.js";
 import {ssz as phase0Ssz} from "../phase0/index.js";
 import {ssz as altariSsz} from "../altair/index.js";
 import {ssz as denebSsz} from "../deneb/index.js";
+import {ssz as electraSsz} from "../electra/index.js";
 
 const {BLSSignature, Root, ColumnIndex, Bytes32, Slot, UintNum64} = primitiveSsz;
 
@@ -69,28 +70,28 @@ export const DataColumnSidecarsByRangeRequest = new ContainerType(
 
 export const ExecutionPayload = new ContainerType(
   {
-    ...denebSsz.ExecutionPayload.fields,
+    ...electraSsz.ExecutionPayload.fields,
   },
   {typeName: "ExecutionPayload", jsonCase: "eth2"}
 );
 
 export const ExecutionPayloadHeader = new ContainerType(
   {
-    ...denebSsz.ExecutionPayloadHeader.fields,
+    ...electraSsz.ExecutionPayloadHeader.fields,
   },
   {typeName: "ExecutionPayloadHeader", jsonCase: "eth2"}
 );
 
 export const BeaconBlockBody = new ContainerType(
   {
-    ...denebSsz.BeaconBlockBody.fields,
+    ...electraSsz.BeaconBlockBody.fields,
   },
   {typeName: "BeaconBlockBody", jsonCase: "eth2", cachePermanentRootStruct: true}
 );
 
 export const BeaconBlock = new ContainerType(
   {
-    ...denebSsz.BeaconBlock.fields,
+    ...electraSsz.BeaconBlock.fields,
   },
   {typeName: "BeaconBlock", jsonCase: "eth2", cachePermanentRootStruct: true}
 );
@@ -112,14 +113,14 @@ export const BlobSidecar = new ContainerType(
 
 export const BlindedBeaconBlockBody = new ContainerType(
   {
-    ...denebSsz.BlindedBeaconBlockBody.fields,
+    ...electraSsz.BlindedBeaconBlockBody.fields,
   },
   {typeName: "BlindedBeaconBlockBody", jsonCase: "eth2", cachePermanentRootStruct: true}
 );
 
 export const BlindedBeaconBlock = new ContainerType(
   {
-    ...denebSsz.BlindedBeaconBlock.fields,
+    ...electraSsz.BlindedBeaconBlock.fields,
   },
   {typeName: "BlindedBeaconBlock", jsonCase: "eth2", cachePermanentRootStruct: true}
 );
@@ -134,7 +135,7 @@ export const SignedBlindedBeaconBlock = new ContainerType(
 
 export const BuilderBid = new ContainerType(
   {
-    ...denebSsz.BuilderBid.fields,
+    ...electraSsz.BuilderBid.fields,
   },
   {typeName: "BuilderBid", jsonCase: "eth2"}
 );
@@ -156,7 +157,7 @@ export const ExecutionPayloadAndBlobsBundle = new ContainerType(
 
 export const BeaconState = new ContainerType(
   {
-    ...denebSsz.BeaconState.fields,
+    ...electraSsz.BeaconState.fields,
   },
   {typeName: "BeaconState", jsonCase: "eth2"}
 );
@@ -170,56 +171,56 @@ export const LightClientHeader = new ContainerType(
 
 export const LightClientBootstrap = new ContainerType(
   {
-    ...denebSsz.LightClientBootstrap.fields,
+    ...electraSsz.LightClientBootstrap.fields,
   },
   {typeName: "LightClientBootstrap", jsonCase: "eth2"}
 );
 
 export const LightClientUpdate = new ContainerType(
   {
-    ...denebSsz.LightClientUpdate.fields,
+    ...electraSsz.LightClientUpdate.fields,
   },
   {typeName: "LightClientUpdate", jsonCase: "eth2"}
 );
 
 export const LightClientFinalityUpdate = new ContainerType(
   {
-    ...denebSsz.LightClientFinalityUpdate.fields,
+    ...electraSsz.LightClientFinalityUpdate.fields,
   },
   {typeName: "LightClientFinalityUpdate", jsonCase: "eth2"}
 );
 
 export const LightClientOptimisticUpdate = new ContainerType(
   {
-    ...denebSsz.LightClientOptimisticUpdate.fields,
+    ...electraSsz.LightClientOptimisticUpdate.fields,
   },
   {typeName: "LightClientOptimisticUpdate", jsonCase: "eth2"}
 );
 
 export const LightClientStore = new ContainerType(
   {
-    ...denebSsz.LightClientStore.fields,
+    ...electraSsz.LightClientStore.fields,
   },
   {typeName: "LightClientStore", jsonCase: "eth2"}
 );
 
 export const SSEPayloadAttributes = new ContainerType(
   {
-    ...denebSsz.SSEPayloadAttributes.fields,
+    ...electraSsz.SSEPayloadAttributes.fields,
   },
   {typeName: "SSEPayloadAttributes", jsonCase: "eth2"}
 );
 
 export const BlockContents = new ContainerType(
   {
-    ...denebSsz.BlockContents.fields,
+    ...electraSsz.BlockContents.fields,
   },
   {typeName: "BlockContents", jsonCase: "eth2"}
 );
 
 export const SignedBlockContents = new ContainerType(
   {
-    ...denebSsz.SignedBlockContents.fields,
+    ...electraSsz.SignedBlockContents.fields,
   },
   {typeName: "SignedBlockContents", jsonCase: "eth2"}
 );
