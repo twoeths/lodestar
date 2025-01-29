@@ -114,7 +114,7 @@ async function maybeValidateBlobs(
               signal
             );
 
-      if (blockData.fork === ForkName.deneb) {
+      if (blockData.fork === ForkName.deneb || blockData.fork === ForkName.electra) {
         const {blobs} = blockData;
 
         // if the blob siddecars have been individually verified then we can skip kzg proof check

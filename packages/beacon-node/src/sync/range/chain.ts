@@ -415,7 +415,8 @@ export class SyncChain {
             hasPostDenebBlocks ||= blockInput.type === BlockInputType.availableData;
             return hasPostDenebBlocks
               ? acc +
-                  (blockInput.type === BlockInputType.availableData && blockInput.blockData.fork === ForkName.deneb
+                  (blockInput.type === BlockInputType.availableData &&
+                  (blockInput.blockData.fork === ForkName.deneb || blockInput.blockData.fork === ForkName.electra)
                     ? blockInput.blockData.blobs.length
                     : 0)
               : 0;

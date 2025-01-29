@@ -79,7 +79,7 @@ export async function beaconBlocksMaybeBlobsByRoot(
 
     if (ForkSeq[fork] < ForkSeq.deneb) {
       preDataBlocks.push(block);
-    } else if (fork === ForkName.deneb) {
+    } else if (fork === ForkName.deneb || fork === ForkName.electra) {
       blobsDataBlocks.push(block);
       const blobKzgCommitmentsLen = (block.data.message.body as deneb.BeaconBlockBody).blobKzgCommitments.length;
       logger?.debug("beaconBlocksMaybeBlobsByRoot", {blobKzgCommitmentsLen, peerClient});
@@ -449,7 +449,7 @@ export async function unavailableBeaconBlobsByRootPostFulu(
   }
 
   let availableBlockInput;
-  if (cachedData.fork === ForkName.deneb) {
+  if (cachedData.fork === ForkName.deneb || cachedData.fork === ForkName.electra) {
     const {blobsCache, resolveAvailability} = cachedData;
 
     // resolve missing blobs

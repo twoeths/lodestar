@@ -19,6 +19,7 @@ import {
   getBlockInputDataColumns,
   BlockInputDataColumns,
   CachedBlobs,
+  CachedDataColumns,
 } from "../blocks/types.js";
 import {CustodyConfig} from "../../util/dataColumns.js";
 
@@ -162,7 +163,7 @@ export class SeenGossipBlockInput {
         throw Error("Missing or Invalid fork cached Data for deneb+ block");
       }
 
-      if (cachedData.fork === ForkName.deneb) {
+      if (cachedData.fork === ForkName.deneb || cachedData.fork === ForkName.electra) {
         const {blobsCache, resolveAvailability} = cachedData;
 
         // block is available, check if all blobs have shown up
@@ -324,7 +325,7 @@ export class SeenGossipBlockInput {
         throw Error("Missing cachedData for deneb+ blobs");
       }
 
-      if (cachedData.fork === ForkName.deneb) {
+      if (cachedData.fork === ForkName.deneb || cachedData.fork === ForkName.electra) {
         const {blobsCache} = cachedData;
 
         return {
@@ -337,7 +338,7 @@ export class SeenGossipBlockInput {
           blockInputMeta: {pending: GossipedInputType.block, haveBlobs: blobsCache.size, expectedBlobs: null},
         };
       } else if (fork === ForkName.fulu) {
-        const {dataColumnsCache} = cachedData;
+        const {dataColumnsCache} = cachedData as CachedDataColumns;
 
         return {
           blockInput: {
@@ -385,7 +386,7 @@ export function getEmptyBlockInputCacheEntry(fork: ForkName, globalCacheId: numb
     return {fork, blockInputPromise, resolveBlockInput};
   }
 
-  if (fork === ForkName.deneb) {
+  if (fork === ForkName.deneb || fork === ForkName.electra) {
     let resolveAvailability: ((blobs: BlockInputBlobs) => void) | null = null;
     const availabilityPromise = new Promise<BlockInputBlobs>((resolveCB) => {
       resolveAvailability = resolveCB;

@@ -652,7 +652,7 @@ export class UnknownBlockSync {
       blockRootHex = toRootHex(blockRoot);
       blobKzgCommitmentsLen = (unavailableBlock.message.body as deneb.BeaconBlockBody).blobKzgCommitments.length;
 
-      if (cachedData.fork === ForkName.deneb) {
+      if (cachedData.fork === ForkName.deneb || cachedData.fork === ForkName.electra) {
         const pendingBlobs = blobKzgCommitmentsLen - cachedData.blobsCache.size;
         Object.assign(dataMeta, {pendingBlobs});
       } else if (cachedData.fork === ForkName.fulu) {

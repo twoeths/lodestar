@@ -3,7 +3,7 @@ import {ForkName, NUMBER_OF_COLUMNS} from "@lodestar/params";
 import {toHex} from "@lodestar/utils";
 import {fulu, ssz} from "@lodestar/types";
 import {BeaconChain} from "../chain.js";
-import {BlockInput, BlockInputType} from "./types.js";
+import {BlockInput, BlockInputDataColumns, BlockInputType} from "./types.js";
 
 /**
  * Persists block input data to DB. This operation must be eventually completed if a block is imported to the fork-choice.
@@ -39,7 +39,7 @@ export async function writeBlockInputToDb(this: BeaconChain, blocksInput: BlockI
           : await blockInput.cachedData.availabilityPromise;
 
       // NOTE: Old data is pruned on archive
-      if (blockData.fork === ForkName.deneb) {
+      if (blockData.fork === ForkName.deneb || blockData.fork === ForkName.electra) {
         const blobSidecars = blockData.blobs;
         fnPromises.push(this.db.blobSidecars.add({blockRoot, slot: block.message.slot, blobSidecars}));
         this.logger.debug("Persisted blobSidecars to hot DB", {
@@ -60,13 +60,14 @@ export async function writeBlockInputToDb(this: BeaconChain, blocksInput: BlockI
           dataColumnsIndex = custodyColumnsIndex;
         }
 
-        const dataColumnSidecars = blockData.dataColumns.filter((dataColumnSidecar) =>
+        const blockDataColumns = (blockData as BlockInputDataColumns).dataColumns;
+        const dataColumnSidecars = blockDataColumns.filter((dataColumnSidecar) =>
           custodyColumns.includes(dataColumnSidecar.index)
         );
         if (dataColumnSidecars.length !== dataColumnsLen) {
           console.log({
             custodyColumns,
-            blockDataColumns: blockData.dataColumns.map((dataColumnSidecar) => dataColumnSidecar.index),
+            blockDataColumns: blockDataColumns.map((dataColumnSidecar) => dataColumnSidecar.index),
           });
           throw Error(
             `Invalid dataColumnSidecars=${dataColumnSidecars.length} for custody expected custodyColumnsLen=${dataColumnsLen}`
@@ -123,7 +124,7 @@ export async function removeEagerlyPersistedBlockInputs(this: BeaconChain, block
 
       if (type === BlockInputType.availableData) {
         const {blockData} = blockInput;
-        if (blockData.fork === ForkName.deneb) {
+        if (blockData.fork === ForkName.deneb || blockData.fork === ForkName.electra) {
           const blobSidecars = blockData.blobs;
           blobsToRemove.push({blockRoot, slot, blobSidecars});
         } else {
@@ -133,7 +134,7 @@ export async function removeEagerlyPersistedBlockInputs(this: BeaconChain, block
             custodyColumnsIndex: dataColumnsIndex,
             custodyColumns,
           } = custodyConfig;
-          const dataColumnSidecars = blockData.dataColumns.filter((dataColumnSidecar) =>
+          const dataColumnSidecars = (blockData as BlockInputDataColumns).dataColumns.filter((dataColumnSidecar) =>
             custodyColumns.includes(dataColumnSidecar.index)
           );
           if (dataColumnSidecars.length !== dataColumnsLen) {

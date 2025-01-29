@@ -122,7 +122,7 @@ export async function importBlock(
     // attest and propose with such head similar to optimistic sync
     if (blockInput.type === BlockInputType.availableData) {
       const {blockData} = blockInput;
-      if (blockData.fork === ForkName.deneb) {
+      if (blockData.fork === ForkName.deneb || blockData.fork === ForkName.electra) {
         const {blobsSource, blobs} = blockData;
 
         this.metrics?.importBlock.blobsBySource.inc({blobsSource});
@@ -460,7 +460,7 @@ export async function importBlock(
         blockInput.type === BlockInputType.availableData &&
         this.emitter.listenerCount(routes.events.EventType.blobSidecar)
       ) {
-        if (blockInput.blockData.fork === ForkName.deneb) {
+        if (blockInput.blockData.fork === ForkName.deneb || blockInput.blockData.fork === ForkName.electra) {
           const {blobs} = blockInput.blockData;
           for (const blobSidecar of blobs) {
             const {index, kzgCommitment} = blobSidecar;
@@ -494,7 +494,7 @@ export async function importBlock(
   // out of data range blocks and import then in forkchoice although one would not be able to
   // attest and propose with such head similar to optimistic sync
   if (blockInput.type === BlockInputType.availableData) {
-    if (blockInput.blockData.fork === ForkName.deneb) {
+    if (blockInput.blockData.fork === ForkName.deneb || blockInput.blockData.fork === ForkName.electra) {
       const {blobsSource} = blockInput.blockData;
       this.metrics?.importBlock.blobsBySource.inc({blobsSource});
     } else {

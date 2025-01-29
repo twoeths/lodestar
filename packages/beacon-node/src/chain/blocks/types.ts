@@ -48,7 +48,7 @@ export enum BlobsSource {
   byRoot = "req_resp_by_root",
 }
 type ForkBlobsInfo = {
-  fork: ForkName.deneb;
+  fork: ForkName.deneb | ForkName.electra;
 };
 type BlobData = {
   blobSidecar: deneb.BlobSidecar;
@@ -91,7 +91,7 @@ export type BlockInputDataColumns = ForkDataColumnsInfo & {
   dataColumnsBytes: (Uint8Array | null)[];
   dataColumnsSource: DataColumnsSource;
 };
-type CachedDataColumns = CachedDataItem &
+export type CachedDataColumns = CachedDataItem &
   ForkDataColumnsInfo &
   Availability<BlockInputDataColumns> & {
     dataColumnsCache: DataColumnsCacheMap;
