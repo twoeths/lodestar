@@ -16,7 +16,7 @@ import {Libp2p} from "../interface.js";
 import {ENRKey, SubnetType} from "../metadata.js";
 import {getConnectionsMap, prettyPrintPeerId} from "../util.js";
 import {NodeId, computeNodeId} from "../subnets/interface.js";
-import {getDataColumnSubnets} from "../../util/dataColumns.js";
+import {getDataColumns} from "../../util/dataColumns.js";
 import {deserializeEnrSubnets, zeroAttnets, zeroSyncnets} from "./utils/enrSubnetsDeserialize.js";
 import {IPeerRpcScoreStore, ScoreState} from "./score/index.js";
 
@@ -130,7 +130,7 @@ export class PeerDiscovery {
     this.discv5 = discv5;
     this.nodeId = nodeId;
     // we will only connect to peers that can provide us custody
-    this.sampleSubnets = getDataColumnSubnets(
+    this.sampleSubnets = getDataColumns(
       nodeId,
       Math.max(config.CUSTODY_REQUIREMENT, config.NODE_CUSTODY_REQUIREMENT, config.SAMPLES_PER_SLOT)
     );
@@ -453,21 +453,21 @@ export class PeerDiscovery {
   private shouldDialPeer(peer: CachedENR): boolean {
     const nodeId = computeNodeId(peer.peerId);
     const peerCustodyGroupCount = peer.custodyGroupCount;
-    const peerCustodyGroups = getDataColumnSubnets(nodeId, peerCustodyGroupCount);
+    const peerCustodyColumns = getDataColumns(nodeId, peerCustodyGroupCount);
 
     const matchingSubnetsNum = this.sampleSubnets.reduce(
-      (acc, elem) => acc + (peerCustodyGroups.includes(elem) ? 1 : 0),
+      (acc, elem) => acc + (peerCustodyColumns.includes(elem) ? 1 : 0),
       0
     );
     const hasAllColumns = matchingSubnetsNum === this.sampleSubnets.length;
     const hasMinCustodyMatchingColumns = matchingSubnetsNum >= Math.max(this.config.CUSTODY_REQUIREMENT);
 
-    this.logger.warn("peerCustodyGroups", {
+    this.logger.warn("peerCustodyColumns", {
       peerId: peer.peerId.toString(),
       peerNodeId: toHexString(nodeId),
       hasAllColumns,
       peerCustodyGroupCount,
-      peerCustodyGroups: peerCustodyGroups.join(" "),
+      peerCustodyColumns: peerCustodyColumns.join(" "),
       sampleSubnets: this.sampleSubnets.join(" "),
       nodeId: `${toHexString(this.nodeId)}`,
     });

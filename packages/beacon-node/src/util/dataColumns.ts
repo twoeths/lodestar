@@ -1,6 +1,6 @@
 import {digest} from "@chainsafe/as-sha256";
-import {NUMBER_OF_COLUMNS, DATA_COLUMN_SIDECAR_SUBNET_COUNT} from "@lodestar/params";
-import {ColumnIndex} from "@lodestar/types";
+import {NUMBER_OF_COLUMNS, DATA_COLUMN_SIDECAR_SUBNET_COUNT, NUMBER_OF_CUSTODY_GROUPS} from "@lodestar/params";
+import {ColumnIndex, CustodyIndex} from "@lodestar/types";
 import {ChainForkConfig} from "@lodestar/config";
 import {ssz} from "@lodestar/types";
 import {bytesToBigInt} from "@lodestar/utils";
@@ -23,7 +23,7 @@ export function getCustodyConfig(nodeId: NodeId, config: ChainForkConfig): Custo
   return {...custodyMeta, custodyColumns, sampledColumns};
 }
 
-export function getCustodyColumnsMeta(custodyColumns: ColumnIndex[]): {
+function getCustodyColumnsMeta(custodyColumns: ColumnIndex[]): {
   custodyColumnsIndex: Uint8Array;
   custodyColumnsLen: number;
 } {
@@ -38,39 +38,50 @@ export function getCustodyColumnsMeta(custodyColumns: ColumnIndex[]): {
   return {custodyColumnsIndex, custodyColumnsLen: custodyColumns.length};
 }
 
-// optimize by having a size limited index/map
-export function getDataColumns(nodeId: NodeId, custodyGroupCount: number): ColumnIndex[] {
-  const subnetIds = getDataColumnSubnets(nodeId, custodyGroupCount);
-  const columnsPerSubnet = Number(NUMBER_OF_COLUMNS / DATA_COLUMN_SIDECAR_SUBNET_COUNT);
-
-  const columnIndexes = [];
-  for (const subnetId of subnetIds) {
-    for (let i = 0; i < columnsPerSubnet; i++) {
-      const columnIndex = DATA_COLUMN_SIDECAR_SUBNET_COUNT * i + subnetId;
-      columnIndexes.push(columnIndex);
-    }
+/**
+ * Converts a custody group to an array of column indices.  Should be 1-1 as long there are 128
+ * columns and 128 custody groups.
+ *
+ * SPEC FUNCTION
+ * https://github.com/ethereum/consensus-specs/blob/dev/specs/fulu/das-core.md#compute_columns_for_custody_group
+ */
+function computeColumnsForCustodyGroup(custodyGroup: CustodyIndex): ColumnIndex[] {
+  if (custodyGroup > NUMBER_OF_CUSTODY_GROUPS) {
+    custodyGroup = NUMBER_OF_CUSTODY_GROUPS;
   }
-
+  const columnsPerCustodyGroup = Number(NUMBER_OF_COLUMNS / NUMBER_OF_CUSTODY_GROUPS);
+  const columnIndexes = [];
+  for (let i = 0; i < columnsPerCustodyGroup; i++) {
+    columnIndexes.push(NUMBER_OF_CUSTODY_GROUPS * i + custodyGroup);
+  }
   columnIndexes.sort((a, b) => a - b);
   return columnIndexes;
 }
 
-export function getDataColumnSubnets(nodeId: NodeId, custodyGroupCount: number): number[] {
-  const subnetIds: number[] = [];
-  if (custodyGroupCount > DATA_COLUMN_SIDECAR_SUBNET_COUNT) {
-    custodyGroupCount = DATA_COLUMN_SIDECAR_SUBNET_COUNT;
+/**
+ * Converts nodeId and a the number of custody groups to an array of custody indices. Indexes must be
+ * further converted to column indices
+ *
+ * SPEC FUNCTION
+ * https://github.com/ethereum/consensus-specs/blob/dev/specs/fulu/das-core.md#get_custody_groups
+ */
+function getCustodyGroups(nodeId: NodeId, custodyGroupCount: number): CustodyIndex[] {
+  if (custodyGroupCount > NUMBER_OF_CUSTODY_GROUPS) {
+    custodyGroupCount = NUMBER_OF_CUSTODY_GROUPS;
   }
 
+  const custodyGroups: CustodyIndex[] = [];
   // nodeId is in bigendian and all computes are in little endian
   let currentId = bytesToBigInt(nodeId, "be");
-  while (subnetIds.length < custodyGroupCount) {
+  while (custodyGroups.length < custodyGroupCount) {
     // could be optimized
     const currentIdBytes = ssz.UintBn256.serialize(currentId);
-    const subnetId = Number(
-      ssz.UintBn64.deserialize(digest(currentIdBytes).slice(0, 8)) % BigInt(DATA_COLUMN_SIDECAR_SUBNET_COUNT)
+    const custodyGroup = Number(
+      ssz.UintBn64.deserialize(digest(currentIdBytes).slice(0, 8)) % BigInt(NUMBER_OF_CUSTODY_GROUPS)
     );
-    if (!subnetIds.includes(subnetId)) {
-      subnetIds.push(subnetId);
+
+    if (!custodyGroups.includes(custodyGroup)) {
+      custodyGroups.push(custodyGroup);
     }
 
     const willOverflow = currentIdBytes.reduce((acc, elem) => acc && elem === 0xff, true);
@@ -81,5 +92,12 @@ export function getDataColumnSubnets(nodeId: NodeId, custodyGroupCount: number):
     }
   }
 
-  return subnetIds;
+  custodyGroups.sort((a, b) => a - b);
+  return custodyGroups;
+}
+
+export function getDataColumns(nodeId: NodeId, custodyGroupCount: number): ColumnIndex[] {
+  return getCustodyGroups(nodeId, custodyGroupCount)
+    .flatMap(computeColumnsForCustodyGroup)
+    .sort((a, b) => a - b);
 }

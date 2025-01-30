@@ -18,7 +18,7 @@ import {StatusCache} from "../statusCache.js";
 import {getConnection, getConnectionsMap, prettyPrintPeerId} from "../util.js";
 import {ClientKind, getKnownClientFromAgentVersion} from "./client.js";
 import {NodeId, SubnetsService, computeNodeId} from "../subnets/index.js";
-import {getDataColumnSubnets, getDataColumns} from "../../util/dataColumns.js";
+import {getDataColumns} from "../../util/dataColumns.js";
 import {PeerDiscovery, SubnetDiscvQueryMs} from "./discover.js";
 import {PeerData, PeersData} from "./peersData.js";
 import {IPeerRpcScoreStore, PeerAction, PeerScoreStats, ScoreState, updateGossipsubScores} from "./score/index.js";
@@ -172,7 +172,7 @@ export class PeerManager {
     this.discovery = discovery;
     this.nodeId = modules.nodeId;
     // we will only connect to peers that can provide us custody
-    this.sampleSubnets = getDataColumnSubnets(
+    this.sampleSubnets = getDataColumns(
       this.nodeId,
       Math.max(this.config.CUSTODY_REQUIREMENT, this.config.NODE_CUSTODY_REQUIREMENT, this.config.SAMPLES_PER_SLOT)
     );
@@ -416,10 +416,10 @@ export class PeerManager {
       const custodyGroupCount = peerData?.metadata?.cgc;
 
       const peerCustodyGroupCount = custodyGroupCount ?? this.config.CUSTODY_REQUIREMENT;
-      const peerCustodyGroups = getDataColumnSubnets(nodeId, peerCustodyGroupCount);
+      const dataColumns = getDataColumns(nodeId, peerCustodyGroupCount);
 
       const matchingSubnetsNum = this.sampleSubnets.reduce(
-        (acc, elem) => acc + (peerCustodyGroups.includes(elem) ? 1 : 0),
+        (acc, elem) => acc + (dataColumns.includes(elem) ? 1 : 0),
         0
       );
       const hasAllColumns = matchingSubnetsNum === this.sampleSubnets.length;
@@ -432,7 +432,7 @@ export class PeerManager {
         peerId: peer.toString(),
         custodyGroupCount,
         hasAllColumns,
-        peerCustodyGroups: peerCustodyGroups.join(" "),
+        dataColumns: dataColumns.join(" "),
         mySampleSubnets: this.sampleSubnets.join(" "),
         clientAgent,
       });
@@ -453,13 +453,12 @@ export class PeerManager {
         return;
       }
 
-      // coule be optimized by directly using the previously calculated subnet
-      const dataColumns = getDataColumns(nodeId, peerCustodyGroupCount);
+      // TODO @matthewkeil need to double check the dataColumns is received on the other end of this correctly
       this.networkEventBus.emit(NetworkEvent.peerConnected, {
         peer: peer.toString(),
         status,
         dataColumns,
-        clientAgent: `${clientAgent}-cgc:${peerCustodyGroups.length}`,
+        clientAgent: `${clientAgent}-cgc:${dataColumns.length}`,
       });
     }
   }
