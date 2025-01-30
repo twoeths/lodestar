@@ -115,7 +115,6 @@ function getSequentialHandlers(modules: ValidatorFnsModules, options: GossipHand
 
   async function validateBeaconBlock(
     signedBlock: SignedBeaconBlock,
-    blockBytes: Uint8Array,
     fork: ForkName,
     peerIdStr: string,
     seenTimestampSec: number
@@ -133,7 +132,6 @@ function getSequentialHandlers(modules: ValidatorFnsModules, options: GossipHand
       {
         type: GossipedInputType.block,
         signedBlock,
-        blockBytes,
       },
       metrics
     );
@@ -192,7 +190,6 @@ function getSequentialHandlers(modules: ValidatorFnsModules, options: GossipHand
 
   async function validateBeaconBlob(
     blobSidecar: deneb.BlobSidecar,
-    blobBytes: Uint8Array,
     subnet: SubnetID,
     peerIdStr: string,
     seenTimestampSec: number
@@ -211,7 +208,6 @@ function getSequentialHandlers(modules: ValidatorFnsModules, options: GossipHand
       {
         type: GossipedInputType.blob,
         blobSidecar,
-        blobBytes,
       },
       metrics
     );
@@ -351,13 +347,8 @@ function getSequentialHandlers(modules: ValidatorFnsModules, options: GossipHand
       const {serializedData} = gossipData;
 
       const signedBlock = sszDeserialize(topic, serializedData);
-      const blockInput = await validateBeaconBlock(
-        signedBlock,
-        serializedData,
-        topic.fork,
-        peerIdStr,
-        seenTimestampSec
-      );
+      const blockInput = await validateBeaconBlock(signedBlock, topic.fork, peerIdStr, seenTimestampSec);
+      chain.serializedCache.set(signedBlock, serializedData);
       handleValidBeaconBlock(blockInput, peerIdStr, seenTimestampSec);
     },
 
@@ -375,13 +366,7 @@ function getSequentialHandlers(modules: ValidatorFnsModules, options: GossipHand
       if (config.getForkSeq(blobSlot) < ForkSeq.deneb) {
         throw new GossipActionError(GossipAction.REJECT, {code: "PRE_DENEB_BLOCK"});
       }
-      const blockInput = await validateBeaconBlob(
-        blobSidecar,
-        serializedData,
-        topic.subnet,
-        peerIdStr,
-        seenTimestampSec
-      );
+      const blockInput = await validateBeaconBlob(blobSidecar, topic.subnet, peerIdStr, seenTimestampSec);
       if (blockInput.block !== null) {
         // we can just queue up the blockInput in the processor, but block gossip handler would have already
         // queued it up.
