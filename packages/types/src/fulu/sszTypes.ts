@@ -19,7 +19,7 @@ const {BLSSignature, Root, ColumnIndex, Bytes32, Slot, UintNum64} = primitiveSsz
 export const Metadata = new ContainerType(
   {
     ...altariSsz.Metadata.fields,
-    csc: UintNum64,
+    cgc: UintNum64,
   },
   {typeName: "Metadata", jsonCase: "eth2"}
 );

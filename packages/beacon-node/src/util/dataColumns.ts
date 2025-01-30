@@ -39,8 +39,8 @@ export function getCustodyColumnsMeta(custodyColumns: ColumnIndex[]): {
 }
 
 // optimize by having a size limited index/map
-export function getDataColumns(nodeId: NodeId, custodySubnetCount: number): ColumnIndex[] {
-  const subnetIds = getDataColumnSubnets(nodeId, custodySubnetCount);
+export function getDataColumns(nodeId: NodeId, custodyGroupCount: number): ColumnIndex[] {
+  const subnetIds = getDataColumnSubnets(nodeId, custodyGroupCount);
   const columnsPerSubnet = Number(NUMBER_OF_COLUMNS / DATA_COLUMN_SIDECAR_SUBNET_COUNT);
 
   const columnIndexes = [];
@@ -55,15 +55,15 @@ export function getDataColumns(nodeId: NodeId, custodySubnetCount: number): Colu
   return columnIndexes;
 }
 
-export function getDataColumnSubnets(nodeId: NodeId, custodySubnetCount: number): number[] {
+export function getDataColumnSubnets(nodeId: NodeId, custodyGroupCount: number): number[] {
   const subnetIds: number[] = [];
-  if (custodySubnetCount > DATA_COLUMN_SIDECAR_SUBNET_COUNT) {
-    custodySubnetCount = DATA_COLUMN_SIDECAR_SUBNET_COUNT;
+  if (custodyGroupCount > DATA_COLUMN_SIDECAR_SUBNET_COUNT) {
+    custodyGroupCount = DATA_COLUMN_SIDECAR_SUBNET_COUNT;
   }
 
   // nodeId is in bigendian and all computes are in little endian
   let currentId = bytesToBigInt(nodeId, "be");
-  while (subnetIds.length < custodySubnetCount) {
+  while (subnetIds.length < custodyGroupCount) {
     // could be optimized
     const currentIdBytes = ssz.UintBn256.serialize(currentId);
     const subnetId = Number(

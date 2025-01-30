@@ -12,7 +12,7 @@ export enum ENRKey {
   eth2 = "eth2",
   attnets = "attnets",
   syncnets = "syncnets",
-  csc = "csc",
+  cgc = "cgc",
 }
 export enum SubnetType {
   attnets = "attnets",
@@ -43,7 +43,7 @@ export class MetadataController {
     this.onSetValue = modules.onSetValue;
     this._metadata = opts.metadata ?? {
       ...ssz.fulu.Metadata.defaultValue(),
-      csc: Math.max(this.config.CUSTODY_REQUIREMENT, this.config.NODE_CUSTODY_REQUIREMENT),
+      cgc: Math.max(this.config.CUSTODY_REQUIREMENT, this.config.NODE_CUSTODY_REQUIREMENT),
     };
   }
 
@@ -61,8 +61,8 @@ export class MetadataController {
 
     if (this.config.getForkSeq(computeStartSlotAtEpoch(currentEpoch)) >= ForkSeq.fulu) {
       this.onSetValue(
-        ENRKey.csc,
-        intToBytes(this._metadata.csc, Math.ceil(Math.log2(this._metadata.csc + 1) / 8), "be")
+        ENRKey.cgc,
+        intToBytes(this._metadata.cgc, Math.ceil(Math.log2(this._metadata.cgc + 1) / 8), "be")
       );
     }
   }
@@ -90,13 +90,13 @@ export class MetadataController {
     this._metadata.attnets = attnets;
   }
 
-  get csc(): number {
-    return this._metadata.csc;
+  get cgc(): number {
+    return this._metadata.cgc;
   }
 
-  set csc(csc: number) {
-    this.onSetValue(ENRKey.csc, intToBytes(this._metadata.csc, Math.ceil(Math.log2(this._metadata.csc + 1) / 8), "be"));
-    this._metadata.csc = csc;
+  set cgc(cgc: number) {
+    this.onSetValue(ENRKey.cgc, intToBytes(this._metadata.cgc, Math.ceil(Math.log2(this._metadata.cgc + 1) / 8), "be"));
+    this._metadata.cgc = cgc;
   }
 
   /** Consumers that need the phase0.Metadata type can just ignore the .syncnets property */

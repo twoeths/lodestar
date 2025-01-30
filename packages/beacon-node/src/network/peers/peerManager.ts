@@ -331,7 +331,7 @@ export class PeerManager {
     this.logger.warn("onMetadata", {
       peer: peer.toString(),
       peerData: peerData !== undefined,
-      csc: (metadata as Partial<fulu.Metadata>).csc,
+      cgc: (metadata as Partial<fulu.Metadata>).cgc,
     });
     if (peerData) {
       const oldMetadata = peerData.metadata;
@@ -339,12 +339,12 @@ export class PeerManager {
         seqNumber: metadata.seqNumber,
         attnets: metadata.attnets,
         syncnets: (metadata as Partial<fulu.Metadata>).syncnets ?? BitArray.fromBitLen(SYNC_COMMITTEE_SUBNET_COUNT),
-        csc:
-          (metadata as Partial<fulu.Metadata>).csc ??
-          this.discovery?.["peerIdToCustodySubnetCount"].get(peer.toString()) ??
+        cgc:
+          (metadata as Partial<fulu.Metadata>).cgc ??
+          this.discovery?.getCustodyGroupCountForPeer(peer) ??
           this.config.CUSTODY_REQUIREMENT,
       };
-      if (oldMetadata === null || oldMetadata.csc !== peerData.metadata.csc) {
+      if (oldMetadata === null || oldMetadata.cgc !== peerData.metadata.cgc) {
         void this.requestStatus(peer, this.statusCache.get());
       }
     }
@@ -413,26 +413,26 @@ export class PeerManager {
     }
     if (getConnection(this.libp2p, peer.toString())) {
       const nodeId = peerData?.nodeId ?? computeNodeId(peer);
-      const custodySubnetCount = peerData?.metadata?.csc;
+      const custodyGroupCount = peerData?.metadata?.cgc;
 
-      const peerCustodySubnetCount = custodySubnetCount ?? this.config.CUSTODY_REQUIREMENT;
-      const peerCustodySubnets = getDataColumnSubnets(nodeId, peerCustodySubnetCount);
+      const peerCustodyGroupCount = custodyGroupCount ?? this.config.CUSTODY_REQUIREMENT;
+      const peerCustodyGroups = getDataColumnSubnets(nodeId, peerCustodyGroupCount);
 
       const matchingSubnetsNum = this.sampleSubnets.reduce(
-        (acc, elem) => acc + (peerCustodySubnets.includes(elem) ? 1 : 0),
+        (acc, elem) => acc + (peerCustodyGroups.includes(elem) ? 1 : 0),
         0
       );
       const hasAllColumns = matchingSubnetsNum === this.sampleSubnets.length;
       const hasMinCustodyMatchingColumns = matchingSubnetsNum >= this.config.CUSTODY_REQUIREMENT;
       const clientAgent = peerData?.agentClient ?? ClientKind.Unknown;
 
-      this.logger.warn(`onStatus ${custodySubnetCount == undefined ? "undefined custody count assuming 4" : ""}`, {
+      this.logger.warn(`onStatus ${custodyGroupCount == undefined ? "undefined custody count assuming 4" : ""}`, {
         nodeId: toHexString(nodeId),
         myNodeId: toHexString(this.nodeId),
         peerId: peer.toString(),
-        custodySubnetCount,
+        custodyGroupCount,
         hasAllColumns,
-        peerCustodySubnets: peerCustodySubnets.join(" "),
+        peerCustodyGroups: peerCustodyGroups.join(" "),
         mySampleSubnets: this.sampleSubnets.join(" "),
         clientAgent,
       });
@@ -454,12 +454,12 @@ export class PeerManager {
       }
 
       // coule be optimized by directly using the previously calculated subnet
-      const dataColumns = getDataColumns(nodeId, peerCustodySubnetCount);
+      const dataColumns = getDataColumns(nodeId, peerCustodyGroupCount);
       this.networkEventBus.emit(NetworkEvent.peerConnected, {
         peer: peer.toString(),
         status,
         dataColumns,
-        clientAgent: `${clientAgent}-csc:${peerCustodySubnets.length}`,
+        clientAgent: `${clientAgent}-cgc:${peerCustodyGroups.length}`,
       });
     }
   }

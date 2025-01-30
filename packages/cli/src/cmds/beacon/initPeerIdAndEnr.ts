@@ -87,9 +87,9 @@ export function overwriteEnrWithCliArgs(
     maybeUpdateEnr(enr, "tcp6", args["enr.tcp6"] ?? port6 ?? enr.tcp6);
   }
 
-  // csc is big ending but since 1 bytes suffices for now so its the same
-  const csc = Math.max(config.CUSTODY_REQUIREMENT, config.NODE_CUSTODY_REQUIREMENT);
-  enr.set("csc", intToBytes(csc, Math.ceil(Math.log2(csc + 1) / 8), "be"));
+  // cgc is big ending but since 1 bytes suffices for now so its the same
+  const cgc = Math.max(config.CUSTODY_REQUIREMENT, config.NODE_CUSTODY_REQUIREMENT);
+  enr.set("cgc", intToBytes(cgc, Math.ceil(Math.log2(cgc + 1) / 8), "be"));
 
   function testMultiaddrForLocal(mu: Multiaddr, ip4: boolean): void {
     const isLocal = isLocalMultiAddr(mu);

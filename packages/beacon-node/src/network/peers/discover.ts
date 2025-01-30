@@ -86,7 +86,7 @@ type CachedENR = {
   multiaddrTCP: Multiaddr;
   subnets: Record<SubnetType, boolean[]>;
   addedUnixMs: number;
-  custodySubnetCount: number;
+  custodyGroupCount: number;
 };
 
 /**
@@ -103,7 +103,7 @@ export class PeerDiscovery {
   private logger: LoggerNode;
   private config: BeaconConfig;
   private cachedENRs = new Map<PeerIdStr, CachedENR>();
-  private peerIdToCustodySubnetCount = new Map<PeerIdStr, number>();
+  private peerIdToCustodyGroupCount = new Map<PeerIdStr, number>();
   private randomNodeQuery: QueryStatus = {code: QueryStatusCode.NotActive};
   private peersToConnect = 0;
   private subnetRequests: Record<SubnetType, Map<number, SubnetRequestInfo>> = {
@@ -288,6 +288,13 @@ export class PeerDiscovery {
   }
 
   /**
+   * Get custody group count for a peer
+   */
+  getCustodyGroupCountForPeer(peer: PeerId): number | undefined {
+    return this.peerIdToCustodyGroupCount.get(peer.toString());
+  }
+
+  /**
    * Request discv5 to find peers if there is no query in progress
    */
   private async runFindRandomNodeQuery(): Promise<void> {
@@ -335,12 +342,12 @@ export class PeerDiscovery {
 
     const attnets = zeroAttnets;
     const syncnets = zeroSyncnets;
-    const custodySubnetCount = this.peerIdToCustodySubnetCount.get(id.toString());
-    if (custodySubnetCount === undefined) {
-      this.logger.warn("onDiscoveredPeer with unknown custodySubnetCount assuming 4", {peerId: id.toString()});
+    const custodyGroupCount = this.peerIdToCustodyGroupCount.get(id.toString());
+    if (custodyGroupCount === undefined) {
+      this.logger.warn("onDiscoveredPeer with unknown custodyGroupCount assuming 4", {peerId: id.toString()});
     }
 
-    const status = this.handleDiscoveredPeer(id, multiaddrs[0], attnets, syncnets, custodySubnetCount ?? 4);
+    const status = this.handleDiscoveredPeer(id, multiaddrs[0], attnets, syncnets, custodyGroupCount ?? 4);
     this.logger.debug("Discovered peer via libp2p", {peer: prettyPrintPeerId(id), status});
     this.metrics?.discovery.discoveredStatus.inc({status});
   };
@@ -364,9 +371,9 @@ export class PeerDiscovery {
     // Are this fields mandatory?
     const attnetsBytes = enr.kvs.get(ENRKey.attnets); // 64 bits
     const syncnetsBytes = enr.kvs.get(ENRKey.syncnets); // 4 bits
-    const custodySubnetCountBytes = enr.kvs.get(ENRKey.csc); // 64 bits
-    if (custodySubnetCountBytes === undefined) {
-      this.logger.warn("peer discovered with no csc assuming 4", exportENRToJSON(enr));
+    const custodyGroupCountBytes = enr.kvs.get(ENRKey.cgc); // 64 bits
+    if (custodyGroupCountBytes === undefined) {
+      this.logger.warn("peer discovered with no cgc assuming 4", exportENRToJSON(enr));
     }
 
     // Use faster version than ssz's implementation that leverages pre-cached.
@@ -375,12 +382,12 @@ export class PeerDiscovery {
     // never throw and treat too long or too short bitfields as zero-ed
     const attnets = attnetsBytes ? deserializeEnrSubnets(attnetsBytes, ATTESTATION_SUBNET_COUNT) : zeroAttnets;
     const syncnets = syncnetsBytes ? deserializeEnrSubnets(syncnetsBytes, SYNC_COMMITTEE_SUBNET_COUNT) : zeroSyncnets;
-    const custodySubnetCount = custodySubnetCountBytes
-      ? bytesToInt(custodySubnetCountBytes, "be")
+    const custodyGroupCount = custodyGroupCountBytes
+      ? bytesToInt(custodyGroupCountBytes, "be")
       : this.config.CUSTODY_REQUIREMENT;
-    this.peerIdToCustodySubnetCount.set(peerId.toString(), custodySubnetCount);
+    this.peerIdToCustodyGroupCount.set(peerId.toString(), custodyGroupCount);
 
-    const status = this.handleDiscoveredPeer(peerId, multiaddrTCP, attnets, syncnets, custodySubnetCount);
+    const status = this.handleDiscoveredPeer(peerId, multiaddrTCP, attnets, syncnets, custodyGroupCount);
     this.logger.debug("Discovered peer via discv5", {peer: prettyPrintPeerId(peerId), status});
     this.metrics?.discovery.discoveredStatus.inc({status});
   };
@@ -393,7 +400,7 @@ export class PeerDiscovery {
     multiaddrTCP: Multiaddr,
     attnets: boolean[],
     syncnets: boolean[],
-    custodySubnetCount: number
+    custodyGroupCount: number
   ): DiscoveredPeerStatus {
     const nodeId = computeNodeId(peerId);
     this.logger.warn("handleDiscoveredPeer", {nodeId: toHexString(nodeId), peerId: peerId.toString()});
@@ -423,7 +430,7 @@ export class PeerDiscovery {
         multiaddrTCP,
         subnets: {attnets, syncnets},
         addedUnixMs: Date.now(),
-        custodySubnetCount,
+        custodyGroupCount: custodyGroupCount,
       };
 
       // Only dial peer if necessary
@@ -445,22 +452,22 @@ export class PeerDiscovery {
 
   private shouldDialPeer(peer: CachedENR): boolean {
     const nodeId = computeNodeId(peer.peerId);
-    const peerCustodySubnetCount = peer.custodySubnetCount;
-    const peerCustodySubnets = getDataColumnSubnets(nodeId, peerCustodySubnetCount);
+    const peerCustodyGroupCount = peer.custodyGroupCount;
+    const peerCustodyGroups = getDataColumnSubnets(nodeId, peerCustodyGroupCount);
 
     const matchingSubnetsNum = this.sampleSubnets.reduce(
-      (acc, elem) => acc + (peerCustodySubnets.includes(elem) ? 1 : 0),
+      (acc, elem) => acc + (peerCustodyGroups.includes(elem) ? 1 : 0),
       0
     );
     const hasAllColumns = matchingSubnetsNum === this.sampleSubnets.length;
     const hasMinCustodyMatchingColumns = matchingSubnetsNum >= Math.max(this.config.CUSTODY_REQUIREMENT);
 
-    this.logger.warn("peerCustodySubnets", {
+    this.logger.warn("peerCustodyGroups", {
       peerId: peer.peerId.toString(),
       peerNodeId: toHexString(nodeId),
       hasAllColumns,
-      peerCustodySubnetCount,
-      peerCustodySubnets: peerCustodySubnets.join(" "),
+      peerCustodyGroupCount,
+      peerCustodyGroups: peerCustodyGroups.join(" "),
       sampleSubnets: this.sampleSubnets.join(" "),
       nodeId: `${toHexString(this.nodeId)}`,
     });
@@ -593,7 +600,7 @@ function exportENRToJSON(enr?: ENR): Record<string, string | undefined> | undefi
   }
   return {
     ip4: enr.kvs.get("ip")?.toString(),
-    csc: enr.kvs.get("csc")?.toString(),
+    cgc: enr.kvs.get("cgc")?.toString(),
     nodeId: enr.nodeId,
   };
 }
