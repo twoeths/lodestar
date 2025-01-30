@@ -14,6 +14,7 @@ import {
 } from "@lodestar/state-transition";
 import {computeUnrealizedCheckpoints} from "@lodestar/state-transition/epoch";
 import {
+  AttesterSlashing,
   BeaconBlock,
   Epoch,
   IndexedAttestation,
@@ -749,7 +750,7 @@ export class ForkChoice implements IForkChoice {
    * We already call is_slashable_attestation_data() and is_valid_indexed_attestation
    * in state transition so no need to do it again
    */
-  onAttesterSlashing(attesterSlashing: phase0.AttesterSlashing): void {
+  onAttesterSlashing(attesterSlashing: AttesterSlashing): void {
     // TODO: we already call in in state-transition, find a way not to recompute it again
     const intersectingIndices = getAttesterSlashableIndices(attesterSlashing);
     for (const validatorIndex of intersectingIndices) {
