@@ -254,6 +254,7 @@ function getSpecCriticalParams(localConfig: ChainConfig): Record<keyof ConfigWit
     KZG_COMMITMENTS_INCLUSION_PROOF_DEPTH: fuluForkRelevant,
     MAX_REQUEST_DATA_COLUMN_SIDECARS: fuluForkRelevant,
     DATA_COLUMN_SIDECAR_SUBNET_COUNT: fuluForkRelevant,
+    NUMBER_OF_CUSTODY_GROUPS: fuluForkRelevant,
     SAMPLES_PER_SLOT: fuluForkRelevant,
     CUSTODY_REQUIREMENT: fuluForkRelevant,
     NODE_CUSTODY_REQUIREMENT: false,
