@@ -1,7 +1,7 @@
 import {toHexString} from "@chainsafe/ssz";
 import {ChainForkConfig} from "@lodestar/config";
 import {computeEpochAtSlot} from "@lodestar/state-transition";
-import {Epoch, SignedBeaconBlock, Slot, WithBytes, deneb, phase0, fulu, ssz} from "@lodestar/types";
+import {Epoch, SignedBeaconBlock, Slot, deneb, phase0, fulu, ssz} from "@lodestar/types";
 import {PeerIdStr} from "../../util/peerId.js";
 import {ForkSeq, NUMBER_OF_COLUMNS, ForkName} from "@lodestar/params";
 import {Logger} from "@lodestar/utils";
@@ -53,9 +53,7 @@ export async function beaconBlocksMaybeBlobsByRange(
   // Note: Assumes all blocks in the same epoch
   if (forkSeq < ForkSeq.deneb) {
     const beaconBlocks = await network.sendBeaconBlocksByRange(peerId, request);
-    const blocks = beaconBlocks.map((block) =>
-      getBlockInput.preData(config, block.data, BlockSource.byRange, block.bytes)
-    );
+    const blocks = beaconBlocks.map((block) => getBlockInput.preData(config, block.data, BlockSource.byRange));
     return {blocks, pendingDataColumns: null};
   }
 
@@ -107,7 +105,7 @@ export async function beaconBlocksMaybeBlobsByRange(
       const dataColumnRequest = {...request, columns};
       const [allBlocks, allDataColumnSidecars] = await Promise.all([
         partialDownload
-          ? partialDownload.blocks.map((blockInput) => ({data: blockInput.block, bytes: blockInput.blockBytes!}))
+          ? partialDownload.blocks.map((blockInput) => ({data: blockInput.block}))
           : network.sendBeaconBlocksByRange(peerId, request),
         columns.length === 0 ? [] : network.sendDataColumnSidecarsByRange(peerId, dataColumnRequest),
       ]);
@@ -147,7 +145,7 @@ export async function beaconBlocksMaybeBlobsByRange(
   // Data is out of range, only request blocks
   const blocks = await network.sendBeaconBlocksByRange(peerId, request);
   return {
-    blocks: blocks.map((block) => getBlockInput.outOfRangeData(config, block.data, BlockSource.byRange, block.bytes)),
+    blocks: blocks.map((block) => getBlockInput.outOfRangeData(config, block.data, BlockSource.byRange)),
     // TODO: (@matthewkeil) this was a merge conflict when rebased on electra. Should this be a null or an empty array?  Should it
     //       depend on which fork we are in?  Need to revisit
     pendingDataColumns: null,
@@ -157,7 +155,7 @@ export async function beaconBlocksMaybeBlobsByRange(
 // Assumes that the blobs are in the same sequence as blocks, doesn't require block to be sorted
 export function matchBlockWithBlobs(
   config: ChainForkConfig,
-  allBlocks: WithBytes<SignedBeaconBlock>[],
+  allBlocks: WithOptionalBytes<SignedBeaconBlock>[],
   allBlobSidecars: deneb.BlobSidecar[],
   endSlot: Slot,
   blockSource: BlockSource,
@@ -176,7 +174,7 @@ export function matchBlockWithBlobs(
   for (let i = 0; i < allBlocks.length; i++) {
     const block = allBlocks[i];
     if (config.getForkSeq(block.data.message.slot) < ForkSeq.deneb) {
-      blockInputs.push(getBlockInput.preData(config, block.data, blockSource, block.bytes));
+      blockInputs.push(getBlockInput.preData(config, block.data, blockSource));
     } else {
       const blobSidecars: deneb.BlobSidecar[] = [];
 
@@ -202,11 +200,9 @@ export function matchBlockWithBlobs(
         fork: config.getForkName(block.data.message.slot),
         blobs: blobSidecars,
         blobsSource,
-        blobsBytes: Array.from({length: blobKzgCommitmentsLen}, () => null),
       } as BlockInputBlobs;
 
-      // TODO DENEB: instead of null, pass payload in bytes
-      blockInputs.push(getBlockInput.availableData(config, block.data, blockSource, block.bytes, blockData));
+      blockInputs.push(getBlockInput.availableData(config, block.data, blockSource, blockData));
     }
   }
 
@@ -299,7 +295,7 @@ export function matchBlockWithDataColumns(
           dataColumnsBytes: [],
           dataColumnsSource,
         } as BlockInputDataColumns;
-        blockInputs.push(getBlockInput.availableData(config, block.data, blockSource, null, blockData));
+        blockInputs.push(getBlockInput.availableData(config, block.data, blockSource, blockData));
       } else {
         // Quick inspect how many blobSidecars was expected
         const dataColumnIndexes = dataColumnSidecars.map((dataColumnSidecar) => dataColumnSidecar.index);
@@ -368,9 +364,9 @@ export function matchBlockWithDataColumns(
           } as BlockInputDataColumns;
 
           // TODO DENEB: instead of null, pass payload in bytes
-          blockInputs.push(getBlockInput.availableData(config, block.data, blockSource, block.bytes, blockData));
+          blockInputs.push(getBlockInput.availableData(config, block.data, blockSource, blockData));
         } else {
-          blockInputs.push(getBlockInput.dataPromise(config, block.data, blockSource, block.bytes, cachedData));
+          blockInputs.push(getBlockInput.dataPromise(config, block.data, blockSource, cachedData));
         }
       }
     }

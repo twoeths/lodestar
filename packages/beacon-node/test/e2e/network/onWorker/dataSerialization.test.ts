@@ -91,7 +91,6 @@ describe("data serialization through worker boundary", () => {
         type: BlockInputType.preData,
         block: ssz.capella.SignedBeaconBlock.defaultValue(),
         source: BlockSource.gossip,
-        blockBytes: Uint8Array.from(ZERO_HASH),
       },
       peer,
     },
@@ -272,7 +271,6 @@ function getEmptyBlockInput(): BlockInput {
     type: BlockInputType.dataPromise,
     block: ssz.deneb.SignedBeaconBlock.defaultValue(),
     source: BlockSource.gossip,
-    blockBytes: Uint8Array.from(ZERO_HASH),
     cachedData,
   };
 }

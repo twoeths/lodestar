@@ -73,7 +73,7 @@ export function getBeaconBlockApi({
 >): ApplicationMethods<routes.beacon.block.Endpoints> {
   const publishBlock: ApplicationMethods<routes.beacon.block.Endpoints>["publishBlockV2"] = async (
     {signedBlockOrContents, broadcastValidation},
-    context,
+    _context,
     opts: PublishBlockOpts = {}
   ) => {
     const seenTimestampSec = Date.now() / 1000;
@@ -104,26 +104,18 @@ export function getBeaconBlockApi({
           fork,
           blobs: blobSidecars,
           blobsSource: BlobsSource.api,
-          blobsBytes: blobSidecars.map(() => null),
         } as BlockInputBlobs;
         dataColumnSidecars = [];
       } else {
         throw Error(`Invalid data fork=${fork} for publish`);
       }
 
-      blockForImport = getBlockInput.availableData(
-        config,
-        signedBlock,
-        BlockSource.api,
-        // don't bundle any bytes for block and blobs
-        null,
-        blockData
-      );
+      blockForImport = getBlockInput.availableData(config, signedBlock, BlockSource.api, blockData);
     } else {
       signedBlock = signedBlockOrContents;
       blobSidecars = [];
       dataColumnSidecars = [];
-      blockForImport = getBlockInput.preData(config, signedBlock, BlockSource.api, context?.sszBytes ?? null);
+      blockForImport = getBlockInput.preData(config, signedBlock, BlockSource.api);
     }
 
     // check what validations have been requested before broadcasting and publishing the block
@@ -241,6 +233,8 @@ export function getBeaconBlockApi({
       // If block is a bit early, hold it in a promise. Equivalent to a pending queue.
       await sleep(msToBlockSlot);
     }
+
+    chain.emitter.emit(routes.events.EventType.blockGossip, {slot, block: blockRoot});
 
     // TODO: Validate block
     metrics?.registerBeaconBlock(OpSource.api, seenTimestampSec, blockForImport.block.message);

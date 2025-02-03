@@ -93,8 +93,7 @@ describe("sync / range / chain", () => {
                 message: generateEmptyBlock(i),
                 signature: shouldReject ? REJECT_BLOCK : ACCEPT_BLOCK,
               },
-              BlockSource.byRange,
-              null
+              BlockSource.byRange
             )
           );
         }
@@ -142,8 +141,7 @@ describe("sync / range / chain", () => {
               message: generateEmptyBlock(i),
               signature: ACCEPT_BLOCK,
             },
-            BlockSource.byRange,
-            null
+            BlockSource.byRange
           )
         );
       }

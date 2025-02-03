@@ -15,6 +15,7 @@ import {
 } from "@libp2p/interface";
 import type {AddressManager, ConnectionManager, Registrar, TransportManager} from "@libp2p/interface-internal";
 import {
+  AttesterSlashing,
   LightClientFinalityUpdate,
   LightClientOptimisticUpdate,
   SignedAggregateAndProof,
@@ -42,7 +43,7 @@ import {PeerAction} from "./peers/index.js";
 import {PendingGossipsubMessage} from "./processor/types.js";
 import {NodeId} from "./subnets/interface.js";
 
-export type WithOptionalBytes<T> = {data: T; bytes: Uint8Array | null};
+export type WithOptionalBytes<T> = {data: T; bytes?: Uint8Array | null};
 
 /**
  * The architecture of the network looks like so:
@@ -98,7 +99,7 @@ export interface INetwork extends INetworkCorePublic {
   publishVoluntaryExit(voluntaryExit: phase0.SignedVoluntaryExit): Promise<number>;
   publishBlsToExecutionChange(blsToExecutionChange: capella.SignedBLSToExecutionChange): Promise<number>;
   publishProposerSlashing(proposerSlashing: phase0.ProposerSlashing): Promise<number>;
-  publishAttesterSlashing(attesterSlashing: phase0.AttesterSlashing): Promise<number>;
+  publishAttesterSlashing(attesterSlashing: AttesterSlashing): Promise<number>;
   publishSyncCommitteeSignature(signature: altair.SyncCommitteeMessage, subnet: SubnetID): Promise<number>;
   publishContributionAndProof(contributionAndProof: altair.SignedContributionAndProof): Promise<number>;
   publishLightClientFinalityUpdate(update: LightClientFinalityUpdate): Promise<number>;

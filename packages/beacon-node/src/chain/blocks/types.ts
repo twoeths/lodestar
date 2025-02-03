@@ -30,10 +30,10 @@ export enum GossipedInputType {
 interface CachedDataItem {
   cacheId: number;
 }
-interface Availability<T> {
+type Availability<T> = {
   availabilityPromise: Promise<T>;
   resolveAvailability: (data: T) => void;
-}
+};
 
 /**
  *
@@ -50,16 +50,11 @@ export enum BlobsSource {
 type ForkBlobsInfo = {
   fork: ForkName.deneb | ForkName.electra;
 };
-type BlobData = {
-  blobSidecar: deneb.BlobSidecar;
-  blobBytes: Uint8Array | null;
-};
 export type BlockInputBlobs = ForkBlobsInfo & {
   blobs: deneb.BlobSidecars;
-  blobsBytes: (Uint8Array | null)[];
   blobsSource: BlobsSource;
 };
-export type BlobsCacheMap = Map<number, BlobData>;
+export type BlobsCacheMap = Map<number, deneb.BlobSidecar>;
 export type CachedBlobs = CachedDataItem &
   ForkBlobsInfo &
   Availability<BlockInputBlobs> & {
@@ -108,7 +103,6 @@ export type CachedData = CachedBlobs | CachedDataColumns;
 export type BlockInput = {
   block: SignedBeaconBlock;
   source: BlockSource;
-  blockBytes: Uint8Array | null;
 } & (
   | {type: BlockInputType.preData | BlockInputType.outOfRangeData}
   | ({type: BlockInputType.availableData} & {
@@ -136,12 +130,7 @@ export function blockRequiresBlobs(config: ChainForkConfig, blockSlot: Slot, clo
 }
 
 export const getBlockInput = {
-  preData(
-    config: ChainForkConfig,
-    block: SignedBeaconBlock,
-    source: BlockSource,
-    blockBytes: Uint8Array | null
-  ): BlockInput {
+  preData(config: ChainForkConfig, block: SignedBeaconBlock, source: BlockSource): BlockInput {
     if (config.getForkSeq(block.message.slot) >= ForkSeq.deneb) {
       throw Error(`Post Deneb block slot ${block.message.slot}`);
     }
@@ -149,7 +138,6 @@ export const getBlockInput = {
       type: BlockInputType.preData,
       block,
       source,
-      blockBytes,
     };
   },
 
@@ -159,12 +147,7 @@ export const getBlockInput = {
   //
   // This can help with some of the requests of syncing without data for some use cases for e.g.
   // building states or where importing data isn't important if valid child exists like ILs
-  outOfRangeData(
-    config: ChainForkConfig,
-    block: SignedBeaconBlock,
-    source: BlockSource,
-    blockBytes: Uint8Array | null
-  ): BlockInput {
+  outOfRangeData(config: ChainForkConfig, block: SignedBeaconBlock, source: BlockSource): BlockInput {
     if (config.getForkSeq(block.message.slot) < ForkSeq.deneb) {
       throw Error(`Pre Deneb block slot ${block.message.slot}`);
     }
@@ -172,7 +155,6 @@ export const getBlockInput = {
       type: BlockInputType.outOfRangeData,
       block,
       source,
-      blockBytes,
     };
   },
 
@@ -180,7 +162,6 @@ export const getBlockInput = {
     config: ChainForkConfig,
     block: SignedBeaconBlock,
     source: BlockSource,
-    blockBytes: Uint8Array | null,
     blockData: BlockInputAvailableData
   ): BlockInput {
     if (config.getForkSeq(block.message.slot) < ForkSeq.deneb) {
@@ -190,7 +171,6 @@ export const getBlockInput = {
       type: BlockInputType.availableData,
       block,
       source,
-      blockBytes,
       blockData,
     };
   },
@@ -199,7 +179,6 @@ export const getBlockInput = {
     config: ChainForkConfig,
     block: SignedBeaconBlock,
     source: BlockSource,
-    blockBytes: Uint8Array | null,
     cachedData: CachedData
   ): BlockInput {
     if (config.getForkSeq(block.message.slot) < ForkSeq.deneb) {
@@ -209,7 +188,6 @@ export const getBlockInput = {
       type: BlockInputType.dataPromise,
       block,
       source,
-      blockBytes,
       cachedData,
     };
   },
@@ -217,18 +195,15 @@ export const getBlockInput = {
 
 export function getBlockInputBlobs(blobsCache: BlobsCacheMap): Omit<BlockInputBlobs, "fork" | "blobsSource"> {
   const blobs = [];
-  const blobsBytes = [];
 
   for (let index = 0; index < blobsCache.size; index++) {
-    const blobCache = blobsCache.get(index);
-    if (blobCache === undefined) {
+    const blobSidecar = blobsCache.get(index);
+    if (blobSidecar === undefined) {
       throw Error(`Missing blobSidecar at index=${index}`);
     }
-    const {blobSidecar, blobBytes} = blobCache;
     blobs.push(blobSidecar);
-    blobsBytes.push(blobBytes);
   }
-  return {blobs, blobsBytes};
+  return {blobs};
 }
 
 export function getBlockInputDataColumns(
