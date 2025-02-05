@@ -45,7 +45,7 @@ function getCustodyColumnsMeta(custodyColumns: ColumnIndex[]): {
  * SPEC FUNCTION
  * https://github.com/ethereum/consensus-specs/blob/dev/specs/fulu/das-core.md#compute_columns_for_custody_group
  */
-function computeColumnsForCustodyGroup(custodyGroup: CustodyIndex): ColumnIndex[] {
+export function computeColumnsForCustodyGroup(custodyGroup: CustodyIndex): ColumnIndex[] {
   if (custodyGroup > NUMBER_OF_CUSTODY_GROUPS) {
     custodyGroup = NUMBER_OF_CUSTODY_GROUPS;
   }
@@ -65,7 +65,7 @@ function computeColumnsForCustodyGroup(custodyGroup: CustodyIndex): ColumnIndex[
  * SPEC FUNCTION
  * https://github.com/ethereum/consensus-specs/blob/dev/specs/fulu/das-core.md#get_custody_groups
  */
-function getCustodyGroups(nodeId: NodeId, custodyGroupCount: number): CustodyIndex[] {
+export function getCustodyGroups(nodeId: NodeId, custodyGroupCount: number): CustodyIndex[] {
   if (custodyGroupCount > NUMBER_OF_CUSTODY_GROUPS) {
     custodyGroupCount = NUMBER_OF_CUSTODY_GROUPS;
   }
