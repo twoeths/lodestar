@@ -36,7 +36,8 @@ const coveredTestRunners = [
   "sync",
   "fork",
   "genesis",
-  "merkle",
+  "merkle_proof",
+  "networking",
   "operations",
   "rewards",
   "sanity",
@@ -69,7 +70,7 @@ export const defaultSkipOpts: SkipOpts = {
     /^.+\/light_client\/data_collection\/.*/,
   ],
   skippedTests: [],
-  skippedRunners: ["merkle_proof", "networking"],
+  skippedRunners: [],
 };
 
 /**
