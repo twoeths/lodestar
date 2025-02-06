@@ -9,6 +9,7 @@ export type ExtendedMatrix = ValueOf<typeof ssz.ExtendedMatrix>;
 export type KzgCommitmentsInclusionProof = ValueOf<typeof ssz.KzgCommitmentsInclusionProof>;
 export type DataColumnSidecar = ValueOf<typeof ssz.DataColumnSidecar>;
 export type DataColumnSidecars = ValueOf<typeof ssz.DataColumnSidecars>;
+export type MatrixEntry = ValueOf<typeof ssz.MatrixEntry>;
 
 export type DataColumnIdentifier = ValueOf<typeof ssz.DataColumnIdentifier>;
 export type DataColumnSidecarsByRootRequest = ValueOf<typeof ssz.DataColumnSidecarsByRootRequest>;

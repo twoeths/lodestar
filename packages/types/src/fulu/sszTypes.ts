@@ -14,7 +14,7 @@ import {ssz as altariSsz} from "../altair/index.js";
 import {ssz as denebSsz} from "../deneb/index.js";
 import {ssz as electraSsz} from "../electra/index.js";
 
-const {BLSSignature, Root, ColumnIndex, Bytes32, Slot, UintNum64} = primitiveSsz;
+const {BLSSignature, Root, ColumnIndex, RowIndex, Bytes32, Slot, UintNum64} = primitiveSsz;
 
 export const Metadata = new ContainerType(
   {
@@ -42,6 +42,16 @@ export const DataColumnSidecar = new ContainerType(
 );
 
 export const DataColumnSidecars = new ListCompositeType(DataColumnSidecar, NUMBER_OF_COLUMNS);
+
+export const MatrixEntry = new ContainerType(
+  {
+    cell: Cell,
+    kzgProof: denebSsz.KZGProof,
+    columnIndex: ColumnIndex,
+    rowIndex: RowIndex,
+  },
+  {typeName: "MatrixEntry", jsonCase: "eth2"}
+);
 
 // ReqResp types
 // =============
