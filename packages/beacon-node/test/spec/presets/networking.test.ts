@@ -21,10 +21,10 @@ type GetCustodyGroupInput = {
 type NetworkFn = (input: any) => number[];
 
 const networkingFns: Record<string, NetworkFn> = {
-  computeColumnsForCustodyGroup(input: ComputeColumnForCustodyGroupInput): number[] {
-    return computeColumnsForCustodyGroup(input.custody_group);
+  compute_columns_for_custody_group(input: ComputeColumnForCustodyGroupInput): number[] {
+    return computeColumnsForCustodyGroup(Number(input.custody_group));
   },
-  getCustodyGroups(input: GetCustodyGroupInput): number[] {
+  get_custody_groups(input: GetCustodyGroupInput): number[] {
     return getCustodyGroups(bigIntToBytes(input.node_id, 32, "be"), input.custody_group_count);
   },
 };
@@ -37,19 +37,18 @@ const networking: TestRunnerFn<NetworkingTestCase, unknown> = (_fork, testName) 
         throw Error(`No networkingFn for ${testName}`);
       }
 
-      return networkingFn(testcase.data);
+      return networkingFn(testcase.meta);
     },
     options: {
-      inputTypes: {data: InputType.YAML},
-      getExpected: (testCase) => testCase.data.result,
+      inputTypes: {meta: InputType.YAML},
+      getExpected: (testCase) => testCase.meta.result.map(Number),
       // Do not manually skip tests here, do it in packages/beacon-node/test/spec/presets/index.test.ts
     },
   };
 };
 
 type NetworkingTestCase = {
-  meta?: any;
-  data: {
+  meta: {
     result: number[];
   };
 };
