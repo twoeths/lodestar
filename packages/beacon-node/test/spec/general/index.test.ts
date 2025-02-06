@@ -17,10 +17,7 @@ import {sszGeneric} from "./ssz_generic.js";
 //    "eip4844/operations/bls_to_execution_change",
 // ],
 // ```
-const skipOpts: SkipOpts = {
-  // Add kzg runner, tracked here: https://github.com/ChainSafe/lodestar/issues/5279
-  skippedRunners: ["kzg"],
-};
+const skipOpts: SkipOpts = {};
 
 specTestIterator(
   path.join(ethereumConsensusSpecsTests.outputDir, "tests", "general"),

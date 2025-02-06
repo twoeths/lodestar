@@ -4,6 +4,8 @@ import {fromHexString, toHexString} from "@chainsafe/ssz";
 import {InputType} from "@lodestar/spec-test-util";
 import {TestRunnerFn} from "../utils/types.js";
 
+ckzg.loadTrustedSetup(8);
+
 const testFnByType: Record<string, (input: any, output?: any) => any> = {
   blob_to_kzg_commitment: blobToKzgCommitment,
   compute_blob_kzg_proof: computeBlobKzgProof,
@@ -24,27 +26,11 @@ export const kzgTestRunner: TestRunnerFn<KzgTestCase, unknown> = (_fork, testNam
         throw Error(`Unknown kzg test ${testName}`);
       }
 
-      try {
-        return testFn(data.input, data.output) as unknown;
-      } catch (e) {
-        // const {message} = e as Error;
-        // if (message.includes("BLST_ERROR") || message === "EMPTY_AGGREGATE_ARRAY" || message === "ZERO_SECRET_KEY") {
-        //   return null;
-        // }
-
-        // biome-ignore lint/complexity/noUselessCatch: <explanation>
-        throw e;
-      }
+      return testFn(data.input, data.output);
     },
     options: {
       inputTypes: {data: InputType.YAML},
-      getExpected: (testCase) => {
-        // this have more complex expectations and need to be checked manually
-        if (testName === "compute_cells_and_kzg_proofs" || testName === "recover_cells_and_kzg_proofs") {
-          return;
-        }
-        return testCase.data.output;
-      },
+      getExpected: (testCase) => testCase.data.output,
       // Do not manually skip tests here, do it in packages/beacon-node/test/spec/general/index.test.ts
     },
   };
@@ -65,7 +51,7 @@ function blobToKzgCommitment(input: BlobToKzgCommitmentInput): string | null {
   const blob = fromHexString(input.blob);
   try {
     return toHexString(ckzg.blobToKzgCommitment(blob));
-  } catch (_e) {
+  } catch {
     return null;
   }
 }
@@ -78,8 +64,9 @@ function computeKzgProof(input: ComputeKzgProofInput): string[] | null {
   const blob = fromHexString(input.blob);
   const z = fromHexString(input.z);
   try {
-    return toHexString(ckzg.computeKzgProof(blob, z));
-  } catch (_e) {
+    const [proof, polynomialResult] = ckzg.computeKzgProof(blob, z);
+    return [toHexString(proof), toHexString(polynomialResult)];
+  } catch {
     return null;
   }
 }
@@ -93,7 +80,7 @@ function computeBlobKzgProof(input: ComputeBlobKzgProofInput): string | null {
   const commitment = fromHexString(input.commitment);
   try {
     return toHexString(ckzg.computeBlobKzgProof(blob, commitment));
-  } catch (_e) {
+  } catch {
     return null;
   }
 }
@@ -112,7 +99,7 @@ function verifyKzgProof(input: VerifyKzgProofInput): boolean | null {
 
   try {
     return ckzg.verifyKzgProof(commitment, z, y, proof);
-  } catch (_e) {
+  } catch {
     return null;
   }
 }
@@ -154,29 +141,13 @@ function verifyBlobKzgProofBatch(input: VerifyBlobKzgProofBatchInput): boolean |
 type ComputeCellsAndKzgProofsInput = {
   blob: string;
 };
-function computeCellsAndKzgProofs(input: ComputeCellsAndKzgProofsInput, output: string[][]): void {
+function computeCellsAndKzgProofs(input: ComputeCellsAndKzgProofsInput): [string[], string[]] | null {
   const blob = fromHexString(input.blob);
-
-  let cells: ckzg.Cell[];
-  let proofs: ckzg.KZGProof[];
   try {
-    [cells, proofs] = ckzg.computeCellsAndKzgProofs(blob);
+    const [cells, proofs] = ckzg.computeCellsAndKzgProofs(blob);
+    return [cells.map(toHexString), proofs.map(toHexString)];
   } catch {
-    expect(output).toBeNull();
-    return;
-  }
-
-  expect(output).not.toBeNull();
-  expect(output.length).toBe(2);
-  const expectedCells = output[0];
-  const expectedProofs = output[1];
-  expect(cells.length).toBe(expectedCells.length);
-  for (let i = 0; i < cells.length; i++) {
-    expect(toHexString(cells[i])).toEqual(expectedCells[i]);
-  }
-  expect(proofs.length).toBe(expectedProofs.length);
-  for (let i = 0; i < proofs.length; i++) {
-    expect(toHexString(proofs[i])).toEqual(expectedProofs[i]);
+    return null;
   }
 }
 
@@ -184,30 +155,14 @@ type RecoverCellsAndKzgProofsInput = {
   cell_indices: number[];
   cells: string[];
 };
-function recoverCellsAndKzgProofs(input: RecoverCellsAndKzgProofsInput, output: string[][]): void {
-  let recoveredCells: ckzg.Cell[];
-  let recoveredProofs: ckzg.KZGProof[];
-  const cellIndices = input.cell_indices;
+function recoverCellsAndKzgProofs(input: RecoverCellsAndKzgProofsInput): [string[], string[]] | null {
+  const cellIndices = input.cell_indices.map(Number);
   const cells = input.cells.map(fromHexString);
-
   try {
-    [recoveredCells, recoveredProofs] = ckzg.recoverCellsAndKzgProofs(cellIndices, cells);
+    const [recoveredCells, recoveredProofs] = ckzg.recoverCellsAndKzgProofs(cellIndices, cells);
+    return [recoveredCells.map(toHexString), recoveredProofs.map(toHexString)];
   } catch {
-    expect(output).toBeNull();
-    return;
-  }
-
-  expect(output).not.toBeNull();
-  expect(output.length).toBe(2);
-  const expectedCells = output[0];
-  const expectedProofs = output[1];
-  expect(recoveredCells.length).toBe(expectedCells.length);
-  for (let i = 0; i < recoveredCells.length; i++) {
-    expect(toHexString(recoveredCells[i])).toEqual(expectedCells[i]);
-  }
-  expect(recoveredProofs.length).toBe(expectedProofs.length);
-  for (let i = 0; i < recoveredProofs.length; i++) {
-    expect(toHexString(recoveredProofs[i])).toEqual(expectedProofs[i]);
+    return null;
   }
 }
 
@@ -219,12 +174,11 @@ type VerifyCellKzgProofBatchInput = {
 };
 function verifyCellKzgProofBatch(input: VerifyCellKzgProofBatchInput): boolean | null {
   const commitments = input.commitments.map(fromHexString);
-  const cellIndices = input.cell_indices;
+  const cellIndices = input.cell_indices.map(Number);
   const cells = input.cells.map(fromHexString);
   const proofs = input.proofs.map(fromHexString);
-
   try {
-    return verifyCellKzgProofBatch(commitments, cellIndices, cells, proofs);
+    return ckzg.verifyCellKzgProofBatch(commitments, cellIndices, cells, proofs);
   } catch {
     return null;
   }
