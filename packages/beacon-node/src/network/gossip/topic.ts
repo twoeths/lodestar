@@ -1,12 +1,12 @@
 import {ChainConfig, ForkDigestContext} from "@lodestar/config";
 import {
   ATTESTATION_SUBNET_COUNT,
+  DATA_COLUMN_SIDECAR_SUBNET_COUNT,
   ForkName,
   ForkSeq,
   SYNC_COMMITTEE_SUBNET_COUNT,
   isForkLightClient,
   isForkPostElectra,
-  DATA_COLUMN_SIDECAR_SUBNET_COUNT,
 } from "@lodestar/params";
 import {Attestation, SingleAttestation, ssz, sszTypesFor} from "@lodestar/types";
 

@@ -1,11 +1,11 @@
 import {BeaconConfig} from "@lodestar/config";
 import {
   ForkName,
-  isForkBlobs,
   MAX_REQUEST_BLOCKS,
   MAX_REQUEST_BLOCKS_DENEB,
   MAX_REQUEST_LIGHT_CLIENT_UPDATES,
   NUMBER_OF_COLUMNS,
+  isForkBlobs,
 } from "@lodestar/params";
 import {InboundRateLimitQuota} from "@lodestar/reqresp";
 import {ReqRespMethod, RequestBodyByMethod, requestSszTypeByMethod} from "./types.js";

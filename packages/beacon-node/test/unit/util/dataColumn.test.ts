@@ -1,17 +1,17 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-import {describe, it, expect, beforeAll, afterEach} from "vitest";
 import {fromHexString} from "@chainsafe/ssz";
-import {ssz} from "@lodestar/types";
 import {createBeaconConfig, createChainForkConfig, defaultChainConfig} from "@lodestar/config";
 import {NUMBER_OF_COLUMNS} from "@lodestar/params";
+import {ssz} from "@lodestar/types";
 import {bigIntToBytes} from "@lodestar/utils";
+/* eslint-disable @typescript-eslint/naming-convention */
+import {afterEach, beforeAll, describe, expect, it} from "vitest";
 
-import {getDataColumns, getCustodyConfig} from "../../../src/util/dataColumns.js";
-import {getMockedBeaconChain} from "../../mocks/mockedBeaconChain.js";
-import {ckzg, initCKZG, loadEthereumTrustedSetup} from "../../../src/util/kzg.js";
-import {generateRandomBlob, transactionForKzgCommitment} from "../../utils/kzg.js";
-import {computeDataColumnSidecars} from "../../../src/util/blobs.js";
 import {validateDataColumnsSidecars} from "../../../src/chain/validation/dataColumnSidecar.js";
+import {computeDataColumnSidecars} from "../../../src/util/blobs.js";
+import {getCustodyConfig, getDataColumns} from "../../../src/util/dataColumns.js";
+import {ckzg, initCKZG, loadEthereumTrustedSetup} from "../../../src/util/kzg.js";
+import {getMockedBeaconChain} from "../../mocks/mockedBeaconChain.js";
+import {generateRandomBlob, transactionForKzgCommitment} from "../../utils/kzg.js";
 
 describe("getCustodyConfig", () => {
   it("validateDataColumnsSidecars", () => {

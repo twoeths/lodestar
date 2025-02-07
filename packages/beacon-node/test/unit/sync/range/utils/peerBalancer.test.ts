@@ -2,8 +2,8 @@ import {config} from "@lodestar/config/default";
 import {describe, expect, it} from "vitest";
 import {Batch} from "../../../../../src/sync/range/batch.js";
 import {ChainPeersBalancer} from "../../../../../src/sync/range/utils/peerBalancer.js";
-import {getRandPeerIdStr} from "../../../../utils/peer.js";
 import {PeerIdStr} from "../../../../../src/util/peerId.js";
+import {getRandPeerIdStr} from "../../../../utils/peer.js";
 
 describe("sync / range / peerBalancer", () => {
   it("bestPeerToRetryBatch", async () => {

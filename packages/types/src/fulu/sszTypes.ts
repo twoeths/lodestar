@@ -1,18 +1,18 @@
-import {ContainerType, ByteVectorType, ListCompositeType, VectorCompositeType, ListBasicType} from "@chainsafe/ssz";
+import {ByteVectorType, ContainerType, ListBasicType, ListCompositeType, VectorCompositeType} from "@chainsafe/ssz";
 import {
   BYTES_PER_FIELD_ELEMENT,
   FIELD_ELEMENTS_PER_CELL,
-  MAX_BLOB_COMMITMENTS_PER_BLOCK,
-  NUMBER_OF_COLUMNS,
   KZG_COMMITMENTS_INCLUSION_PROOF_DEPTH,
+  MAX_BLOB_COMMITMENTS_PER_BLOCK,
   MAX_REQUEST_DATA_COLUMN_SIDECARS,
+  NUMBER_OF_COLUMNS,
 } from "@lodestar/params";
 
-import {ssz as primitiveSsz} from "../primitive/index.js";
-import {ssz as phase0Ssz} from "../phase0/index.js";
 import {ssz as altariSsz} from "../altair/index.js";
 import {ssz as denebSsz} from "../deneb/index.js";
 import {ssz as electraSsz} from "../electra/index.js";
+import {ssz as phase0Ssz} from "../phase0/index.js";
+import {ssz as primitiveSsz} from "../primitive/index.js";
 
 const {BLSSignature, Root, ColumnIndex, RowIndex, Bytes32, Slot, UintNum64} = primitiveSsz;
 

@@ -1,7 +1,7 @@
-import {expect} from "vitest";
-import * as ckzg from "c-kzg";
 import {fromHexString, toHexString} from "@chainsafe/ssz";
 import {InputType} from "@lodestar/spec-test-util";
+import * as ckzg from "c-kzg";
+import {expect} from "vitest";
 import {TestRunnerFn} from "../utils/types.js";
 
 ckzg.loadTrustedSetup(8);

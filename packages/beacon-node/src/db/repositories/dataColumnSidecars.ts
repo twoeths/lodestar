@@ -1,8 +1,8 @@
-import {ValueOf, ContainerType, ByteVectorType} from "@chainsafe/ssz";
+import {ByteVectorType, ContainerType, ValueOf} from "@chainsafe/ssz";
 import {ChainForkConfig} from "@lodestar/config";
 import {Db, Repository} from "@lodestar/db";
-import {ssz} from "@lodestar/types";
 import {NUMBER_OF_COLUMNS} from "@lodestar/params";
+import {ssz} from "@lodestar/types";
 
 import {Bucket, getBucketNameByValue} from "../buckets.js";
 

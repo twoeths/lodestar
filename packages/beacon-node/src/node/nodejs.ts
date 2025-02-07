@@ -19,12 +19,12 @@ import {initializeExecutionBuilder, initializeExecutionEngine} from "../executio
 import {HttpMetricsServer, Metrics, createMetrics, getHttpMetricsServer} from "../metrics/index.js";
 import {MonitoringService} from "../monitoring/index.js";
 import {Network, getReqRespHandlers} from "../network/index.js";
+import {NodeId} from "../network/subnets/interface.js";
 import {BackfillSync} from "../sync/backfill/index.js";
 import {BeaconSync, IBeaconSync} from "../sync/index.js";
 import {initCKZG, loadEthereumTrustedSetup} from "../util/kzg.js";
-import {NodeId} from "../network/subnets/interface.js";
-import {IBeaconNodeOptions} from "./options.js";
 import {runNodeNotifier} from "./notifier.js";
+import {IBeaconNodeOptions} from "./options.js";
 
 export * from "./options.js";
 

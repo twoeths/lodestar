@@ -4,15 +4,7 @@ import {routes} from "@lodestar/api";
 import {ForkName} from "@lodestar/params";
 import {ssz} from "@lodestar/types";
 import {afterAll, beforeAll, describe, expect, it} from "vitest";
-import {
-  BlockInput,
-  BlockInputDataBlobs,
-  BlockInputType,
-  BlockSource,
-  CachedData,
-  BlockInputBlobs,
-  CachedData,
-} from "../../../../src/chain/blocks/types.js";
+import {} from "../../../../src/chain/blocks/types.js";
 import {ZERO_HASH, ZERO_HASH_HEX} from "../../../../src/constants/constants.js";
 import {ReqRespBridgeEventData} from "../../../../src/network/core/events.js";
 import {ReqRespBridgeEvent} from "../../../../src/network/core/events.js";
@@ -25,9 +17,9 @@ import {
   ReqRespMethod,
   networkEventDirection,
 } from "../../../../src/network/index.js";
+import {CommitteeSubscription} from "../../../../src/network/subnets/interface.js";
 import {IteratorEventType} from "../../../../src/util/asyncIterableToEvents.js";
 import {EventDirection} from "../../../../src/util/workerEvents.js";
-import {CommitteeSubscription} from "../../../../src/network/subnets/interface.js";
 import {getValidPeerId, validPeerIdStr} from "../../../utils/peer.js";
 import {EchoWorker, getEchoWorker} from "./workerEchoHandler.js";
 

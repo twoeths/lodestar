@@ -1,7 +1,7 @@
 import {digest} from "@chainsafe/as-sha256";
-import {NUMBER_OF_COLUMNS, DATA_COLUMN_SIDECAR_SUBNET_COUNT, NUMBER_OF_CUSTODY_GROUPS} from "@lodestar/params";
-import {ColumnIndex, CustodyIndex} from "@lodestar/types";
 import {ChainForkConfig} from "@lodestar/config";
+import {DATA_COLUMN_SIDECAR_SUBNET_COUNT, NUMBER_OF_COLUMNS, NUMBER_OF_CUSTODY_GROUPS} from "@lodestar/params";
+import {ColumnIndex, CustodyIndex} from "@lodestar/types";
 import {ssz} from "@lodestar/types";
 import {bytesToBigInt} from "@lodestar/utils";
 import {NodeId} from "../network/subnets/index.js";

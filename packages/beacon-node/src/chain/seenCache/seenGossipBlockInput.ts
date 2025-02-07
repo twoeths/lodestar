@@ -1,28 +1,28 @@
-import {ChainForkConfig} from "@lodestar/config";
-import {pruneSetToMax, toRootHex} from "@lodestar/utils";
 import {toHexString} from "@chainsafe/ssz";
-import {deneb, RootHex, SignedBeaconBlock, ssz, fulu} from "@lodestar/types";
-import {BLOBSIDECAR_FIXED_SIZE, isForkBlobs, ForkName, NUMBER_OF_COLUMNS} from "@lodestar/params";
+import {ChainForkConfig} from "@lodestar/config";
+import {BLOBSIDECAR_FIXED_SIZE, ForkName, NUMBER_OF_COLUMNS, isForkBlobs} from "@lodestar/params";
+import {RootHex, SignedBeaconBlock, deneb, fulu, ssz} from "@lodestar/types";
+import {pruneSetToMax, toRootHex} from "@lodestar/utils";
 
 import {Metrics} from "../../metrics/index.js";
+import {CustodyConfig} from "../../util/dataColumns.js";
 import {SerializedCache} from "../../util/serializedCache.js";
 import {
   BlobsSource,
   BlockInput,
+  BlockInputBlobs,
+  BlockInputDataColumns,
   BlockSource,
+  CachedBlobs,
   CachedData,
+  CachedDataColumns,
+  DataColumnsSource,
+  GossipedInputType,
   NullBlockInput,
   getBlockInput,
-  BlockInputBlobs,
-  GossipedInputType,
   getBlockInputBlobs,
-  DataColumnsSource,
   getBlockInputDataColumns,
-  BlockInputDataColumns,
-  CachedBlobs,
-  CachedDataColumns,
 } from "../blocks/types.js";
-import {CustodyConfig} from "../../util/dataColumns.js";
 
 export enum BlockInputAvailabilitySource {
   GOSSIP = "gossip",

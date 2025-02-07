@@ -4,13 +4,13 @@ import {fromHexString, toHexString} from "@chainsafe/ssz";
 import {ACTIVE_PRESET, ForkAll} from "@lodestar/params";
 import {InputType} from "@lodestar/spec-test-util";
 import {BeaconStateAllForks} from "@lodestar/state-transition";
-import {BeaconBlockBody, ssz, SSZTypesFor} from "@lodestar/types";
+import {BeaconBlockBody, SSZTypesFor, ssz} from "@lodestar/types";
 import {toHex, verifyMerkleBranch} from "@lodestar/utils";
 import {expect} from "vitest";
+import {computeKzgCommitmentsInclusionProof} from "../../../src/util/blobs.js";
 import {ethereumConsensusSpecsTests} from "../specTestVersioning.js";
 import {specTestIterator} from "../utils/specTestIterator.js";
 import {RunnerType, TestRunnerFn} from "../utils/types.js";
-import {computeKzgCommitmentsInclusionProof} from "../../../src/util/blobs.js";
 
 const merkle: TestRunnerFn<MerkleTestCase, IProof> = (fork) => {
   return {

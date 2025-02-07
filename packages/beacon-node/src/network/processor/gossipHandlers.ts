@@ -1,29 +1,28 @@
 import {toHexString} from "@chainsafe/ssz";
-import {BeaconConfig, ChainForkConfig} from "@lodestar/config";
-import {
-  Root,
-  Slot,
-  ssz,
-  deneb,
-  UintNum64,
-  SignedBeaconBlock,
-  fulu,
-  SingleAttestation,
-  SubnetID,
-  sszTypesFor,
-} from "@lodestar/types";
 import {routes} from "@lodestar/api";
+import {BeaconConfig, ChainForkConfig} from "@lodestar/config";
 import {ForkName, ForkPostElectra, ForkPreElectra, ForkSeq, isForkPostElectra} from "@lodestar/params";
 import {computeTimeAtSlot} from "@lodestar/state-transition";
-import {} from "@lodestar/types";
+import {
+  Root,
+  SignedBeaconBlock,
+  SingleAttestation,
+  Slot,
+  SubnetID,
+  UintNum64,
+  deneb,
+  fulu,
+  ssz,
+  sszTypesFor,
+} from "@lodestar/types";
 import {LogLevel, Logger, prettyBytes, toRootHex} from "@lodestar/utils";
 import {
   BlobSidecarValidation,
   BlockInput,
+  BlockInputAvailableData,
   BlockInputType,
   GossipedInputType,
   NullBlockInput,
-  BlockInputAvailableData,
 } from "../../chain/blocks/types.js";
 import {
   AttestationError,
@@ -33,16 +32,19 @@ import {
   BlockError,
   BlockErrorCode,
   BlockGossipError,
-  DataColumnSidecarGossipError,
   DataColumnSidecarErrorCode,
+  DataColumnSidecarGossipError,
   GossipAction,
   GossipActionError,
   SyncCommitteeError,
 } from "../../chain/errors/index.js";
 import {IBeaconChain} from "../../chain/interface.js";
 import {validateGossipBlobSidecar} from "../../chain/validation/blobSidecar.js";
+import {validateGossipDataColumnSidecar} from "../../chain/validation/dataColumnSidecar.js";
 import {
   AggregateAndProofValidationResult,
+  AttestationOrBytes,
+  AttestationValidationResult,
   GossipAttestation,
   toElectraSingleAttestation,
   validateGossipAggregateAndProof,
@@ -54,17 +56,13 @@ import {
   validateGossipSyncCommittee,
   validateGossipVoluntaryExit,
   validateSyncCommitteeGossipContributionAndProof,
-  AttestationOrBytes,
-  AttestationValidationResult,
 } from "../../chain/validation/index.js";
 import {validateLightClientFinalityUpdate} from "../../chain/validation/lightClientFinalityUpdate.js";
 import {validateLightClientOptimisticUpdate} from "../../chain/validation/lightClientOptimisticUpdate.js";
 import {Metrics} from "../../metrics/index.js";
 import {OpSource} from "../../metrics/validatorMonitor.js";
 import {INetworkCore} from "../core/index.js";
-import {PeerAction} from "../peers/index.js";
 import {NetworkEvent, NetworkEventBus} from "../events.js";
-import {validateGossipDataColumnSidecar} from "../../chain/validation/dataColumnSidecar.js";
 import {
   BatchGossipHandlers,
   GossipHandlerParamGeneric,
@@ -74,6 +72,7 @@ import {
 } from "../gossip/interface.js";
 import {sszDeserialize} from "../gossip/topic.js";
 import {INetwork} from "../interface.js";
+import {PeerAction} from "../peers/index.js";
 import {AggregatorTracker} from "./aggregatorTracker.js";
 
 /**

@@ -1,6 +1,4 @@
 import crypto from "node:crypto";
-import deepmerge from "deepmerge";
-import tmp from "tmp";
 import {PeerId} from "@libp2p/interface";
 import {createSecp256k1PeerId} from "@libp2p/peer-id-factory";
 import {ChainConfig, createBeaconConfig, createChainForkConfig} from "@lodestar/config";
@@ -12,15 +10,17 @@ import {BeaconStateAllForks} from "@lodestar/state-transition";
 import {phase0, ssz} from "@lodestar/types";
 import {RecursivePartial} from "@lodestar/utils";
 import {isPlainObject} from "@lodestar/utils";
+import deepmerge from "deepmerge";
+import tmp from "tmp";
 import {BeaconDb} from "../../../src/db/index.js";
 import {BeaconNode} from "../../../src/index.js";
 import {defaultNetworkOptions} from "../../../src/network/options.js";
+import {NodeId} from "../../../src/network/subnets/interface.js";
 import {IBeaconNodeOptions} from "../../../src/node/options.js";
 import {defaultOptions} from "../../../src/node/options.js";
 import {InteropStateOpts} from "../../../src/node/utils/interop/state.js";
 import {initDevState, writeDeposits} from "../../../src/node/utils/state.js";
 import {testLogger} from "../logger.js";
-import {NodeId} from "../../../src/network/subnets/interface.js";
 
 export async function getDevBeaconNode(
   opts: {

@@ -1,13 +1,13 @@
 import {GENESIS_SLOT, MAX_REQUEST_BLOCKS_DENEB, NUMBER_OF_COLUMNS} from "@lodestar/params";
-import {ResponseError, ResponseOutgoing, RespStatus} from "@lodestar/reqresp";
-import {fulu, Slot, ssz, ColumnIndex} from "@lodestar/types";
+import {RespStatus, ResponseError, ResponseOutgoing} from "@lodestar/reqresp";
+import {ColumnIndex, Slot, fulu, ssz} from "@lodestar/types";
 import {fromHex} from "@lodestar/utils";
 import {IBeaconChain} from "../../../chain/index.js";
 import {IBeaconDb} from "../../../db/index.js";
 import {
-  DATA_COLUMN_SIDECARS_IN_WRAPPER_INDEX,
   COLUMN_SIZE_IN_WRAPPER_INDEX,
   CUSTODY_COLUMNS_IN_IN_WRAPPER_INDEX,
+  DATA_COLUMN_SIDECARS_IN_WRAPPER_INDEX,
   NUM_COLUMNS_IN_WRAPPER_INDEX,
 } from "../../../db/repositories/dataColumnSidecars.js";
 

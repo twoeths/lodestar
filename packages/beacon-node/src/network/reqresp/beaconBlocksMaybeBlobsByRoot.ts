@@ -1,23 +1,23 @@
+import {fromHexString, toHexString} from "@chainsafe/ssz";
 import {ChainForkConfig} from "@lodestar/config";
 import {ForkName, ForkSeq} from "@lodestar/params";
 import {signedBlockToSignedHeader} from "@lodestar/state-transition";
-import {RootHex, SignedBeaconBlock, deneb, phase0, fulu, ssz} from "@lodestar/types";
+import {RootHex, SignedBeaconBlock, deneb, fulu, phase0, ssz} from "@lodestar/types";
 import {BlobAndProof} from "@lodestar/types/deneb";
 import {fromHex} from "@lodestar/utils";
-import {fromHexString, toHexString} from "@chainsafe/ssz";
 import {Logger} from "@lodestar/utils";
 import {
   BlobsSource,
   BlockInput,
+  BlockInputBlobs,
+  BlockInputDataColumns,
   BlockInputType,
   BlockSource,
+  CachedBlobs,
+  DataColumnsSource,
   NullBlockInput,
   getBlockInput,
   getBlockInputBlobs,
-  BlockInputBlobs,
-  DataColumnsSource,
-  BlockInputDataColumns,
-  CachedBlobs,
 } from "../../chain/blocks/types.js";
 import {BlockInputAvailabilitySource} from "../../chain/seenCache/seenGossipBlockInput.js";
 import {IExecutionEngine} from "../../execution/index.js";

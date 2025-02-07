@@ -1,17 +1,17 @@
 import {
+  DATA_COLUMN_SIDECAR_SUBNET_COUNT,
   KZG_COMMITMENTS_INCLUSION_PROOF_DEPTH,
   KZG_COMMITMENTS_SUBTREE_INDEX,
-  DATA_COLUMN_SIDECAR_SUBNET_COUNT,
   NUMBER_OF_COLUMNS,
 } from "@lodestar/params";
-import {ssz, deneb, fulu, Slot, Root} from "@lodestar/types";
+import {Root, Slot, deneb, fulu, ssz} from "@lodestar/types";
 import {toHex, verifyMerkleBranch} from "@lodestar/utils";
 
-import {DataColumnSidecarGossipError, DataColumnSidecarErrorCode} from "../errors/dataColumnSidecarError.js";
+import {byteArrayEquals} from "../../util/bytes.js";
+import {ckzg} from "../../util/kzg.js";
+import {DataColumnSidecarErrorCode, DataColumnSidecarGossipError} from "../errors/dataColumnSidecarError.js";
 import {GossipAction} from "../errors/gossipValidation.js";
 import {IBeaconChain} from "../interface.js";
-import {ckzg} from "../../util/kzg.js";
-import {byteArrayEquals} from "../../util/bytes.js";
 
 export async function validateGossipDataColumnSidecar(
   chain: IBeaconChain,

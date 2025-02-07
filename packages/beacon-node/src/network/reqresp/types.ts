@@ -12,8 +12,8 @@ import {
   SignedBeaconBlock,
   altair,
   deneb,
-  phase0,
   fulu,
+  phase0,
   ssz,
   sszTypesFor,
 } from "@lodestar/types";

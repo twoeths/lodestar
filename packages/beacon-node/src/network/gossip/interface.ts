@@ -14,8 +14,8 @@ import {
   altair,
   capella,
   deneb,
-  phase0,
   fulu,
+  phase0,
 } from "@lodestar/types";
 import {Logger} from "@lodestar/utils";
 import {Libp2p} from "libp2p";

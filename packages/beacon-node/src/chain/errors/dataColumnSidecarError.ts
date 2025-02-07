@@ -1,4 +1,4 @@
-import {Slot, RootHex} from "@lodestar/types";
+import {RootHex, Slot} from "@lodestar/types";
 import {GossipActionError} from "./gossipValidation.js";
 
 export enum DataColumnSidecarErrorCode {

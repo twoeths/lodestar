@@ -1,24 +1,24 @@
 import {toHexString} from "@chainsafe/ssz";
 import {ChainForkConfig} from "@lodestar/config";
+import {ForkName, ForkSeq, NUMBER_OF_COLUMNS} from "@lodestar/params";
 import {computeEpochAtSlot} from "@lodestar/state-transition";
-import {Epoch, SignedBeaconBlock, Slot, deneb, phase0, fulu, ssz} from "@lodestar/types";
-import {PeerIdStr} from "../../util/peerId.js";
-import {ForkSeq, NUMBER_OF_COLUMNS, ForkName} from "@lodestar/params";
+import {Epoch, SignedBeaconBlock, Slot, deneb, fulu, phase0, ssz} from "@lodestar/types";
 import {Logger} from "@lodestar/utils";
 import {
   BlobsSource,
   BlockInput,
-  BlockSource,
-  getBlockInput,
   BlockInputBlobs,
   BlockInputDataColumns,
-  DataColumnsSource,
   BlockInputType,
+  BlockSource,
+  DataColumnsSource,
+  getBlockInput,
   getBlockInputDataColumns,
 } from "../../chain/blocks/types.js";
-import {INetwork, WithOptionalBytes} from "../interface.js";
-import {CustodyConfig} from "../../util/dataColumns.js";
 import {getEmptyBlockInputCacheEntry} from "../../chain/seenCache/seenGossipBlockInput.js";
+import {CustodyConfig} from "../../util/dataColumns.js";
+import {PeerIdStr} from "../../util/peerId.js";
+import {INetwork, WithOptionalBytes} from "../interface.js";
 import {computeNodeId} from "../subnets/index.js";
 
 export type PartialDownload = null | {blocks: BlockInput[]; pendingDataColumns: number[]};

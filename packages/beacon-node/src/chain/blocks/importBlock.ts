@@ -1,15 +1,14 @@
+import {toHexString} from "@chainsafe/ssz";
 import {routes} from "@lodestar/api";
 import {AncestorStatus, EpochDifference, ForkChoiceError, ForkChoiceErrorCode} from "@lodestar/fork-choice";
 import {
-  ForkName,
   ForkLightClient,
+  ForkName,
   ForkSeq,
   INTERVALS_PER_SLOT,
   MAX_SEED_LOOKAHEAD,
   SLOTS_PER_EPOCH,
 } from "@lodestar/params";
-import {toHexString} from "@chainsafe/ssz";
-import {capella, ssz, altair, BeaconBlock} from "@lodestar/types";
 import {
   CachedBeaconStateAltair,
   RootCache,
@@ -17,6 +16,7 @@ import {
   computeStartSlotAtEpoch,
   isStateValidatorsNodesPopulated,
 } from "@lodestar/state-transition";
+import {BeaconBlock, altair, capella, ssz} from "@lodestar/types";
 import {isErrorAborted, toHex, toRootHex} from "@lodestar/utils";
 import {ZERO_HASH_HEX} from "../../constants/index.js";
 import {kzgCommitmentToVersionedHash} from "../../util/blobs.js";

@@ -1,7 +1,7 @@
-import {nodeId as computeENRNodeId, IDScheme} from "@chainsafe/enr";
+import {IDScheme, nodeId as computeENRNodeId} from "@chainsafe/enr";
+import {fromHexString} from "@chainsafe/ssz";
 import type {PeerId} from "@libp2p/interface";
 import {peerIdFromString} from "@libp2p/peer-id";
-import {fromHexString} from "@chainsafe/ssz";
 import {ForkName} from "@lodestar/params";
 import {Bytes32, Slot, SubnetID, ValidatorIndex} from "@lodestar/types";
 import {GossipTopic} from "../gossip/interface.js";

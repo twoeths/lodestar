@@ -1,7 +1,7 @@
-import {toRootHex} from "@lodestar/utils";
 import {ForkName, NUMBER_OF_COLUMNS} from "@lodestar/params";
-import {toHex} from "@lodestar/utils";
 import {fulu, ssz} from "@lodestar/types";
+import {toRootHex} from "@lodestar/utils";
+import {toHex} from "@lodestar/utils";
 import {BeaconChain} from "../chain.js";
 import {BlockInput, BlockInputDataColumns, BlockInputType} from "./types.js";
 

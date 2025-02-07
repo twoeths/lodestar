@@ -6,8 +6,7 @@ import {
   createChainForkConfig,
 } from "@lodestar/config";
 import {DATA_COLUMN_SIDECAR_SUBNET_COUNT} from "@lodestar/params";
-import {readFile} from "../util/index.js";
-import {getNetworkBeaconParams, NetworkName} from "../networks/index.js";
+import {NetworkName, getNetworkBeaconParams} from "../networks/index.js";
 import {
   GlobalArgs,
   ITerminalPowArgs,
@@ -15,6 +14,7 @@ import {
   parseBeaconParamsArgs,
   parseTerminalPowArgs,
 } from "../options/index.js";
+import {readFile} from "../util/index.js";
 import {IBeaconParamsUnparsed} from "./types.js";
 
 type BeaconParamsArgs = {

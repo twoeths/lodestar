@@ -1,8 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
-import yaml from "js-yaml";
-import {Blob, Cell, KZGProof} from "c-kzg";
 import {fromHex} from "@lodestar/utils";
+import {Blob, Cell, KZGProof} from "c-kzg";
+import yaml from "js-yaml";
 
 interface BlobCellAndProofMock {
   blob: Blob;

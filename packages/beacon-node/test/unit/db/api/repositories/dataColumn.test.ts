@@ -1,22 +1,22 @@
-import {rimraf} from "rimraf";
-import {describe, it, expect, beforeEach, afterEach, beforeAll} from "vitest";
 import {ByteVectorType} from "@chainsafe/ssz";
-import {ssz, fulu} from "@lodestar/types";
 import {createChainForkConfig} from "@lodestar/config";
 import {LevelDbController} from "@lodestar/db";
 import {NUMBER_OF_COLUMNS} from "@lodestar/params";
+import {fulu, ssz} from "@lodestar/types";
+import {rimraf} from "rimraf";
+import {afterEach, beforeAll, beforeEach, describe, expect, it} from "vitest";
 
 import {
-  DataColumnSidecarsRepository,
-  dataColumnSidecarsWrapperSsz,
-  DATA_COLUMN_SIDECARS_IN_WRAPPER_INDEX,
   COLUMN_SIZE_IN_WRAPPER_INDEX,
   CUSTODY_COLUMNS_IN_IN_WRAPPER_INDEX,
+  DATA_COLUMN_SIDECARS_IN_WRAPPER_INDEX,
+  DataColumnSidecarsRepository,
   NUM_COLUMNS_IN_WRAPPER_INDEX,
+  dataColumnSidecarsWrapperSsz,
 } from "../../../../../src/db/repositories/dataColumnSidecars.js";
-import {testLogger} from "../../../../utils/logger.js";
 import {computeDataColumnSidecars} from "../../../../../src/util/blobs.js";
-import {loadEthereumTrustedSetup, initCKZG} from "../../../../../src/util/kzg.js";
+import {initCKZG, loadEthereumTrustedSetup} from "../../../../../src/util/kzg.js";
+import {testLogger} from "../../../../utils/logger.js";
 
 /* eslint-disable @typescript-eslint/naming-convention */
 const config = createChainForkConfig({

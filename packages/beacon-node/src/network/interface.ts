@@ -28,16 +28,16 @@ import {
   altair,
   capella,
   deneb,
-  phase0,
   fulu,
+  phase0,
 } from "@lodestar/types";
 import type {Datastore} from "interface-datastore";
 import {Libp2p as ILibp2p} from "libp2p";
+import {CustodyConfig} from "../util/dataColumns.js";
 import {PeerIdStr} from "../util/peerId.js";
 import {BlobSidecarsByRootRequest} from "../util/types.js";
-import {CustodyConfig} from "../util/dataColumns.js";
-import {INetworkEventBus} from "./events.js";
 import {INetworkCorePublic} from "./core/types.js";
+import {INetworkEventBus} from "./events.js";
 import {GossipType} from "./gossip/interface.js";
 import {PeerAction} from "./peers/index.js";
 import {PendingGossipsubMessage} from "./processor/types.js";

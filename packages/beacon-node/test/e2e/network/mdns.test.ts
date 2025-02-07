@@ -10,13 +10,13 @@ import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
 import {GossipHandlers} from "../../../src/network/gossip/index.js";
 import {Network, NetworkInitModules, getReqRespHandlers} from "../../../src/network/index.js";
 import {NetworkOptions, defaultNetworkOptions} from "../../../src/network/options.js";
+import {computeNodeId} from "../../../src/network/subnets/index.js";
 import {getMockedBeaconChain} from "../../mocks/mockedBeaconChain.js";
 import {getMockedBeaconDb} from "../../mocks/mockedBeaconDb.js";
 import {memoOnce} from "../../utils/cache.js";
 import {testLogger} from "../../utils/logger.js";
 import {createNetworkModules, onPeerConnect} from "../../utils/network.js";
 import {generateState, zeroProtoBlock} from "../../utils/state.js";
-import {computeNodeId} from "../../../src/network/subnets/index.js";
 
 let port = 9000;
 const mu = "/ip4/127.0.0.1/tcp/0";

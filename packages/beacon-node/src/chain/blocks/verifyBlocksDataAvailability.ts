@@ -1,21 +1,21 @@
 import {ChainForkConfig} from "@lodestar/config";
 import {DataAvailabilityStatus} from "@lodestar/fork-choice";
+import {ForkName} from "@lodestar/params";
 import {computeTimeAtSlot} from "@lodestar/state-transition";
 import {UintNum64, deneb} from "@lodestar/types";
 import {ErrorAborted, Logger} from "@lodestar/utils";
 import {Metrics} from "../../metrics/metrics.js";
 import {BlockError, BlockErrorCode} from "../errors/index.js";
 import {validateBlobSidecars} from "../validation/blobSidecar.js";
+import {validateDataColumnsSidecars} from "../validation/dataColumnSidecar.js";
 import {
-  BlockInputAvailableData,
   BlobSidecarValidation,
   BlockInput,
+  BlockInputAvailableData,
   BlockInputType,
   ImportBlockOpts,
   getBlockInput,
 } from "./types.js";
-import {ForkName} from "@lodestar/params";
-import {validateDataColumnsSidecars} from "../validation/dataColumnSidecar.js";
 
 // we can now wait for full 12 seconds because unavailable block sync will try pulling
 // the blobs from the network anyway after 500ms of seeing the block

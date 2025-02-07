@@ -1,5 +1,5 @@
-import {bellatrix, deneb} from "@lodestar/types";
 import {BLOB_TX_TYPE, BYTES_PER_FIELD_ELEMENT} from "@lodestar/params";
+import {bellatrix, deneb} from "@lodestar/types";
 import {kzgCommitmentToVersionedHash} from "../../src/util/blobs.js";
 import {FIELD_ELEMENTS_PER_BLOB_MAINNET} from "../../src/util/kzg.js";
 
