@@ -100,9 +100,6 @@ export type BeaconPreset = {
   FIELD_ELEMENTS_PER_CELL: number;
   FIELD_ELEMENTS_PER_EXT_BLOB: number;
   KZG_COMMITMENTS_INCLUSION_PROOF_DEPTH: number;
-  MAX_REQUEST_DATA_COLUMN_SIDECARS: number;
-  DATA_COLUMN_SIDECAR_SUBNET_COUNT: number;
-  NUMBER_OF_CUSTODY_GROUPS: number;
 };
 
 /**
@@ -208,9 +205,6 @@ export const beaconPresetTypes: BeaconPresetTypes = {
   FIELD_ELEMENTS_PER_CELL: "number",
   FIELD_ELEMENTS_PER_EXT_BLOB: "number",
   KZG_COMMITMENTS_INCLUSION_PROOF_DEPTH: "number",
-  MAX_REQUEST_DATA_COLUMN_SIDECARS: "number",
-  DATA_COLUMN_SIDECAR_SUBNET_COUNT: "number",
-  NUMBER_OF_CUSTODY_GROUPS: "number",
 };
 
 type BeaconPresetTypes = {
