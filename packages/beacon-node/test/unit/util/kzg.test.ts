@@ -36,9 +36,9 @@ describe("C-KZG", () => {
 
   it("BlobSidecars", async () => {
     const chainConfig = createChainForkConfig({
-      ...defaultChainConfig,
       ALTAIR_FORK_EPOCH: 0,
       BELLATRIX_FORK_EPOCH: 0,
+      CAPELLA_FORK_EPOCH: 0,
       DENEB_FORK_EPOCH: 0,
     });
     const genesisValidatorsRoot = Buffer.alloc(32, 0xaa);
@@ -79,13 +79,14 @@ describe("C-KZG", () => {
 
   it("DataColumnSidecars", () => {
     const config = createChainForkConfig({
-      ...defaultChainConfig,
       ALTAIR_FORK_EPOCH: 0,
       BELLATRIX_FORK_EPOCH: 0,
+      CAPELLA_FORK_EPOCH: 0,
       DENEB_FORK_EPOCH: 0,
       ELECTRA_FORK_EPOCH: 0,
+      FULU_FORK_EPOCH: 0,
     });
-    const signedBeaconBlock = ssz.deneb.SignedBeaconBlock.defaultValue();
+    const signedBeaconBlock = ssz.fulu.SignedBeaconBlock.defaultValue();
     const mocks = getBlobCellAndProofs();
     const blobs = mocks.map(({blob}) => blob);
     const kzgCommitments = blobs.map(ckzg.blobToKzgCommitment);
