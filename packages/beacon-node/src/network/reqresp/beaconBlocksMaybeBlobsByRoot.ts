@@ -40,7 +40,7 @@ export async function beaconBlocksMaybeBlobsByRoot(
   peerClient: string,
   logger?: Logger
 ): Promise<{blocks: BlockInput[]; pendingDataColumns: null | number[]}> {
-  console.log("beaconBlocksMaybeBlobsByRoot", request);
+  // console.log("beaconBlocksMaybeBlobsByRoot", request);
   const allBlocks = partialDownload
     ? partialDownload.blocks.map((blockInput) => ({data: blockInput.block}))
     : await network.sendBeaconBlocksByRoot(peerId, request);
@@ -198,10 +198,10 @@ export async function unavailableBeaconBlobsByRoot(
     block = allBlocks[0].data;
     cachedData = unavailableBlockInput.cachedData;
     unavailableBlockInput = getBlockInput.dataPromise(config, block, BlockSource.byRoot, cachedData);
-    console.log(
-      "downloaded sendBeaconBlocksByRoot",
-      ssz.fulu.SignedBeaconBlock.toJson(block as fulu.SignedBeaconBlock)
-    );
+    // console.log(
+    //   "downloaded sendBeaconBlocksByRoot",
+    //   ssz.fulu.SignedBeaconBlock.toJson(block as fulu.SignedBeaconBlock)
+    // );
   } else {
     ({block, cachedData} = unavailableBlockInput);
   }
@@ -450,7 +450,7 @@ export async function unavailableBeaconBlobsByRootPostFulu(
     return unavailableBlockInput;
   }
 
-  let availableBlockInput;
+  let availableBlockInput: BlockInput;
   if (cachedData.fork === ForkName.deneb || cachedData.fork === ForkName.electra) {
     const {blobsCache, resolveAvailability} = cachedData;
 
@@ -490,7 +490,7 @@ export async function unavailableBeaconBlobsByRootPostFulu(
     opts.metrics?.syncUnknownBlock.resolveAvailabilitySource.inc({source: BlockInputAvailabilitySource.UNKNOWN_SYNC});
     availableBlockInput = getBlockInput.availableData(config, block, BlockSource.byRoot, blockData);
   } else if (cachedData.fork === ForkName.fulu) {
-    const {dataColumnsCache, resolveAvailability, cacheId} = cachedData;
+    const {dataColumnsCache, resolveAvailability} = cachedData;
 
     // resolve missing blobs
     const dataColumnIdentifiers: fulu.DataColumnIdentifier[] = [];
@@ -537,15 +537,15 @@ export async function unavailableBeaconBlobsByRootPostFulu(
         dataColumnIdentifiers.push({blockRoot, index: columnIndex});
       }
 
-      console.log("unavailableBlockInput fetching", {
-        neededColumns: neededColumns.length,
-        peerColumns: peerColumns.length,
-        intersectingColumns: columns.length,
-        dataColumnIdentifiers: dataColumnIdentifiers.length,
-        cacheId,
-        dataColumnsCache: dataColumnsCache.size,
-        blockRoot: toHexString(blockRoot),
-      });
+      // console.log("unavailableBlockInput fetching", {
+      //   neededColumns: neededColumns.length,
+      //   peerColumns: peerColumns.length,
+      //   intersectingColumns: columns.length,
+      //   dataColumnIdentifiers: dataColumnIdentifiers.length,
+      //   cacheId,
+      //   dataColumnsCache: dataColumnsCache.size,
+      //   blockRoot: toHexString(blockRoot),
+      // });
 
       let allDataColumnSidecars: fulu.DataColumnSidecar[];
       if (dataColumnIdentifiers.length > 0) {
@@ -554,16 +554,16 @@ export async function unavailableBeaconBlobsByRootPostFulu(
         allDataColumnSidecars = [];
       }
 
-      console.log("unavailableBlockInput fetched", {
-        neededColumns: neededColumns.length,
-        peerColumns: peerColumns.length,
-        intersectingColumns: columns.length,
-        dataColumnIdentifiers: dataColumnIdentifiers.length,
-        allDataColumnSidecars: allDataColumnSidecars.length,
-        cacheId,
-        dataColumnsCache: dataColumnsCache.size,
-        blockRoot: toHexString(blockRoot),
-      });
+      // console.log("unavailableBlockInput fetched", {
+      //   neededColumns: neededColumns.length,
+      //   peerColumns: peerColumns.length,
+      //   intersectingColumns: columns.length,
+      //   dataColumnIdentifiers: dataColumnIdentifiers.length,
+      //   allDataColumnSidecars: allDataColumnSidecars.length,
+      //   cacheId,
+      //   dataColumnsCache: dataColumnsCache.size,
+      //   blockRoot: toHexString(blockRoot),
+      // });
 
       [availableBlockInput] = matchBlockWithDataColumns(
         network,

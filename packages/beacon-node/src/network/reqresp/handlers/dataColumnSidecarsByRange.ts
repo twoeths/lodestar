@@ -23,13 +23,13 @@ export async function* onDataColumnSidecarsByRange(
   const finalized = db.dataColumnSidecarsArchive;
   const unfinalized = db.dataColumnSidecars;
   const finalizedSlot = chain.forkChoice.getFinalizedBlock().slot;
-  console.log(
-    `incoming onDataColumnSidecarsByRange startSlot=${startSlot}, count=${count}, columns=${columns.join(" ")} finalizedSlot=${finalizedSlot} endSlot=${endSlot}`
-  );
+  // console.log(
+  //   `incoming onDataColumnSidecarsByRange startSlot=${startSlot}, count=${count}, columns=${columns.join(" ")} finalizedSlot=${finalizedSlot} endSlot=${endSlot}`
+  // );
 
   // Finalized range of blobs
   if (startSlot <= finalizedSlot) {
-    console.log(`serving onDataColumnSidecarsByRange finalized startSlot=${startSlot} finalizedSlot=${finalizedSlot}`);
+    // console.log(`serving onDataColumnSidecarsByRange finalized startSlot=${startSlot} finalizedSlot=${finalizedSlot}`);
     // Chain of blobs won't change
     for await (const {key, value: dataColumnSideCarsBytesWrapped} of finalized.binaryEntriesStream({
       gte: startSlot,
@@ -46,7 +46,7 @@ export async function* onDataColumnSidecarsByRange(
 
   // Non-finalized range of blobs
   if (endSlot > finalizedSlot) {
-    console.log(`serving onDataColumnSidecarsByRange unfinalized endSlot=${endSlot} finalizedSlot=${finalizedSlot}`);
+    // console.log(`serving onDataColumnSidecarsByRange unfinalized endSlot=${endSlot} finalizedSlot=${finalizedSlot}`);
 
     const headRoot = chain.forkChoice.getHeadRoot();
     // TODO DENEB: forkChoice should mantain an array of canonical blocks, and change only on reorg
@@ -65,7 +65,7 @@ export async function* onDataColumnSidecarsByRange(
 
         const blobSideCarsBytesWrapped = await unfinalized.getBinary(fromHex(block.blockRoot));
         if (!blobSideCarsBytesWrapped) {
-          console.log(`error onDataColumnSidecarsByRange No item for root ${block.blockRoot} slot ${block.slot}`);
+          // console.log(`error onDataColumnSidecarsByRange No item for root ${block.blockRoot} slot ${block.slot}`);
           // Handle the same to onBeaconBlocksByRange
           throw new ResponseError(RespStatus.SERVER_ERROR, `No item for root ${block.blockRoot} slot ${block.slot}`);
         }
@@ -74,7 +74,7 @@ export async function* onDataColumnSidecarsByRange(
 
       // If block is after endSlot, stop iterating
       else if (block.slot >= endSlot) {
-        console.log(`breaking away onDataColumnSidecarsByRange block.slot=${block.slot} endSlot=${endSlot}`);
+        // console.log(`breaking away onDataColumnSidecarsByRange block.slot=${block.slot} endSlot=${endSlot}`);
         break;
       }
     }
@@ -104,11 +104,11 @@ export function* iterateDataColumnBytesFromWrapper(
   );
 
   const columnsLen = allDataColumnSidecarsBytes.length / columnsSize;
-  const storedColumns = Array.from({length: NUMBER_OF_COLUMNS}, (_v, i) => i).filter((i) => dataColumnsIndex[i] > 0);
 
-  console.log(
-    `onDataColumnSidecarsByRange: slot=${blockSlot} columnsSize=${columnsSize} columnsLen=${columnsLen} retrivedColumnsLen=${retrivedColumnsLen} toredColumnsNum=${allDataColumnSidecarsBytes.length / columnsSize}, storedColumns=${storedColumns.join(" ")}`
-  );
+  // const storedColumns = Array.from({length: NUMBER_OF_COLUMNS}, (_v, i) => i).filter((i) => dataColumnsIndex[i] > 0);
+  // console.log(
+  //   `onDataColumnSidecarsByRange: slot=${blockSlot} columnsSize=${columnsSize} columnsLen=${columnsLen} retrivedColumnsLen=${retrivedColumnsLen} toredColumnsNum=${allDataColumnSidecarsBytes.length / columnsSize}, storedColumns=${storedColumns.join(" ")}`
+  // );
 
   // no columns possibly no blob
   if (columnsLen === 0) {
@@ -136,7 +136,7 @@ export function* iterateDataColumnBytesFromWrapper(
         `Invalid dataColumnSidecar index=${index} dataIndex=${dataIndex} bytes length=${dataColumnSidecarBytes.length} expected=${columnsSize} for slot ${blockSlot} blobsLen=${columnsLen}`
       );
     }
-    console.log(`iterate onDataColumnSidecarsByRange blockSlot=${blockSlot} index=${index} dataIndex=${dataIndex}`);
+    // console.log(`iterate onDataColumnSidecarsByRange blockSlot=${blockSlot} index=${index} dataIndex=${dataIndex}`);
     yield {
       data: dataColumnSidecarBytes,
       fork,

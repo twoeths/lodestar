@@ -199,10 +199,10 @@ export async function initPeerIdAndEnr(
     writeFile600Perm(enrFile, enr.encodeTxt());
     const nodeId = fromHex(enr.nodeId);
     return {peerId, enr, nodeId};
-  } else {
-    const {peerId, enr} = await newPeerIdAndENR();
-    overwriteEnrWithCliArgs(config, enr, args, logger, {newEnr: true, bootnode});
-    const nodeId = fromHex(enr.nodeId);
-    return {peerId, enr, nodeId};
   }
+
+  const {peerId, enr} = await newPeerIdAndENR();
+  overwriteEnrWithCliArgs(config, enr, args, logger, {newEnr: true, bootnode});
+  const nodeId = fromHex(enr.nodeId);
+  return {peerId, enr, nodeId};
 }

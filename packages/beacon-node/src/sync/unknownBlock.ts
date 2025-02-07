@@ -755,7 +755,7 @@ export class UnknownBlockSync {
     // Get all blocks that are a descendant of this one
     const badPendingBlocks = this.removeAllDescendants(block);
     // just console log and do not penalize on pending/bad blocks for debugging
-    console.log("removeAndDownscoreAllDescendants", {block});
+    // console.log("removeAndDownscoreAllDescendants", {block});
 
     for (const block of badPendingBlocks) {
       //   this.knownBadBlocks.add(block.blockRootHex);

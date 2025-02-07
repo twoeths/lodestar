@@ -426,7 +426,7 @@ export class PeerManager {
       const hasMinCustodyMatchingColumns = matchingSubnetsNum >= this.config.CUSTODY_REQUIREMENT;
       const clientAgent = peerData?.agentClient ?? ClientKind.Unknown;
 
-      this.logger.warn(`onStatus ${custodyGroupCount == undefined ? "undefined custody count assuming 4" : ""}`, {
+      this.logger.warn(`onStatus ${custodyGroupCount === undefined ? "undefined custody count assuming 4" : ""}`, {
         nodeId: toHexString(nodeId),
         myNodeId: toHexString(this.nodeId),
         peerId: peer.toString(),
@@ -468,7 +468,7 @@ export class PeerManager {
       this.logger.warn("requestMetadata", {peer: peer.toString()});
       this.onMetadata(peer, await this.reqResp.sendMetadata(peer));
     } catch (e) {
-      console.log("requestMetadata", e);
+      this.logger.error("invalid requestMetadata response", undefined, e as Error);
       // TODO: Downvote peer here or in the reqResp layer
     }
   }

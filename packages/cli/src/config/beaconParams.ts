@@ -50,7 +50,7 @@ export function getBeaconParamsFromArgs(args: GlobalArgs): ChainConfig {
   });
 
   if (args.supernode) {
-    beaconParams["NODE_CUSTODY_REQUIREMENT"] = DATA_COLUMN_SIDECAR_SUBNET_COUNT;
+    beaconParams.NODE_CUSTODY_REQUIREMENT = DATA_COLUMN_SIDECAR_SUBNET_COUNT;
   }
   return beaconParams;
 }

@@ -62,7 +62,10 @@ const MAX_GOSSIPINPUT_CACHE = 5;
  */
 export class SeenGossipBlockInput {
   private blockInputCache = new Map<RootHex, BlockInputCacheType>();
-  constructor(public custodyConfig: CustodyConfig) {}
+  custodyConfig: CustodyConfig;
+  constructor(custodyConfig: CustodyConfig) {
+    this.custodyConfig = custodyConfig;
+  }
   globalCacheId = 0;
 
   prune(): void {
@@ -190,22 +193,23 @@ export class SeenGossipBlockInput {
             blockInput,
             blockInputMeta: {pending: null, haveBlobs: blobs.length, expectedBlobs: blobKzgCommitments.length},
           };
-        } else {
-          const blockInput = getBlockInput.dataPromise(config, signedBlock, BlockSource.gossip, cachedData);
-
-          resolveBlockInput(blockInput);
-          return {
-            blockInput,
-            blockInputMeta: {
-              pending: GossipedInputType.blob,
-              haveBlobs: blobsCache.size,
-              expectedBlobs: blobKzgCommitments.length,
-            },
-          };
         }
-      } else if (cachedData.fork === ForkName.fulu) {
-        const {dataColumnsCache, resolveAvailability, cacheId} = cachedData;
-        console.log("seenGossipBlockInput", {cacheId, dataColumnsCache: dataColumnsCache.size});
+
+        const blockInput = getBlockInput.dataPromise(config, signedBlock, BlockSource.gossip, cachedData);
+
+        resolveBlockInput(blockInput);
+        return {
+          blockInput,
+          blockInputMeta: {
+            pending: GossipedInputType.blob,
+            haveBlobs: blobsCache.size,
+            expectedBlobs: blobKzgCommitments.length,
+          },
+        };
+      }
+
+      if (cachedData.fork === ForkName.fulu) {
+        const {dataColumnsCache, resolveAvailability} = cachedData;
 
         // block is available, check if all blobs have shown up
         const {slot} = signedBlock.message;
@@ -268,72 +272,80 @@ export class SeenGossipBlockInput {
               expectedColumns: this.custodyConfig.sampledColumns.length,
             },
           };
-        } else {
-          const blockInput = getBlockInput.dataPromise(config, signedBlock, BlockSource.gossip, cachedData);
-
-          resolveBlockInput(blockInput);
-          return {
-            blockInput,
-            blockInputMeta: {
-              pending: GossipedInputType.dataColumn,
-              haveColumns: dataColumnsCache.size,
-              expectedColumns: this.custodyConfig.sampledColumns.length,
-            },
-          };
         }
-      } else {
-        throw Error(`Invalid fork=${fork}`);
-      }
-    } else {
-      // will need to wait for the block to showup
-      if (cachedData === undefined) {
-        throw Error("Missing cachedData for deneb+ blobs");
-      }
 
-      if (cachedData.fork === ForkName.deneb || cachedData.fork === ForkName.electra) {
-        const {blobsCache} = cachedData;
+        const blockInput = getBlockInput.dataPromise(config, signedBlock, BlockSource.gossip, cachedData);
 
+        resolveBlockInput(blockInput);
         return {
-          blockInput: {
-            block: null,
-            blockRootHex: blockHex,
-            cachedData,
-            blockInputPromise,
+          blockInput,
+          blockInputMeta: {
+            pending: GossipedInputType.dataColumn,
+            haveColumns: dataColumnsCache.size,
+            expectedColumns: this.custodyConfig.sampledColumns.length,
           },
-          blockInputMeta: {pending: GossipedInputType.block, haveBlobs: blobsCache.size, expectedBlobs: null},
         };
-      } else if (fork === ForkName.fulu) {
-        const {dataColumnsCache} = cachedData as CachedDataColumns;
-
-        return {
-          blockInput: {
-            block: null,
-            blockRootHex: blockHex,
-            cachedData,
-            blockInputPromise,
-          },
-          blockInputMeta: {pending: GossipedInputType.block, haveColumns: dataColumnsCache.size, expectedColumns: null},
-        };
-      } else {
-        throw Error(`invalid fork=${fork} data not implemented`);
       }
+
+      throw Error(`Invalid fork=${fork}`);
     }
 
     // will need to wait for the block to showup
     if (cachedData === undefined) {
       throw Error("Missing cachedData for deneb+ blobs");
     }
-    const {blobsCache} = cachedData as CachedBlobs;
 
-    return {
-      blockInput: {
-        block: null,
-        blockRootHex: blockHex,
-        cachedData: cachedData as CachedData,
-        blockInputPromise,
-      },
-      blockInputMeta: {pending: GossipedInputType.block, haveBlobs: blobsCache.size, expectedBlobs: null},
-    };
+    if (cachedData.fork === ForkName.deneb || cachedData.fork === ForkName.electra) {
+      const {blobsCache} = cachedData;
+
+      return {
+        blockInput: {
+          block: null,
+          blockRootHex: blockHex,
+          cachedData,
+          blockInputPromise,
+        },
+        blockInputMeta: {pending: GossipedInputType.block, haveBlobs: blobsCache.size, expectedBlobs: null},
+      };
+    }
+
+    if (fork === ForkName.fulu) {
+      const {dataColumnsCache} = cachedData as CachedDataColumns;
+
+      return {
+        blockInput: {
+          block: null,
+          blockRootHex: blockHex,
+          cachedData,
+          blockInputPromise,
+        },
+        blockInputMeta: {pending: GossipedInputType.block, haveColumns: dataColumnsCache.size, expectedColumns: null},
+      };
+    }
+
+    throw Error(`invalid fork=${fork} data not implemented`);
+
+    /**
+     * TODO: @matthewkeil this code was unreachable.  Commented to remove lint error but need to verify the condition
+     * again to make sure this is not necessary before deleting it
+     *
+     * DO NOT DELETE until verified can be removed
+     */
+    // will need to wait for the block to showup
+    // if (cachedData === undefined) {
+    //   throw Error("Missing cachedData for deneb+ blobs");
+    // }
+    // const {blobsCache} = cachedData as CachedBlobs;
+
+    // return {
+    //   blockInput: {
+    //     block: null,
+    //     blockRootHex: blockHex,
+    //     cachedData: cachedData as CachedData,
+    //     blockInputPromise,
+    //   },
+    //   blockInputMeta: {pending: GossipedInputType.block, haveBlobs: blobsCache.size, expectedBlobs: null},
+    // };
   }
 }
 
@@ -370,7 +382,9 @@ export function getEmptyBlockInputCacheEntry(fork: ForkName, globalCacheId: numb
       cacheId: ++globalCacheId,
     };
     return {fork, blockInputPromise, resolveBlockInput, cachedData};
-  } else if (fork === ForkName.fulu) {
+  }
+
+  if (fork === ForkName.fulu) {
     let resolveAvailability: ((blobs: BlockInputDataColumns) => void) | null = null;
     const availabilityPromise = new Promise<BlockInputDataColumns>((resolveCB) => {
       resolveAvailability = resolveCB;
@@ -389,7 +403,7 @@ export function getEmptyBlockInputCacheEntry(fork: ForkName, globalCacheId: numb
       cacheId: ++globalCacheId,
     };
     return {fork, blockInputPromise, resolveBlockInput, cachedData};
-  } else {
-    throw Error(`Invalid fork=${fork} for getEmptyBlockInputCacheEntry`);
   }
+
+  throw Error(`Invalid fork=${fork} for getEmptyBlockInputCacheEntry`);
 }

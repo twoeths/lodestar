@@ -23,7 +23,7 @@ describe("getCustodyConfig", () => {
     });
     const nodeId = fromHexString("cdbee32dc3c50e9711d22be5565c7e44ff6108af663b2dc5abd2df573d2fa83f");
     const custodyConfig = getCustodyConfig(nodeId, config);
-    const {custodyColumnsLen, custodyColumns, custodyColumnsIndex, sampledColumns} = custodyConfig;
+    const {custodyColumnsLen, custodyColumns, sampledColumns} = custodyConfig;
 
     expect(custodyColumnsLen).toEqual(4);
     expect(custodyColumns).toEqual([2, 80, 89, 118]);

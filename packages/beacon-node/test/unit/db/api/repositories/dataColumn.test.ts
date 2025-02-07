@@ -88,7 +88,6 @@ describe("block archive repository", () => {
 
     await dataColumnRepo.add(writeData);
     const retrievedBinary = await dataColumnRepo.getBinary(blockRoot);
-    const lastIndex = retrievedBinary.findIndex((i) => i === 19);
     if (!retrievedBinary) throw Error("get by root returned null");
 
     const retrieved = dataColumnSidecarsWrapperSsz.deserialize(retrievedBinary);

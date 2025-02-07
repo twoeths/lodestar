@@ -122,10 +122,10 @@ export class Batch {
     if (pendingDataColumns === null) {
       this.state = {status: BatchStatus.AwaitingProcessing, peer: this.state.peer, blocks};
       return blocks;
-    } else {
-      this.state = {status: BatchStatus.AwaitingDownload, partialDownload: {blocks, pendingDataColumns}};
-      return null;
     }
+
+    this.state = {status: BatchStatus.AwaitingDownload, partialDownload: {blocks, pendingDataColumns}};
+    return null;
   }
 
   /**

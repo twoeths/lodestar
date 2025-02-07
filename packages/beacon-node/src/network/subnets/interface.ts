@@ -52,8 +52,8 @@ export type GossipSubscriber = {
 
 // uint256 in the spec
 export type NodeId = Bytes32;
-export function computeNodeId(peerIdOrStr: PeerId | PeerIdStr) {
-  let peerId;
+export function computeNodeId(peerIdOrStr: PeerId | PeerIdStr): Uint8Array {
+  let peerId: PeerId;
   if (typeof peerIdOrStr === "string") {
     peerId = peerIdFromString(peerIdOrStr as string);
   } else {

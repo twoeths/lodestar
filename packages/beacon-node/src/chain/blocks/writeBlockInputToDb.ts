@@ -52,7 +52,8 @@ export async function writeBlockInputToDb(this: BeaconChain, blocksInput: BlockI
         const {custodyConfig} = this.seenGossipBlockInput;
         const {custodyColumnsLen, custodyColumnsIndex, custodyColumns} = custodyConfig;
         const blobsLen = (block.message as fulu.BeaconBlock).body.blobKzgCommitments.length;
-        let dataColumnsLen, dataColumnsIndex;
+        let dataColumnsLen: number;
+        let dataColumnsIndex: Uint8Array;
         if (blobsLen === 0) {
           dataColumnsLen = 0;
           dataColumnsIndex = new Uint8Array(NUMBER_OF_COLUMNS);
@@ -66,10 +67,6 @@ export async function writeBlockInputToDb(this: BeaconChain, blocksInput: BlockI
           custodyColumns.includes(dataColumnSidecar.index)
         );
         if (dataColumnSidecars.length !== dataColumnsLen) {
-          console.log({
-            custodyColumns,
-            blockDataColumns: blockDataColumns.map((dataColumnSidecar) => dataColumnSidecar.index),
-          });
           throw Error(
             `Invalid dataColumnSidecars=${dataColumnSidecars.length} for custody expected custodyColumnsLen=${dataColumnsLen}`
           );
