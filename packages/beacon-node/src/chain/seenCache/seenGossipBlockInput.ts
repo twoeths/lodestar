@@ -47,6 +47,24 @@ type BlockInputCacheType = {
   resolveBlockInput: (blockInput: BlockInput) => void;
 };
 
+type GossipBlockInputResponseWithBlock = {
+  blockInput: BlockInput;
+  blockInputMeta:
+    | {pending: GossipedInputType.blob | null; haveBlobs: number; expectedBlobs: number}
+    | {pending: GossipedInputType.dataColumn | null; haveColumns: number; expectedColumns: number};
+};
+
+type BlockInputPendingBlock = {pending: GossipedInputType.block};
+export type BlockInputMetaPendingBlockWithBlobs = BlockInputPendingBlock & {haveBlobs: number; expectedBlobs: null};
+type BlockInputMetaPendingBlockWithColumns = BlockInputPendingBlock & {haveColumns: number; expectedColumns: null};
+
+type GossipBlockInputResponseWithNullBlock = {
+  blockInput: NullBlockInput;
+  blockInputMeta: BlockInputMetaPendingBlockWithBlobs | BlockInputMetaPendingBlockWithColumns;
+};
+
+type GossipBlockInputResponse = GossipBlockInputResponseWithBlock | GossipBlockInputResponseWithNullBlock;
+
 const MAX_GOSSIPINPUT_CACHE = 5;
 
 /**
@@ -80,20 +98,7 @@ export class SeenGossipBlockInput {
     config: ChainForkConfig,
     gossipedInput: GossipedBlockInput,
     metrics: Metrics | null
-  ):
-    | {
-        blockInput: BlockInput;
-        blockInputMeta:
-          | {pending: GossipedInputType.blob | null; haveBlobs: number; expectedBlobs: number}
-          | {pending: GossipedInputType.dataColumn | null; haveColumns: number; expectedColumns: number};
-      }
-    | {
-        blockInput: NullBlockInput;
-        blockInputMeta: {pending: GossipedInputType.block} & (
-          | {haveBlobs: number; expectedBlobs: null}
-          | {haveColumns: number; expectedColumns: null}
-        );
-      } {
+  ): GossipBlockInputResponse {
     let blockHex: RootHex;
     let blockCache: BlockInputCacheType;
     let fork: ForkName;

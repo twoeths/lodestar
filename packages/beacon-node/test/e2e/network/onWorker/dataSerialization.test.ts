@@ -78,7 +78,7 @@ describe("data serialization through worker boundary", () => {
 
   // Defining tests in this notation ensures that any event data is tested and probably safe to send
   const networkEventData = filterByUsedEvents<NetworkEventData>(networkEventDirection, {
-    [NetworkEvent.peerConnected]: {peer, status: statusZero, dataColumns: []},
+    [NetworkEvent.peerConnected]: {peer, status: statusZero, dataColumns: [], clientAgent: "CLIENT_AGENT"},
     [NetworkEvent.peerDisconnected]: {peer},
     [NetworkEvent.reqRespRequest]: {
       request: {method: ReqRespMethod.Status, body: statusZero},
@@ -264,6 +264,7 @@ function getEmptyBlockInput(): BlockInput {
     blobsCache,
     availabilityPromise,
     resolveAvailability,
+    cacheId: 18,
   } as CachedData;
   return {
     type: BlockInputType.dataPromise,

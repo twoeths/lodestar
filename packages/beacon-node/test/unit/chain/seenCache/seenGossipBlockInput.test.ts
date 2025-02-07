@@ -3,7 +3,10 @@ import {ssz} from "@lodestar/types";
 import {describe, expect, it} from "vitest";
 
 import {BlockInput, BlockInputType, GossipedInputType} from "../../../../src/chain/blocks/types.js";
-import {SeenGossipBlockInput} from "../../../../src/chain/seenCache/seenGossipBlockInput.js";
+import {
+  BlockInputMetaPendingBlockWithBlobs,
+  SeenGossipBlockInput,
+} from "../../../../src/chain/seenCache/seenGossipBlockInput.js";
 
 describe("SeenGossipBlockInput", () => {
   const chainConfig = createChainForkConfig({
@@ -17,7 +20,7 @@ describe("SeenGossipBlockInput", () => {
   const seenGossipBlockInput = new SeenGossipBlockInput({
     sampledColumns: [],
     custodyColumns: [],
-    custodyColumnsIndex: [],
+    custodyColumnsIndex: Uint8Array.from([1, 2, 3]),
     custodyColumnsLen: 0,
   });
 
@@ -143,7 +146,7 @@ describe("SeenGossipBlockInput", () => {
               expect.fail(`expected to fail with error: ${expectedResponseType.message}`);
             } else if (expectedResponseType === null) {
               expect(blobInputRes.blockInput.block).toBeNull();
-              expect(blobInputRes.blockInputMeta.expectedBlobs).toBeNull();
+              expect((blobInputRes.blockInputMeta as BlockInputMetaPendingBlockWithBlobs).expectedBlobs).toBeNull();
             } else {
               expect((blobInputRes.blockInput as BlockInput)?.type).toEqual(expectedResponseType);
             }

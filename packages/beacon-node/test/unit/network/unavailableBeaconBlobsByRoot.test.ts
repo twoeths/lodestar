@@ -7,7 +7,8 @@ import {beforeAll, describe, expect, it, vi} from "vitest";
 import {
   BlobsSource,
   BlockInput,
-  BlockInputDataBlobs,
+  BlockInputAvailableData,
+  BlockInputBlobs,
   BlockInputType,
   BlockSource,
   CachedData,
@@ -171,8 +172,8 @@ describe("unavailableBeaconBlobsByRoot", () => {
       },
     ];
 
-    const blockData = {
-      fork: ForkName.deneb as ForkBlobs,
+    const blockData: BlockInputAvailableData = {
+      fork: ForkName.deneb,
       blobs: allBlobs,
       blobsSource: BlobsSource.byRoot,
     };
@@ -206,22 +207,23 @@ function getEmptyBlockInputCacheEntry(fork: ForkName): BlockInputCacheType {
   if (resolveBlockInput === null) {
     throw Error("Promise Constructor was not executed immediately");
   }
-  if (!isForkBlobs(fork)) {
-    return {fork, blockInputPromise, resolveBlockInput};
+
+  if (fork === ForkName.deneb || fork === ForkName.electra) {
+    let resolveAvailability: ((blobs: BlockInputBlobs) => void) | null = null;
+    const availabilityPromise = new Promise<BlockInputBlobs>((resolveCB) => {
+      resolveAvailability = resolveCB;
+    });
+
+    if (resolveAvailability === null) {
+      throw Error("Promise Constructor was not executed immediately");
+    }
+
+    const blobsCache = new Map();
+    const cachedData: CachedData = {fork, blobsCache, availabilityPromise, resolveAvailability, cacheId: 18};
+    return {fork, blockInputPromise, resolveBlockInput, cachedData};
   }
 
-  let resolveAvailability: ((blobs: BlockInputDataBlobs) => void) | null = null;
-  const availabilityPromise = new Promise<BlockInputDataBlobs>((resolveCB) => {
-    resolveAvailability = resolveCB;
-  });
-
-  if (resolveAvailability === null) {
-    throw Error("Promise Constructor was not executed immediately");
-  }
-
-  const blobsCache = new Map();
-  const cachedData: CachedData = {fork, blobsCache, availabilityPromise, resolveAvailability};
-  return {fork, blockInputPromise, resolveBlockInput, cachedData};
+  return {fork, blockInputPromise, resolveBlockInput};
 }
 
 function generateBlobs(count: number): {

@@ -12,7 +12,7 @@ import {ethereumConsensusSpecsTests} from "../specTestVersioning.js";
 import {specTestIterator} from "../utils/specTestIterator.js";
 import {RunnerType, TestRunnerFn} from "../utils/types.js";
 
-const merkle: TestRunnerFn<MerkleTestCase, IProof> = (fork) => {
+const merkle: TestRunnerFn<MerkleTestCase, string[]> = (fork) => {
   return {
     testFunction: (testcase) => {
       const bodyView = (ssz[fork].BeaconBlockBody as SSZTypesFor<ForkAll, "BeaconBlockBody">).toView(testcase.object);

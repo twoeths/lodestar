@@ -116,7 +116,15 @@ describe("beaconBlocksMaybeBlobsByRange", () => {
         sendBlobSidecarsByRange: async () => blobSidecars,
       } as Partial<INetwork> as INetwork;
 
-      const response = await beaconBlocksMaybeBlobsByRange(config, network, peerId, rangeRequest, 0, null);
+      const response = await beaconBlocksMaybeBlobsByRange(
+        config,
+        network,
+        peerId,
+        rangeRequest,
+        0,
+        null,
+        "PEER_CLIENT"
+      );
       expect(response).toEqual(expectedResponse);
     });
   });

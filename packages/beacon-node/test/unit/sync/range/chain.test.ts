@@ -114,7 +114,7 @@ describe("sync / range / chain", () => {
         );
 
         const peers = [peer];
-        for (const peer of peers) initialSync.addPeer(peer, target, []);
+        for (const peer of peers) initialSync.addPeer(peer, target, [], "CLIENT_AGENT");
 
         initialSync.startSyncing(startEpoch);
       });
@@ -163,7 +163,7 @@ describe("sync / range / chain", () => {
 
       // Add peers after some time
       setTimeout(() => {
-        for (const peer of peers) initialSync.addPeer(peer, target, []);
+        for (const peer of peers) initialSync.addPeer(peer, target, [], "CLIENT_AGENT");
       }, 20);
 
       initialSync.startSyncing(startEpoch);
@@ -189,7 +189,7 @@ function logSyncChainFns(logger: Logger, fns: SyncChainFns): SyncChainFns {
     },
     downloadBeaconBlocksByRange(peer, request, _partialDownload) {
       logger.debug("mock downloadBeaconBlocksByRange", request);
-      return fns.downloadBeaconBlocksByRange(peer, request, null);
+      return fns.downloadBeaconBlocksByRange(peer, request, null, "CLIENT_AGENT");
     },
     reportPeer(peer, action, actionName) {
       logger.debug("mock reportPeer", {peer: peer.toString(), action, actionName});

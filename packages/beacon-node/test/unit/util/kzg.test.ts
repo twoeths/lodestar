@@ -89,12 +89,13 @@ describe("C-KZG", () => {
     const mocks = getBlobCellAndProofs();
     const blobs = mocks.map(({blob}) => blob);
     const kzgCommitments = blobs.map(ckzg.blobToKzgCommitment);
+    const kzgProofs = blobs.map((blob, index) => ckzg.computeBlobKzgProof(blob, kzgCommitments[index]));
     for (const commitment of kzgCommitments) {
       signedBeaconBlock.message.body.executionPayload.transactions.push(transactionForKzgCommitment(commitment));
       signedBeaconBlock.message.body.blobKzgCommitments.push(commitment);
     }
 
-    const sidecars = computeDataColumnSidecars(config, signedBeaconBlock, {blobs});
+    const sidecars = computeDataColumnSidecars(config, signedBeaconBlock, {blobs, kzgProofs});
     const signedBlockHeader = signedBlockToSignedHeader(config, signedBeaconBlock);
 
     sidecars.forEach((sidecar, column) => {

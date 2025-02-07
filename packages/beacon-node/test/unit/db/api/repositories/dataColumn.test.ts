@@ -82,7 +82,7 @@ describe("block archive repository", () => {
       slot,
       dataColumnsLen,
       dataColumnsSize: columnsSize,
-      dataColumnsIndex,
+      dataColumnsIndex: Uint8Array.from(dataColumnsIndex),
       dataColumnSidecars,
     };
 

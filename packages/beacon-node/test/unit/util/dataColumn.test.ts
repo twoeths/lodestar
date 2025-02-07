@@ -34,7 +34,7 @@ describe("getCustodyConfig", () => {
 });
 
 describe("getDataColumns", () => {
-  const testCases = [
+  const testCases: [string, number, number[]][] = [
     ["cdbee32dc3c50e9711d22be5565c7e44ff6108af663b2dc5abd2df573d2fa83f", 4, [2, 80, 89, 118]],
     [
       "51781405571328938149219259614021022118347017557305093857689627172914154745642",
@@ -86,6 +86,7 @@ describe("data column sidecars", () => {
     const slot = 0;
     const blobs = [generateRandomBlob(), generateRandomBlob()];
     const kzgCommitments = blobs.map((blob) => ckzg.blobToKzgCommitment(blob));
+    const kzgProofs = blobs.map((blob, i) => ckzg.computeBlobKzgProof(blob, kzgCommitments[i]));
 
     const signedBeaconBlock = ssz.deneb.SignedBeaconBlock.defaultValue();
 
@@ -96,6 +97,7 @@ describe("data column sidecars", () => {
     const blockRoot = ssz.deneb.BeaconBlock.hashTreeRoot(signedBeaconBlock.message);
     const columnSidecars = computeDataColumnSidecars(config, signedBeaconBlock, {
       blobs,
+      kzgProofs,
     });
 
     expect(columnSidecars.length).toEqual(NUMBER_OF_COLUMNS);
@@ -121,6 +123,7 @@ describe("data column sidecars", () => {
     const slot = 0;
     const blobs = [generateRandomBlob(), generateRandomBlob()];
     const kzgCommitments = blobs.map((blob) => ckzg.blobToKzgCommitment(blob));
+    const kzgProofs = blobs.map((blob, i) => ckzg.computeBlobKzgProof(blob, kzgCommitments[i]));
 
     const signedBeaconBlock = ssz.deneb.SignedBeaconBlock.defaultValue();
 
@@ -131,6 +134,7 @@ describe("data column sidecars", () => {
     const blockRoot = ssz.deneb.BeaconBlock.hashTreeRoot(signedBeaconBlock.message);
     const columnSidecars = computeDataColumnSidecars(config, signedBeaconBlock, {
       blobs,
+      kzgProofs,
     });
 
     expect(columnSidecars.length).toEqual(NUMBER_OF_COLUMNS);
