@@ -18,8 +18,10 @@ describe("getCustodyConfig", () => {
     const config = createChainForkConfig({
       ALTAIR_FORK_EPOCH: 0,
       BELLATRIX_FORK_EPOCH: 0,
+      CAPELLA_FORK_EPOCH: 0,
       DENEB_FORK_EPOCH: 0,
-      FULU_FORK_EPOCH: 0,
+      ELECTRA_FORK_EPOCH: 0,
+      FULU_FORK_EPOCH: Infinity,
     });
     const nodeId = fromHexString("cdbee32dc3c50e9711d22be5565c7e44ff6108af663b2dc5abd2df573d2fa83f");
     const custodyConfig = getCustodyConfig(nodeId, config);
@@ -71,11 +73,12 @@ describe("data column sidecars", () => {
 
   it("validateDataColumnsSidecars", () => {
     const chainConfig = createChainForkConfig({
-      ...defaultChainConfig,
       ALTAIR_FORK_EPOCH: 0,
       BELLATRIX_FORK_EPOCH: 0,
+      CAPELLA_FORK_EPOCH: 0,
       DENEB_FORK_EPOCH: 0,
       ELECTRA_FORK_EPOCH: 0,
+      FULU_FORK_EPOCH: Infinity,
     });
     const genesisValidatorsRoot = Buffer.alloc(32, 0xaa);
     const config = createBeaconConfig(chainConfig, genesisValidatorsRoot);
@@ -88,13 +91,13 @@ describe("data column sidecars", () => {
     const kzgCommitments = blobs.map((blob) => ckzg.blobToKzgCommitment(blob));
     const kzgProofs = blobs.map((blob, i) => ckzg.computeBlobKzgProof(blob, kzgCommitments[i]));
 
-    const signedBeaconBlock = ssz.deneb.SignedBeaconBlock.defaultValue();
+    const signedBeaconBlock = ssz.fulu.SignedBeaconBlock.defaultValue();
 
     for (const kzgCommitment of kzgCommitments) {
       signedBeaconBlock.message.body.executionPayload.transactions.push(transactionForKzgCommitment(kzgCommitment));
       signedBeaconBlock.message.body.blobKzgCommitments.push(kzgCommitment);
     }
-    const blockRoot = ssz.deneb.BeaconBlock.hashTreeRoot(signedBeaconBlock.message);
+    const blockRoot = ssz.fulu.BeaconBlock.hashTreeRoot(signedBeaconBlock.message);
     const columnSidecars = computeDataColumnSidecars(config, signedBeaconBlock, {
       blobs,
       kzgProofs,
@@ -108,11 +111,12 @@ describe("data column sidecars", () => {
 
   it("fail for no blob commitments in validateDataColumnsSidecars", () => {
     const chainConfig = createChainForkConfig({
-      ...defaultChainConfig,
       ALTAIR_FORK_EPOCH: 0,
       BELLATRIX_FORK_EPOCH: 0,
+      CAPELLA_FORK_EPOCH: 0,
       DENEB_FORK_EPOCH: 0,
       ELECTRA_FORK_EPOCH: 0,
+      FULU_FORK_EPOCH: Infinity,
     });
     const genesisValidatorsRoot = Buffer.alloc(32, 0xaa);
     const config = createBeaconConfig(chainConfig, genesisValidatorsRoot);
@@ -125,13 +129,13 @@ describe("data column sidecars", () => {
     const kzgCommitments = blobs.map((blob) => ckzg.blobToKzgCommitment(blob));
     const kzgProofs = blobs.map((blob, i) => ckzg.computeBlobKzgProof(blob, kzgCommitments[i]));
 
-    const signedBeaconBlock = ssz.deneb.SignedBeaconBlock.defaultValue();
+    const signedBeaconBlock = ssz.fulu.SignedBeaconBlock.defaultValue();
 
     for (const kzgCommitment of kzgCommitments) {
       signedBeaconBlock.message.body.executionPayload.transactions.push(transactionForKzgCommitment(kzgCommitment));
       signedBeaconBlock.message.body.blobKzgCommitments.push(kzgCommitment);
     }
-    const blockRoot = ssz.deneb.BeaconBlock.hashTreeRoot(signedBeaconBlock.message);
+    const blockRoot = ssz.fulu.BeaconBlock.hashTreeRoot(signedBeaconBlock.message);
     const columnSidecars = computeDataColumnSidecars(config, signedBeaconBlock, {
       blobs,
       kzgProofs,
