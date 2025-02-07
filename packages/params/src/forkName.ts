@@ -76,23 +76,14 @@ export function isForkWithdrawals(fork: ForkName): fork is ForkWithdrawals {
   return isForkExecution(fork) && fork !== ForkName.bellatrix;
 }
 
-export type ForkPreBlobs = ForkPreWithdrawals | ForkName.capella;
-export type ForkBlobs = Exclude<ForkName, ForkPreBlobs>;
-export const forkBlobs = exclude(forkAll, [ForkName.phase0, ForkName.altair, ForkName.bellatrix, ForkName.capella]);
-export function isForkBlobs(fork: ForkName): fork is ForkBlobs {
+export type ForkPreDeneb = ForkPreWithdrawals | ForkName.capella;
+export type ForkPostDeneb = Exclude<ForkName, ForkPreDeneb>;
+export const forkPostDeneb = exclude(forkAll, [ForkName.phase0, ForkName.altair, ForkName.bellatrix, ForkName.capella]);
+export function isForkPostDeneb(fork: ForkName): fork is ForkPostDeneb {
   return isForkWithdrawals(fork) && fork !== ForkName.capella;
 }
 
-// TODO @matthewkeil Look at updating the above to PreDeneb and PostDeneb and then using the below
-// export type ForkPreBlobs = ForkPreWithdrawals | ForkName.capella;
-// export type ForkPostBlobs = ForkPostFulu;
-// export type ForkBlobs = Exclude<ForkName, ForkPreBlobs | ForkPostBlobs>;
-// export const forkBlobs = [ForkName.deneb, ForkName.electra] as const;
-// export function isForkBlobs(fork: ForkName): fork is ForkBlobs {
-//   return forkBlobs.includes(fork);
-// }
-
-export type ForkPreElectra = ForkPreBlobs | ForkName.deneb;
+export type ForkPreElectra = ForkPreDeneb | ForkName.deneb;
 export type ForkPostElectra = Exclude<ForkName, ForkPreElectra>;
 export const forkPostElectra = exclude(forkAll, [
   ForkName.phase0,
@@ -102,7 +93,7 @@ export const forkPostElectra = exclude(forkAll, [
   ForkName.deneb,
 ]);
 export function isForkPostElectra(fork: ForkName): fork is ForkPostElectra {
-  return isForkBlobs(fork) && fork !== ForkName.deneb;
+  return isForkPostDeneb(fork) && fork !== ForkName.deneb;
 }
 
 export type ForkPreFulu = ForkPreElectra | ForkName.electra;
@@ -117,4 +108,12 @@ export const forkPostFulu = exclude(forkAll, [
 ]);
 export function isForkPostFulu(fork: ForkName): fork is ForkPostFulu {
   return isForkPostElectra(fork) && fork !== ForkName.electra;
+}
+
+export type ForkPreBlobs = ForkPreDeneb;
+export type ForkPostBlobs = ForkPostFulu;
+export type ForkBlobs = ForkName.deneb | ForkName.electra;
+export const forkBlobs = [ForkName.deneb, ForkName.electra];
+export function isForkBlobs(fork: ForkName): fork is ForkBlobs {
+  return fork === ForkName.deneb || fork === ForkName.electra;
 }

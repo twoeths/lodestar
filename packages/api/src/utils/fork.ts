@@ -1,9 +1,9 @@
 import {
-  ForkBlobs,
+  ForkPostDeneb,
   ForkExecution,
   ForkLightClient,
   ForkName,
-  isForkBlobs,
+  isForkPostDeneb,
   isForkExecution,
   isForkLightClient,
 } from "@lodestar/params";
@@ -35,8 +35,8 @@ export function getExecutionForkTypes(fork: ForkName): SSZTypesFor<ForkExecution
   return sszTypesFor(fork);
 }
 
-export function getBlobsForkTypes(fork: ForkName): SSZTypesFor<ForkBlobs> {
-  if (!isForkBlobs(fork)) {
+export function getBlobsForkTypes(fork: ForkName): SSZTypesFor<ForkPostDeneb> {
+  if (!isForkPostDeneb(fork)) {
     throw Error(`Invalid fork=${fork} for blobs fork types`);
   }
 

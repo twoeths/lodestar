@@ -1,6 +1,12 @@
 import {toHexString} from "@chainsafe/ssz";
 import {createBeaconConfig, createChainForkConfig, defaultChainConfig} from "@lodestar/config";
-import {BYTES_PER_FIELD_ELEMENT, FIELD_ELEMENTS_PER_BLOB, ForkBlobs, ForkName, isForkBlobs} from "@lodestar/params";
+import {
+  BYTES_PER_FIELD_ELEMENT,
+  FIELD_ELEMENTS_PER_BLOB,
+  ForkPostDeneb,
+  ForkName,
+  isForkPostDeneb,
+} from "@lodestar/params";
 import {signedBlockToSignedHeader} from "@lodestar/state-transition";
 import {SignedBeaconBlock, deneb, ssz} from "@lodestar/types";
 import {beforeAll, describe, expect, it, vi} from "vitest";

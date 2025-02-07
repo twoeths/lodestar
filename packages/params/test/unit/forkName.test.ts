@@ -2,12 +2,13 @@ import {describe, expect, it} from "vitest";
 import {
   ForkName,
   forkAll,
-  forkBlobs,
+  forkPostDeneb,
   forkExecution,
   forkLightClient,
   forkWithdrawals,
   highestFork,
   lowestFork,
+  forkBlobs,
 } from "../../src/forkName.js";
 
 describe("forkName", () => {
@@ -27,7 +28,11 @@ describe("forkName", () => {
     expect(forkWithdrawals).toMatchSnapshot();
   });
 
-  it("should have valid blobs forks", () => {
+  it("should have valid post-deneb forks", () => {
+    expect(forkPostDeneb).toMatchSnapshot();
+  });
+
+  it("should have valid blob forks", () => {
     expect(forkBlobs).toMatchSnapshot();
   });
 

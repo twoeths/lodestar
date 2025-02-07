@@ -1,6 +1,6 @@
 import type {ChainForkConfig} from "@lodestar/config";
 import type {DataAvailabilityStatus, MaybeValidExecutionStatus} from "@lodestar/fork-choice";
-import {type ForkName, ForkSeq} from "@lodestar/params";
+import {type ForkBlobs, type ForkName, ForkSeq} from "@lodestar/params";
 import {type CachedBeaconStateAllForks, computeEpochAtSlot} from "@lodestar/state-transition";
 import type {ColumnIndex, RootHex, SignedBeaconBlock, Slot, deneb, fulu} from "@lodestar/types";
 
@@ -48,7 +48,7 @@ export enum BlobsSource {
   byRoot = "req_resp_by_root",
 }
 type ForkBlobsInfo = {
-  fork: ForkName.deneb | ForkName.electra;
+  fork: ForkBlobs;
 };
 export type BlockInputBlobs = ForkBlobsInfo & {
   blobs: deneb.BlobSidecars;

@@ -3,15 +3,15 @@ import {routes} from "@lodestar/api";
 import {ApplicationMethods} from "@lodestar/api/server";
 import {DataAvailabilityStatus, ExecutionStatus} from "@lodestar/fork-choice";
 import {
-  ForkBlobs,
+  ForkPostDeneb,
   ForkExecution,
-  ForkPreBlobs,
+  ForkPreDeneb,
   ForkSeq,
   GENESIS_SLOT,
   SLOTS_PER_EPOCH,
   SLOTS_PER_HISTORICAL_ROOT,
   SYNC_COMMITTEE_SUBNET_SIZE,
-  isForkBlobs,
+  isForkPostDeneb,
   isForkExecution,
   isForkPostElectra,
 } from "@lodestar/params";
@@ -110,8 +110,8 @@ const BLOCK_PRODUCTION_RACE_CUTOFF_MS = 2_500;
 const BLOCK_PRODUCTION_RACE_TIMEOUT_MS = 12_000;
 
 type ProduceBlockOrContentsRes = {executionPayloadValue: Wei; consensusBlockValue: Wei} & (
-  | {data: BeaconBlock<ForkPreBlobs>; version: ForkPreBlobs}
-  | {data: BlockContents; version: ForkBlobs}
+  | {data: BeaconBlock<ForkPreDeneb>; version: ForkPreDeneb}
+  | {data: BlockContents; version: ForkPostDeneb}
 );
 type ProduceBlindedBlockRes = {executionPayloadValue: Wei; consensusBlockValue: Wei} & {
   data: BlindedBeaconBlock;
@@ -545,7 +545,7 @@ export function getValidatorApi(
       if (chain.opts.persistProducedBlocks) {
         void chain.persistBlock(block, "produced_engine_block");
       }
-      if (isForkBlobs(version)) {
+      if (isForkPostDeneb(version)) {
         const blockHash = toRootHex((block as bellatrix.BeaconBlock).body.executionPayload.blockHash);
         const contents = chain.producedContentsCache.get(blockHash);
         if (contents === undefined) {

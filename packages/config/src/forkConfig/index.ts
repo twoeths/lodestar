@@ -1,13 +1,13 @@
 import {
   ForkAll,
-  ForkBlobs,
+  ForkPostDeneb,
   ForkExecution,
   ForkLightClient,
   ForkName,
   ForkSeq,
   GENESIS_EPOCH,
   SLOTS_PER_EPOCH,
-  isForkBlobs,
+  isForkPostDeneb,
   isForkExecution,
   isForkLightClient,
   isForkPostElectra,
@@ -131,9 +131,9 @@ export function createForkConfig(config: ChainConfig): ForkConfig {
       }
       return sszTypesFor(forkName);
     },
-    getBlobsForkTypes(slot: Slot): SSZTypesFor<ForkBlobs> {
+    getBlobsForkTypes(slot: Slot): SSZTypesFor<ForkPostDeneb> {
       const forkName = this.getForkName(slot);
-      if (!isForkBlobs(forkName)) {
+      if (!isForkPostDeneb(forkName)) {
         throw Error(`Invalid slot=${slot} fork=${forkName} for blobs fork types`);
       }
       return sszTypesFor(forkName);

@@ -1,6 +1,6 @@
 import {toHexString} from "@chainsafe/ssz";
 import {ChainForkConfig} from "@lodestar/config";
-import {BLOBSIDECAR_FIXED_SIZE, ForkName, NUMBER_OF_COLUMNS, isForkBlobs} from "@lodestar/params";
+import {BLOBSIDECAR_FIXED_SIZE, ForkName, NUMBER_OF_COLUMNS, isForkPostDeneb} from "@lodestar/params";
 import {RootHex, SignedBeaconBlock, deneb, fulu, ssz} from "@lodestar/types";
 import {pruneSetToMax, toRootHex} from "@lodestar/utils";
 
@@ -155,14 +155,14 @@ export class SeenGossipBlockInput {
     const {block: signedBlock, blockInputPromise, resolveBlockInput, cachedData} = blockCache;
 
     if (signedBlock !== undefined) {
-      if (!isForkBlobs(fork)) {
+      if (!isForkPostDeneb(fork)) {
         return {
           blockInput: getBlockInput.preData(config, signedBlock, BlockSource.gossip),
           blockInputMeta: {pending: null, haveBlobs: 0, expectedBlobs: 0},
         };
       }
 
-      if (cachedData === undefined || !isForkBlobs(cachedData.fork)) {
+      if (cachedData === undefined || !isForkPostDeneb(cachedData.fork)) {
         throw Error("Missing or Invalid fork cached Data for deneb+ block");
       }
 
@@ -364,7 +364,7 @@ export function getEmptyBlockInputCacheEntry(fork: ForkName, globalCacheId: numb
   if (resolveBlockInput === null) {
     throw Error("Promise Constructor was not executed immediately");
   }
-  if (!isForkBlobs(fork)) {
+  if (!isForkPostDeneb(fork)) {
     return {fork, blockInputPromise, resolveBlockInput};
   }
 

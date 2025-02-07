@@ -1,4 +1,4 @@
-import {ForkAll, ForkBlobs, ForkExecution, ForkLightClient, ForkName, ForkSeq} from "@lodestar/params";
+import {ForkAll, ForkPostDeneb, ForkExecution, ForkLightClient, ForkName, ForkSeq} from "@lodestar/params";
 import {Epoch, SSZTypesFor, Slot, Version} from "@lodestar/types";
 
 export type ForkInfo = {
@@ -38,7 +38,7 @@ export type ForkConfig = {
   /** Get execution SSZ types by hard-fork*/
   getExecutionForkTypes(slot: Slot): SSZTypesFor<ForkExecution>;
   /** Get blobs SSZ types by hard-fork*/
-  getBlobsForkTypes(slot: Slot): SSZTypesFor<ForkBlobs>;
+  getBlobsForkTypes(slot: Slot): SSZTypesFor<ForkPostDeneb>;
   /** Get max blobs per block by hard-fork */
   getMaxBlobsPerBlock(fork: ForkName): number;
   /** Get max request blob sidecars by hard-fork */
