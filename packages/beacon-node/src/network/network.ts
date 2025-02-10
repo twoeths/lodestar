@@ -277,6 +277,8 @@ export class Network implements INetwork {
   getConnectedPeers(): PeerIdStr[] {
     return Array.from(this.connectedPeers.keys());
   }
+
+  // TODO: @matthewkeil check if this needs to be updated for custody groups
   getConnectedPeerCustody(peerId: PeerIdStr): number[] {
     const columns = this.connectedPeers.get(peerId);
     if (columns === undefined) {

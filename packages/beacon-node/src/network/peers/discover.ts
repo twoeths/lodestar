@@ -130,6 +130,7 @@ export class PeerDiscovery {
     this.discv5 = discv5;
     this.nodeId = nodeId;
     // we will only connect to peers that can provide us custody
+    // TODO: @matthewkeil check if this needs to be updated for custody groups
     this.sampleSubnets = getDataColumns(
       nodeId,
       Math.max(config.CUSTODY_REQUIREMENT, config.NODE_CUSTODY_REQUIREMENT, config.SAMPLES_PER_SLOT)

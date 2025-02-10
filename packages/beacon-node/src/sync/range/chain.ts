@@ -112,6 +112,7 @@ export class SyncChain {
   /** Sorted map of batches undergoing some kind of processing. */
   private readonly batches = new Map<Epoch, Batch>();
   private readonly peerset = new Map<PeerIdStr, ChainTarget>();
+  // TODO: @matthewkeil check if this needs to be updated for custody groups
   private readonly peersetCustody = new Map<PeerIdStr, {custodyColumns: number[]; clientAgent: string}>();
 
   private readonly logger: Logger;
@@ -194,6 +195,7 @@ export class SyncChain {
   /**
    * Add peer to the chain and request batches if active
    */
+  // TODO: @matthewkeil check if this needs to be updated for custody groups
   addPeer(peer: PeerIdStr, target: ChainTarget, custodyColumns: number[], clientAgent: string): void {
     this.peerset.set(peer, target);
     this.peersetCustody.set(peer, {custodyColumns, clientAgent});

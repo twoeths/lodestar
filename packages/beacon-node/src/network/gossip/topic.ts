@@ -242,6 +242,7 @@ export function getCoreTopicsAtFork(
 
   // After fulu also track data_column_sidecar_{index}
   if (ForkSeq[fork] >= ForkSeq.fulu) {
+    // TODO: @matthewkeil check if this needs to be updated for custody groups
     for (let index = 0; index < DATA_COLUMN_SIDECAR_SUBNET_COUNT; index++) {
       topics.push({type: GossipType.data_column_sidecar, index});
     }

@@ -172,6 +172,7 @@ export class PeerManager {
     this.discovery = discovery;
     this.nodeId = modules.nodeId;
     // we will only connect to peers that can provide us custody
+    // TODO: @matthewkeil check if this needs to be updated for custody groups
     this.sampleSubnets = getDataColumns(
       this.nodeId,
       Math.max(this.config.CUSTODY_REQUIREMENT, this.config.NODE_CUSTODY_REQUIREMENT, this.config.SAMPLES_PER_SLOT)

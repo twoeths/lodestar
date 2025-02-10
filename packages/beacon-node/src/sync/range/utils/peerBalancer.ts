@@ -12,6 +12,7 @@ export class ChainPeersBalancer {
   private peerset: Map<PeerIdStr, {custodyColumns: number[]}>;
   private activeRequestsByPeer = new Map<PeerIdStr, number>();
 
+  // TODO: @matthewkeil check if this needs to be updated for custody groups
   constructor(peers: PeerIdStr[], peerset: Map<PeerIdStr, {custodyColumns: number[]}>, batches: Batch[]) {
     this.peers = shuffle(peers);
     this.peerset = peerset;
