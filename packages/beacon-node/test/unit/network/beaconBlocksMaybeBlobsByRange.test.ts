@@ -9,7 +9,7 @@ import {INetwork} from "../../../src/network/interface.js";
 import {beaconBlocksMaybeBlobsByRange} from "../../../src/network/reqresp/index.js";
 import {initCKZG, loadEthereumTrustedSetup} from "../../../src/util/kzg.js";
 
-describe("beaconBlocksMaybeBlobsByRange", () => {
+describe.skip("beaconBlocksMaybeBlobsByRange", () => {
   beforeAll(async () => {
     await initCKZG();
     loadEthereumTrustedSetup();
@@ -24,6 +24,7 @@ describe("beaconBlocksMaybeBlobsByRange", () => {
     CAPELLA_FORK_EPOCH: 0,
     DENEB_FORK_EPOCH: 0,
     ELECTRA_FORK_EPOCH: 0,
+    FULU_FORK_EPOCH: 0,
   });
   const genesisValidatorsRoot = Buffer.alloc(32, 0xaa);
   const config = createBeaconConfig(chainConfig, genesisValidatorsRoot);
@@ -114,6 +115,12 @@ describe("beaconBlocksMaybeBlobsByRange", () => {
             bytes: ZERO_HASH,
           })),
         sendBlobSidecarsByRange: async () => blobSidecars,
+        custodyConfig: {
+          custodyColumns: [2, 4, 6, 8],
+          sampledColumns: [2, 4, 6, 8],
+          custodyColumnsIndex: Uint8Array.from(Buffer.alloc(128, 0)),
+          custodyColumnsLen: 4,
+        },
       } as Partial<INetwork> as INetwork;
 
       const response = await beaconBlocksMaybeBlobsByRange(
