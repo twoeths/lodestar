@@ -261,12 +261,14 @@ export function matchBlockWithDataColumns(
       throw Error(`Invalid block forkSeq=${forkSeq} < ForSeq.fulu for matchBlockWithDataColumns`);
     }
     const dataColumnSidecars: fulu.DataColumnSidecar[] = [];
-    let dataColumnSidecar = allDataColumnSidecars[dataColumnSideCarIndex];
-    while (dataColumnSidecar.signedBlockHeader.message.slot === block.data.message.slot) {
+    let dataColumnSidecar: fulu.DataColumnSidecar;
+    while (
+      (dataColumnSidecar = allDataColumnSidecars[dataColumnSideCarIndex])?.signedBlockHeader.message.slot ===
+      block.data.message.slot
+    ) {
       dataColumnSidecars.push(dataColumnSidecar);
       lastMatchedSlot = block.data.message.slot;
       dataColumnSideCarIndex++;
-      dataColumnSidecar = allDataColumnSidecars[dataColumnSideCarIndex];
     }
 
     const blobKzgCommitmentsLen = (block.data.message.body as deneb.BeaconBlockBody).blobKzgCommitments.length;
