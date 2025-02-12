@@ -2,10 +2,10 @@ import {describe, expect, it} from "vitest";
 import {
   ForkName,
   forkAll,
+  forkPostAltair,
+  forkPostBellatrix,
+  forkPostCapella,
   forkPostDeneb,
-  forkExecution,
-  forkLightClient,
-  forkWithdrawals,
   highestFork,
   lowestFork,
   forkBlobs,
@@ -16,24 +16,20 @@ describe("forkName", () => {
     expect(forkAll).toMatchSnapshot();
   });
 
-  it("should have valid execution forks", () => {
-    expect(forkExecution).toMatchSnapshot();
+  it("should have valid post-altair forks", () => {
+    expect(forkPostAltair).toMatchSnapshot();
   });
 
-  it("should have valid lightclient forks", () => {
-    expect(forkLightClient).toMatchSnapshot();
+  it("should have valid post-bellatrix forks", () => {
+    expect(forkPostBellatrix).toMatchSnapshot();
   });
 
-  it("should have valid withdrawal forks", () => {
-    expect(forkWithdrawals).toMatchSnapshot();
+  it("should have valid post-capella forks", () => {
+    expect(forkPostCapella).toMatchSnapshot();
   });
 
   it("should have valid post-deneb forks", () => {
     expect(forkPostDeneb).toMatchSnapshot();
-  });
-
-  it("should have valid blob forks", () => {
-    expect(forkBlobs).toMatchSnapshot();
   });
 
   describe("highestFork", () => {

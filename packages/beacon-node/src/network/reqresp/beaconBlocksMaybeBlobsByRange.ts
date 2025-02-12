@@ -12,6 +12,7 @@ import {
   BlockInputType,
   BlockSource,
   CachedData,
+  CachedDataColumns,
   DataColumnsSource,
   getBlockInput,
   getBlockInputDataColumns,
@@ -348,14 +349,17 @@ export function matchBlockWithDataColumns(
       }
 
       for (const dataColumnSidecar of dataColumnSidecars) {
-        cachedData.dataColumnsCache.set(dataColumnSidecar.index, {
+        (cachedData as CachedDataColumns).dataColumnsCache.set(dataColumnSidecar.index, {
           dataColumn: dataColumnSidecar,
           dataColumnBytes: null,
         });
       }
 
       if (shouldHaveAllData) {
-        const {dataColumns, dataColumnsBytes} = getBlockInputDataColumns(cachedData.dataColumnsCache, sampledColumns);
+        const {dataColumns, dataColumnsBytes} = getBlockInputDataColumns(
+          (cachedData as CachedDataColumns).dataColumnsCache,
+          sampledColumns
+        );
 
         const blockData = {
           fork: config.getForkName(block.data.message.slot),

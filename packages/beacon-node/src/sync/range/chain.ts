@@ -2,7 +2,7 @@ import {ChainForkConfig} from "@lodestar/config";
 import {ForkName} from "@lodestar/params";
 import {Epoch, Root, Slot, phase0} from "@lodestar/types";
 import {ErrorAborted, Logger, toRootHex} from "@lodestar/utils";
-import {BlockInput, BlockInputType} from "../../chain/blocks/types.js";
+import {BlockInput, BlockInputDataColumns, BlockInputType} from "../../chain/blocks/types.js";
 import {PeerAction, prettyPrintPeerIdStr} from "../../network/index.js";
 import {PartialDownload} from "../../network/reqresp/beaconBlocksMaybeBlobsByRange.js";
 import {ItTrigger} from "../../util/itTrigger.js";
@@ -428,7 +428,7 @@ export class SyncChain {
             return hasPostDenebBlocks
               ? acc +
                   (blockInput.type === BlockInputType.availableData && blockInput.blockData.fork === ForkName.fulu
-                    ? blockInput.blockData.dataColumns.length
+                    ? (blockInput.blockData as BlockInputDataColumns).dataColumns.length
                     : 0)
               : 0;
           }, 0);

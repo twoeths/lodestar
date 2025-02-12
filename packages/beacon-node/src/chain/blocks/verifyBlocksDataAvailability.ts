@@ -12,6 +12,7 @@ import {
   BlobSidecarValidation,
   BlockInput,
   BlockInputAvailableData,
+  BlockInputDataColumns,
   BlockInputType,
   ImportBlockOpts,
   getBlockInput,
@@ -122,7 +123,7 @@ async function maybeValidateBlobs(
         const skipProofsCheck = opts.validBlobSidecars === BlobSidecarValidation.Individual;
         validateBlobSidecars(blockSlot, beaconBlockRoot, blobKzgCommitments, blobs, {skipProofsCheck});
       } else if (blockData.fork === ForkName.fulu) {
-        const {dataColumns} = blockData;
+        const {dataColumns} = blockData as BlockInputDataColumns;
         const skipProofsCheck = opts.validBlobSidecars === BlobSidecarValidation.Individual;
         validateDataColumnsSidecars(blockSlot, beaconBlockRoot, blobKzgCommitments, dataColumns, {skipProofsCheck});
       }

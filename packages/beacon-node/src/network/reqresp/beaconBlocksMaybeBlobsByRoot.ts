@@ -14,6 +14,7 @@ import {
   BlockInputType,
   BlockSource,
   CachedBlobs,
+  CachedDataColumns,
   DataColumnsSource,
   NullBlockInput,
   getBlockInput,
@@ -490,7 +491,7 @@ export async function unavailableBeaconBlobsByRootPostFulu(
     opts.metrics?.syncUnknownBlock.resolveAvailabilitySource.inc({source: BlockInputAvailabilitySource.UNKNOWN_SYNC});
     availableBlockInput = getBlockInput.availableData(config, block, BlockSource.byRoot, blockData);
   } else if (cachedData.fork === ForkName.fulu) {
-    const {dataColumnsCache, resolveAvailability} = cachedData;
+    const {dataColumnsCache, resolveAvailability} = cachedData as CachedDataColumns;
 
     // resolve missing blobs
     const dataColumnIdentifiers: fulu.DataColumnIdentifier[] = [];
@@ -589,7 +590,7 @@ export async function unavailableBeaconBlobsByRootPostFulu(
         if (blockData.fork !== ForkName.fulu) {
           throw Error(`unexpected blockData fork=${blockData.fork} returned by matchBlockWithDataColumns`);
         }
-        resolveAvailability(blockData);
+        resolveAvailability(blockData as BlockInputDataColumns);
       }
     }
   } else {

@@ -55,32 +55,32 @@ export function lowestFork<F extends ForkName>(forkNames: F[]): F {
 export type ForkAll = ForkName;
 export const forkAll = Object.values(ForkName);
 
-export type ForkPreLightClient = ForkName.phase0;
-export type ForkLightClient = Exclude<ForkName, ForkPreLightClient>;
-export const forkLightClient = exclude(forkAll, [ForkName.phase0]);
-export function isForkLightClient(fork: ForkName): fork is ForkLightClient {
+export type ForkPreAltair = ForkName.phase0;
+export type ForkPostAltair = Exclude<ForkName, ForkPreAltair>;
+export const forkPostAltair = exclude(forkAll, [ForkName.phase0]);
+export function isForkPostAltair(fork: ForkName): fork is ForkPostAltair {
   return fork !== ForkName.phase0;
 }
 
-export type ForkPreExecution = ForkPreLightClient | ForkName.altair;
-export type ForkExecution = Exclude<ForkName, ForkPreExecution>;
-export const forkExecution = exclude(forkAll, [ForkName.phase0, ForkName.altair]);
-export function isForkExecution(fork: ForkName): fork is ForkExecution {
-  return isForkLightClient(fork) && fork !== ForkName.altair;
+export type ForkPreBellatrix = ForkPreAltair | ForkName.altair;
+export type ForkPostBellatrix = Exclude<ForkName, ForkPreBellatrix>;
+export const forkPostBellatrix = exclude(forkAll, [ForkName.phase0, ForkName.altair]);
+export function isForkPostBellatrix(fork: ForkName): fork is ForkPostBellatrix {
+  return isForkPostAltair(fork) && fork !== ForkName.altair;
 }
 
-export type ForkPreWithdrawals = ForkPreExecution | ForkName.bellatrix;
-export type ForkWithdrawals = Exclude<ForkName, ForkPreWithdrawals>;
-export const forkWithdrawals = exclude(forkAll, [ForkName.phase0, ForkName.altair, ForkName.bellatrix]);
-export function isForkWithdrawals(fork: ForkName): fork is ForkWithdrawals {
-  return isForkExecution(fork) && fork !== ForkName.bellatrix;
+export type ForkPreCapella = ForkPreBellatrix | ForkName.bellatrix;
+export type ForkPostCapella = Exclude<ForkName, ForkPreCapella>;
+export const forkPostCapella = exclude(forkAll, [ForkName.phase0, ForkName.altair, ForkName.bellatrix]);
+export function isForkPostCapella(fork: ForkName): fork is ForkPostCapella {
+  return isForkPostBellatrix(fork) && fork !== ForkName.bellatrix;
 }
 
-export type ForkPreDeneb = ForkPreWithdrawals | ForkName.capella;
+export type ForkPreDeneb = ForkPreCapella | ForkName.capella;
 export type ForkPostDeneb = Exclude<ForkName, ForkPreDeneb>;
 export const forkPostDeneb = exclude(forkAll, [ForkName.phase0, ForkName.altair, ForkName.bellatrix, ForkName.capella]);
 export function isForkPostDeneb(fork: ForkName): fork is ForkPostDeneb {
-  return isForkWithdrawals(fork) && fork !== ForkName.capella;
+  return isForkPostCapella(fork) && fork !== ForkName.capella;
 }
 
 export type ForkPreElectra = ForkPreDeneb | ForkName.deneb;
@@ -117,3 +117,54 @@ export const forkBlobs = [ForkName.deneb, ForkName.electra];
 export function isForkBlobs(fork: ForkName): fork is ForkBlobs {
   return fork === ForkName.deneb || fork === ForkName.electra;
 }
+
+/*
+ * Aliases only exported for backwards compatibility. This will be removed in
+ * lodestar v2.0.  The types and guards above should be used in all places as
+ * they are more correct than using the "main feature" from a fork.
+ */
+
+/**
+ * @deprecated Use `ForkPostAltair` instead.
+ */
+export type ForkLightClient = ForkPostAltair;
+/**
+ * @deprecated Use `ForkPreBellatrix` instead.
+ */
+export type ForkPreExecution = ForkPreBellatrix;
+/**
+ * @deprecated Use `ForkPostBellatrix` instead.
+ */
+export type ForkExecution = ForkPostBellatrix;
+/**
+ * @deprecated Use `ForkPreCapella` instead.
+ */
+export type ForkPreWithdrawals = ForkPreCapella;
+/**
+ * @deprecated Use `ForkPostCapella` instead.
+ */
+export type ForkWithdrawals = ForkPostCapella;
+/**
+ * @deprecated Use `forkPostAltair` instead.
+ */
+export const forkLightClient = forkPostAltair;
+/**
+ * @deprecated Use `isForkPostAltair` instead.
+ */
+export const isForkLightClient = isForkPostAltair;
+/**
+ * @deprecated Use `forkPostBellatrix` instead.
+ */
+export const forkExecution = forkPostBellatrix;
+/**
+ * @deprecated Use `isForkPostBellatrix` instead.
+ */
+export const isForkExecution = isForkPostBellatrix;
+/**
+ * @deprecated Use `forkPostCapella` instead.
+ */
+export const forkWithdrawals = forkPostCapella;
+/**
+ * @deprecated Use `isForkPostCapella` instead.
+ */
+export const isForkWithdrawals = isForkPostCapella;

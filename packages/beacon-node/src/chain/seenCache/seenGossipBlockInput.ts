@@ -138,7 +138,7 @@ export class SeenGossipBlockInput {
       }
 
       // TODO: freetheblobs check if its the same blob or a duplicate and throw/take actions
-      blockCache.cachedData?.dataColumnsCache.set(dataColumnSidecar.index, {
+      (blockCache.cachedData as CachedDataColumns)?.dataColumnsCache.set(dataColumnSidecar.index, {
         dataColumn: dataColumnSidecar,
         // easily splice out the unsigned message as blob is a fixed length type
         dataColumnBytes: dataColumnBytes?.slice(0, dataColumnBytes.length) ?? null,
@@ -163,7 +163,7 @@ export class SeenGossipBlockInput {
       }
 
       if (cachedData === undefined || !isForkPostDeneb(cachedData.fork)) {
-        throw Error("Missing or Invalid fork cached Data for deneb+ block");
+        throw Error("Missing or Invalid fork cached Data for post-deneb block");
       }
 
       if (cachedData.fork === ForkName.deneb || cachedData.fork === ForkName.electra) {
@@ -214,7 +214,7 @@ export class SeenGossipBlockInput {
       }
 
       if (cachedData.fork === ForkName.fulu) {
-        const {dataColumnsCache, resolveAvailability} = cachedData;
+        const {dataColumnsCache, resolveAvailability} = cachedData as CachedDataColumns;
 
         // block is available, check if all blobs have shown up
         const {slot} = signedBlock.message;
@@ -229,7 +229,7 @@ export class SeenGossipBlockInput {
         // get the custody columns and see if we have got all the requisite columns
         const blobKzgCommitmentsLen = (signedBlock.message.body as deneb.BeaconBlockBody).blobKzgCommitments.length;
         if (blobKzgCommitmentsLen === 0) {
-          const blockData = {
+          const blockData: BlockInputDataColumns = {
             fork: cachedData.fork,
             dataColumns: [],
             dataColumnsBytes: [],
@@ -258,7 +258,7 @@ export class SeenGossipBlockInput {
           const allDataColumns = getBlockInputDataColumns(dataColumnsCache, this.custodyConfig.sampledColumns);
           metrics?.syncUnknownBlock.resolveAvailabilitySource.inc({source: BlockInputAvailabilitySource.GOSSIP});
           const {dataColumns} = allDataColumns;
-          const blockData = {
+          const blockData: BlockInputDataColumns = {
             fork: cachedData.fork,
             ...allDataColumns,
             dataColumnsSource: DataColumnsSource.gossip,

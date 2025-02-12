@@ -5,7 +5,7 @@ import {Root, RootHex, deneb} from "@lodestar/types";
 import {BlobAndProof} from "@lodestar/types/deneb";
 import {Logger, fromHex, pruneSetToMax, toRootHex} from "@lodestar/utils";
 import {sleep} from "@lodestar/utils";
-import {BlockInput, BlockInputType, NullBlockInput} from "../chain/blocks/types.js";
+import {BlockInput, BlockInputType, CachedDataColumns, NullBlockInput} from "../chain/blocks/types.js";
 import {BlockError, BlockErrorCode} from "../chain/errors/index.js";
 import {IBeaconChain} from "../chain/index.js";
 import {Metrics} from "../metrics/index.js";
@@ -300,7 +300,7 @@ export class UnknownBlockSync {
     } else {
       const {cachedData} = block.blockInput;
       if (cachedData.fork === ForkName.fulu) {
-        const {dataColumnsCache} = cachedData;
+        const {dataColumnsCache} = cachedData as CachedDataColumns;
         const {custodyConfig} = this.network;
         const neededColumns = custodyConfig.sampledColumns.reduce((acc, elem) => {
           if (dataColumnsCache.get(elem) === undefined) {
@@ -546,7 +546,7 @@ export class UnknownBlockSync {
         }
         const {cachedData} = prevBlockInput;
         if (cachedData.fork === ForkName.fulu) {
-          const {dataColumnsCache} = cachedData;
+          const {dataColumnsCache} = cachedData as CachedDataColumns;
           const {custodyConfig} = this.network;
           const neededColumns = custodyConfig.sampledColumns.reduce((acc, elem) => {
             if (dataColumnsCache.get(elem) === undefined) {
@@ -656,7 +656,8 @@ export class UnknownBlockSync {
         const pendingBlobs = blobKzgCommitmentsLen - cachedData.blobsCache.size;
         Object.assign(dataMeta, {pendingBlobs});
       } else if (cachedData.fork === ForkName.fulu) {
-        const pendingColumns = this.network.custodyConfig.sampledColumns.length - cachedData.dataColumnsCache.size;
+        const pendingColumns =
+          this.network.custodyConfig.sampledColumns.length - (cachedData as CachedDataColumns).dataColumnsCache.size;
         Object.assign(dataMeta, {pendingColumns});
       }
     }
@@ -667,7 +668,7 @@ export class UnknownBlockSync {
       if (unavailableBlockInput.block !== null) {
         const {cachedData} = unavailableBlockInput;
         if (cachedData.fork === ForkName.fulu) {
-          const {dataColumnsCache} = cachedData;
+          const {dataColumnsCache} = cachedData as CachedDataColumns;
           const {custodyConfig} = this.network;
           const neededColumns = custodyConfig.sampledColumns.reduce((acc, elem) => {
             if (dataColumnsCache.get(elem) === undefined) {
