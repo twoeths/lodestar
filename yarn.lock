@@ -758,10 +758,10 @@
     "@chainsafe/as-sha256" "^0.4.1"
     "@chainsafe/persistent-merkle-tree" "^0.6.1"
 
-"@chainsafe/ssz@^1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@chainsafe/ssz/-/ssz-1.0.1.tgz#dd1373cb4387fdd869d377f0fc5460edf422bd78"
-  integrity sha512-+QugG2Wbw3zWmCSIYsjAGoJXmT899ecdfI9OJVG6e3A6pPMJHH4EgENzXYy02ZUDhHXNhJ5c9pA4dElGfT7b4Q==
+"@chainsafe/ssz@^1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@chainsafe/ssz/-/ssz-1.0.2.tgz#af09775ac1f14c19a75bfd45279f71dce67545a1"
+  integrity sha512-T/hiLYRJoM0NkTgTc6XLIL5Nobc/poNqFnJ/8GlvG08czCcri5l8H5DF/6RKdL+1a++LRZCdtHElMaFryszkww==
   dependencies:
     "@chainsafe/as-sha256" "1.0.0"
     "@chainsafe/persistent-merkle-tree" "1.0.1"
@@ -9370,9 +9370,9 @@ nan@^2.19.0:
   integrity sha512-nbajikzWTMwsW+eSsNm3QwlOs7het9gGJU5dDZzRTQGk03vyBOauxgI4VakDzE0PtsGTmXPsXTbbjVhRwR5mpw==
 
 nanoid@^3.3.7:
-  version "3.3.7"
-  resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-3.3.7.tgz#d0c301a691bc8d54efa0a2226ccf3fe2fd656bd8"
-  integrity sha512-eSRppjcPIatRIMC1U6UngP8XFcz8MQWGQdt1MTBQ7NaAmvXDfvNxbvWV3x2y6CdEUciCSsDHDQZbhYaB8QEo2g==
+  version "3.3.8"
+  resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-3.3.8.tgz#b1be3030bee36aaff18bacb375e5cce521684baf"
+  integrity sha512-WNLf5Sd8oZxOm+TzppcYk8gVOgP+l58xNy58D0nbUnOxOWRWvlcCV4kUF7ltmI6PsrLl/BgKEyS4mqsGChFN0w==
 
 napi-macros@^2.2.2:
   version "2.2.2"

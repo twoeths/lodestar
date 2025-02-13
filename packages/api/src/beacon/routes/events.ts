@@ -21,7 +21,7 @@ import {
 } from "@lodestar/types";
 
 import {EmptyMeta, EmptyResponseCodec, EmptyResponseData} from "../../utils/codecs.js";
-import {getExecutionForkTypes, getLightClientForkTypes} from "../../utils/fork.js";
+import {getPostAltairForkTypes, getPostBellatrixForkTypes} from "../../utils/fork.js";
 import {Endpoint, RouteDefinitions, Schema} from "../../utils/index.js";
 import {VersionType} from "../../utils/metadata.js";
 
@@ -296,14 +296,14 @@ export function getTypeByEvent(config: ChainForkConfig): {[K in EventType]: Type
     ),
 
     [EventType.contributionAndProof]: ssz.altair.SignedContributionAndProof,
-    [EventType.payloadAttributes]: WithVersion((fork) => getExecutionForkTypes(fork).SSEPayloadAttributes),
+    [EventType.payloadAttributes]: WithVersion((fork) => getPostBellatrixForkTypes(fork).SSEPayloadAttributes),
     [EventType.blobSidecar]: blobSidecarSSE,
 
     [EventType.lightClientOptimisticUpdate]: WithVersion(
-      (fork) => getLightClientForkTypes(fork).LightClientOptimisticUpdate
+      (fork) => getPostAltairForkTypes(fork).LightClientOptimisticUpdate
     ),
     [EventType.lightClientFinalityUpdate]: WithVersion(
-      (fork) => getLightClientForkTypes(fork).LightClientFinalityUpdate
+      (fork) => getPostAltairForkTypes(fork).LightClientFinalityUpdate
     ),
   };
 }
