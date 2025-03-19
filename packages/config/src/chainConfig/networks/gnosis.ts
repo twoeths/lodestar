@@ -54,6 +54,9 @@ export const gnosisChainConfig: ChainConfig = {
   // Electra
   ELECTRA_FORK_VERSION: b("0x05000064"),
   ELECTRA_FORK_EPOCH: Infinity,
+  // Fulu
+  FULU_FORK_VERSION: b("0x06000064"),
+  FULU_FORK_EPOCH: Infinity,
 
   // Electra
   // 2**6 * 10**9 (= 64,000,000,000)

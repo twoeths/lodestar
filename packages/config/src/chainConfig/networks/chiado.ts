@@ -40,4 +40,7 @@ export const chiadoChainConfig: ChainConfig = {
   // Electra
   ELECTRA_FORK_VERSION: b("0x0500006f"),
   ELECTRA_FORK_EPOCH: 948224, // Thu Mar 06 2025 09:43:40 GMT+0000
+  // Fulu
+  FULU_FORK_VERSION: b("0x0600006f"),
+  FULU_FORK_EPOCH: Infinity,
 };
