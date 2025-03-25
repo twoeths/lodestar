@@ -51,10 +51,6 @@ export const chainConfig: ChainConfig = {
   FULU_FORK_VERSION: b("0x06000001"),
   FULU_FORK_EPOCH: Infinity,
 
-  // FULU
-  FULU_FORK_VERSION: b("0x06000001"),
-  FULU_FORK_EPOCH: Infinity,
-
   // Time parameters
   // ---------------------------------------------------------------
   // [customized] Faster for testing purposes
