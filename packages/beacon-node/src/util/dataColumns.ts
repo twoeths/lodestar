@@ -10,17 +10,32 @@ export type CustodyConfig = {
   custodyColumnsIndex: Uint8Array;
   custodyColumnsLen: number;
   custodyColumns: ColumnIndex[];
+  sampleGroups: CustodyIndex[];
   sampledColumns: ColumnIndex[];
+  sampledSubnets: number[];
 };
 
-export function getCustodyConfig(nodeId: NodeId, config: ChainForkConfig): CustodyConfig {
+/**
+ * Compute CustodyConfig, should be computed once after startup and when connected validators change.
+ */
+export function computeCustodyConfig(nodeId: NodeId, config: ChainForkConfig): CustodyConfig {
   const custodyColumns = getDataColumns(nodeId, Math.max(config.CUSTODY_REQUIREMENT, config.NODE_CUSTODY_REQUIREMENT));
-  const sampledColumns = getDataColumns(
-    nodeId,
-    Math.max(config.CUSTODY_REQUIREMENT, config.NODE_CUSTODY_REQUIREMENT, config.SAMPLES_PER_SLOT)
-  );
+  // the same to getDataColumns but here we compute step by step to also get custodyGroups
+  // const sampledColumns = getDataColumns(
+  //   nodeId,
+  //   Math.max(config.CUSTODY_REQUIREMENT, config.NODE_CUSTODY_REQUIREMENT, config.SAMPLES_PER_SLOT)
+  // );
+  const custodyGroupCount = Math.max(config.CUSTODY_REQUIREMENT, config.NODE_CUSTODY_REQUIREMENT, config.SAMPLES_PER_SLOT);
+  const sampleGroups = getCustodyGroups(nodeId, custodyGroupCount)
+  const sampledColumns = sampleGroups.flatMap(computeColumnsForCustodyGroup)
+    .sort((a, b) => a - b);
   const custodyMeta = getCustodyColumnsMeta(custodyColumns);
-  return {...custodyMeta, custodyColumns, sampledColumns};
+  const sampledSubnets = sampledColumns.map(computeSubnetForDataColumn);
+  return {...custodyMeta, custodyColumns, sampleGroups, sampledColumns, sampledSubnets};
+}
+
+function computeSubnetForDataColumn(columnIndex: ColumnIndex): number {
+  return columnIndex % DATA_COLUMN_SIDECAR_SUBNET_COUNT;
 }
 
 function getCustodyColumnsMeta(custodyColumns: ColumnIndex[]): {
@@ -45,14 +60,14 @@ function getCustodyColumnsMeta(custodyColumns: ColumnIndex[]): {
  * SPEC FUNCTION
  * https://github.com/ethereum/consensus-specs/blob/dev/specs/fulu/das-core.md#compute_columns_for_custody_group
  */
-export function computeColumnsForCustodyGroup(custodyGroup: CustodyIndex): ColumnIndex[] {
-  if (custodyGroup > NUMBER_OF_CUSTODY_GROUPS) {
-    custodyGroup = NUMBER_OF_CUSTODY_GROUPS;
+export function computeColumnsForCustodyGroup(custodyIndex: CustodyIndex): ColumnIndex[] {
+  if (custodyIndex > NUMBER_OF_CUSTODY_GROUPS) {
+    custodyIndex = NUMBER_OF_CUSTODY_GROUPS;
   }
   const columnsPerCustodyGroup = Number(NUMBER_OF_COLUMNS / NUMBER_OF_CUSTODY_GROUPS);
   const columnIndexes = [];
   for (let i = 0; i < columnsPerCustodyGroup; i++) {
-    columnIndexes.push(NUMBER_OF_CUSTODY_GROUPS * i + custodyGroup);
+    columnIndexes.push(NUMBER_OF_CUSTODY_GROUPS * i + custodyIndex);
   }
   columnIndexes.sort((a, b) => a - b);
   return columnIndexes;
