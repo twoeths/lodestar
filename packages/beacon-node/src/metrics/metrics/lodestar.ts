@@ -3,6 +3,7 @@ import {BeaconState} from "@lodestar/types";
 import {BlobsSource, BlockSource} from "../../chain/blocks/types.js";
 import {JobQueueItemType} from "../../chain/bls/index.js";
 import {AttestationErrorCode, BlockErrorCode} from "../../chain/errors/index.js";
+import {ScannedSlotsTerminationReason} from "../../chain/opPools/aggregatedAttestationPool.js";
 import {InsertOutcome} from "../../chain/opPools/types.js";
 import {RegenCaller, RegenFnName} from "../../chain/regen/interface.js";
 import {ReprocessStatus} from "../../chain/reprocess.js";
@@ -900,6 +901,73 @@ export function createLodestarMetrics(
           help: "Total number of InsertOutcome as a result of adding an aggregated attestation from api in the pool",
           labelNames: ["insertOutcome"],
         }),
+        packedAttestations: {
+          committeeCount: register.gauge<{index: number}>({
+            name: "lodestar_oppool_aggregated_attestation_pool_packed_attestations_committee_count",
+            help: "Total number of committees in packed attestation ${index}",
+            labelNames: ["index"],
+          }),
+          totalAttesters: register.gauge<{index: number}>({
+            name: "lodestar_oppool_aggregated_attestation_pool_packed_attestations_attesters_total",
+            help: "Total number of attesters in packed attestation ${index}",
+            labelNames: ["index"],
+          }),
+          nonParticipation: register.gauge<{index: number}>({
+            name: "lodestar_oppool_aggregated_attestation_pool_packed_attestations_non_participation_total",
+            help: "Total number of not seen attesters in packed attestation ${index}",
+            labelNames: ["index"],
+          }),
+          newSeenAttesters: register.gauge<{index: number}>({
+            name: "lodestar_oppool_aggregated_attestation_pool_packed_attestations_new_seen_attesters_total",
+            help: "Total number of new seen attesters in packed attestation ${index}",
+            labelNames: ["index"],
+          }),
+          totalEffectiveBalance: register.gauge<{index: number}>({
+            name: "lodestar_oppool_aggregated_attestation_pool_packed_attestations_total_effective_balance",
+            help: "Total effective balance of new seen attesters in packed attestation ${index}",
+            labelNames: ["index"],
+          }),
+          inclusionDistance: register.gauge<{index: number}>({
+            name: "lodestar_oppool_aggregated_attestation_pool_packed_attestations_inclusion_distance_total",
+            help: "How far the packed attestation ${index} slot is from the block slot",
+            labelNames: ["index"],
+          }),
+          scannedSlots: register.gauge<{reason: ScannedSlotsTerminationReason}>({
+            name: "lodestar_oppool_aggregated_attestation_pool_packed_attestations_scanned_slots_total",
+            help: "Total number of scanned slots to produce packed attestations",
+            labelNames: ["reason"],
+          }),
+          scannedAttestations: register.gauge<{inclusionDistance: number}>({
+            name: "lodestar_oppool_aggregated_attestation_pool_packed_attestations_scanned_attestations_total",
+            help: "Total number of scanned attestations per scanned slot to produce packed attestations",
+            labelNames: ["inclusionDistance"],
+          }),
+          returnedAttestations: register.gauge<{inclusionDistance: number}>({
+            name: "lodestar_oppool_aggregated_attestation_pool_packed_attestations_returned_attestations_total",
+            help: "Total number of returned attestations per scanned slot to produce packed attestations",
+            labelNames: ["inclusionDistance"],
+          }),
+          poolSlots: register.gauge({
+            name: "lodestar_oppool_aggregated_attestation_pool_packed_attestations_pool_slots_total",
+            help: "Total number of slots in pool when producing packed attestations",
+          }),
+          totalConsolidations: register.gauge({
+            name: "lodestar_oppool_aggregated_attestation_pool_packed_attestations_total_consolidations_total",
+            help: "Total number of consolidations before truncate",
+          }),
+          emptyAttestationData: register.gauge({
+            name: "lodestar_oppool_aggregated_attestation_pool_packed_attestations_empty_attestation_data_total",
+            help: "Total number of attestation data with no group when producing packed attestation",
+          }),
+          invalidAttestationData: register.gauge({
+            name: "lodestar_oppool_aggregated_attestation_pool_packed_attestations_invalid_attestation_data_total",
+            help: "Total number of invalid attestation data when producing packed attestation",
+          }),
+          seenCommittees: register.gauge({
+            name: "lodestar_oppool_aggregated_attestation_pool_packed_attestations_seen_committees_total",
+            help: "Total number of committees for which all members are seen when producing packed attestations",
+          }),
+        },
       },
       attestationPool: {
         size: register.gauge({
