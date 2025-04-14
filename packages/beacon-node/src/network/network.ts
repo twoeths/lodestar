@@ -28,7 +28,7 @@ import {
   phase0,
 } from "@lodestar/types";
 import {sleep} from "@lodestar/utils";
-import {IBeaconChain} from "../chain/index.js";
+import {ChainEvent, IBeaconChain} from "../chain/index.js";
 import {IBeaconDb} from "../db/interface.js";
 import {Metrics, RegistryMetricCreator} from "../metrics/index.js";
 import {IClock} from "../util/clock.js";
@@ -139,6 +139,8 @@ export class Network implements INetwork {
     this.chain.emitter.on(routes.events.EventType.lightClientOptimisticUpdate, ({data}) =>
       this.onLightClientOptimisticUpdate(data)
     );
+    this.chain.emitter.on(ChainEvent.updateTargetGroupCount, this.onTargetGroupCountUpdated);
+    this.chain.emitter.on(ChainEvent.updateAdvertisedGroupCount, this.onAdvertisedGroupCountUpdated);
   }
 
   static async init({
@@ -232,6 +234,8 @@ export class Network implements INetwork {
     this.chain.emitter.off(routes.events.EventType.head, this.onHead);
     this.chain.emitter.off(routes.events.EventType.lightClientFinalityUpdate, this.onLightClientFinalityUpdate);
     this.chain.emitter.off(routes.events.EventType.lightClientOptimisticUpdate, this.onLightClientOptimisticUpdate);
+    this.chain.emitter.off(ChainEvent.updateTargetGroupCount, this.onTargetGroupCountUpdated);
+    this.chain.emitter.off(ChainEvent.updateAdvertisedGroupCount, this.onAdvertisedGroupCountUpdated);
     await this.core.close();
     this.logger.debug("network core closed");
   }
@@ -706,5 +710,13 @@ export class Network implements INetwork {
 
   private onPeerDisconnected = (data: NetworkEventData[NetworkEvent.peerDisconnected]): void => {
     this.connectedPeers.delete(data.peer);
+  };
+
+  private onTargetGroupCountUpdated = (count: number): void => {
+    this.core.setTargetGroupCount(count);
+  };
+
+  private onAdvertisedGroupCountUpdated = (count: number): void => {
+    this.core.setAdvertisedGroupCount(count);
   };
 }

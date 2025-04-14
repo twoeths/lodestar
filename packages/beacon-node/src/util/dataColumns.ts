@@ -1,56 +1,132 @@
 import {digest} from "@chainsafe/as-sha256";
 import {ChainForkConfig} from "@lodestar/config";
-import {DATA_COLUMN_SIDECAR_SUBNET_COUNT, NUMBER_OF_COLUMNS, NUMBER_OF_CUSTODY_GROUPS} from "@lodestar/params";
-import {ColumnIndex, CustodyIndex} from "@lodestar/types";
+import {
+  DATA_COLUMN_SIDECAR_SUBNET_COUNT,
+  EFFECTIVE_BALANCE_INCREMENT,
+  NUMBER_OF_COLUMNS,
+  NUMBER_OF_CUSTODY_GROUPS,
+} from "@lodestar/params";
+import {ColumnIndex, CustodyIndex, ValidatorIndex} from "@lodestar/types";
 import {ssz} from "@lodestar/types";
 import {bytesToBigInt} from "@lodestar/utils";
 import {NodeId} from "../network/subnets/index.js";
+import {CachedBeaconStateAllForks} from "@lodestar/state-transition";
 
-export type CustodyConfig = {
-  custodyColumnsIndex: Uint8Array;
-  custodyColumnsLen: number;
+export class CustodyConfig {
+  /**
+   * The number of custody groups the node should subscribe to
+   */
+  targetCustodyGroupCount: number;
+
+  /**
+   * The custody columns the node should subscribe to
+   */
   custodyColumns: ColumnIndex[];
-  sampleGroups: CustodyIndex[];
-  sampledColumns: ColumnIndex[];
-  sampledSubnets: number[];
-};
 
-/**
- * Compute CustodyConfig, should be computed once after startup and when connected validators change.
- */
-export function computeCustodyConfig(nodeId: NodeId, config: ChainForkConfig): CustodyConfig {
-  const custodyColumns = getDataColumns(nodeId, Math.max(config.CUSTODY_REQUIREMENT, config.NODE_CUSTODY_REQUIREMENT));
-  // the same to getDataColumns but here we compute step by step to also get custodyGroups
-  // const sampledColumns = getDataColumns(
-  //   nodeId,
-  //   Math.max(config.CUSTODY_REQUIREMENT, config.NODE_CUSTODY_REQUIREMENT, config.SAMPLES_PER_SLOT)
-  // );
-  const custodyGroupCount = Math.max(config.CUSTODY_REQUIREMENT, config.NODE_CUSTODY_REQUIREMENT, config.SAMPLES_PER_SLOT);
-  const sampleGroups = getCustodyGroups(nodeId, custodyGroupCount)
-  const sampledColumns = sampleGroups.flatMap(computeColumnsForCustodyGroup)
-    .sort((a, b) => a - b);
-  const custodyMeta = getCustodyColumnsMeta(custodyColumns);
-  const sampledSubnets = sampledColumns.map(computeSubnetForDataColumn);
-  return {...custodyMeta, custodyColumns, sampleGroups, sampledColumns, sampledSubnets};
+  /**
+   * Custody columns map which column maps to which index in the array of columns custodied
+   * with zero representing it is not custodied
+   */
+  custodyColumnsIndex: Uint8Array;
+
+  /**
+   * The number of custody groups the node will advertise to the network
+   */
+  advertisedCustodyGroupCount: number;
+
+  /**
+   * The number of custody groups the node will sample
+   */
+  sampledGroupCount: number;
+
+  /**
+   * Custody groups sampled by the node as part of custody sampling
+   */
+  sampleGroups: CustodyIndex[];
+
+  /**
+   * Data columns sampled by the node as part of custody sampling
+   * https://github.com/ethereum/consensus-specs/blob/dev/specs/fulu/das-core.md#custody-sampling
+   *
+   * TODO: Consider race conditions if this updates during sync/backfill
+   */
+  sampledColumns: ColumnIndex[];
+
+  /**
+   * Subnets sampled by the node as part of custody sampling
+   */
+  sampledSubnets: number[];
+
+  private config: ChainForkConfig;
+  private nodeId: NodeId;
+
+  constructor(nodeId: NodeId, config: ChainForkConfig) {
+    this.config = config;
+    this.nodeId = nodeId;
+    this.targetCustodyGroupCount = Math.max(config.CUSTODY_REQUIREMENT, config.NODE_CUSTODY_REQUIREMENT);
+    this.custodyColumns = getDataColumns(this.nodeId, this.targetCustodyGroupCount);
+    this.custodyColumnsIndex = this.getCustodyColumnsIndex(this.custodyColumns);
+    this.advertisedCustodyGroupCount = this.targetCustodyGroupCount;
+    this.sampledGroupCount = Math.max(this.targetCustodyGroupCount, this.config.SAMPLES_PER_SLOT);
+    this.sampleGroups = getCustodyGroups(this.nodeId, this.sampledGroupCount);
+    this.sampledColumns = getDataColumns(this.nodeId, this.sampledGroupCount);
+    this.sampledSubnets = this.sampledColumns.map(computeSubnetForDataColumn);
+  }
+
+  updateTargetCustodyGroupCount(targetCustodyGroupCount: number) {
+    this.targetCustodyGroupCount = targetCustodyGroupCount;
+    this.custodyColumns = getDataColumns(this.nodeId, this.targetCustodyGroupCount);
+    this.custodyColumnsIndex = this.getCustodyColumnsIndex(this.custodyColumns);
+    // TODO: Porting this over to match current behavior, but I think this incorrectly mixes units:
+    // SAMPLES_PER_SLOT is in columns, and CUSTODY_GROUP_COUNT is in groups
+    this.sampledGroupCount = Math.max(this.targetCustodyGroupCount, this.config.SAMPLES_PER_SLOT);
+    this.sampleGroups = getCustodyGroups(this.nodeId, this.sampledGroupCount);
+    this.sampledColumns = getDataColumns(this.nodeId, this.sampledGroupCount);
+    this.sampledSubnets = this.sampledColumns.map(computeSubnetForDataColumn);
+  }
+
+  updateAdvertisedCustodyGroupCount(advertisedCustodyGroupCount: number) {
+    this.advertisedCustodyGroupCount = advertisedCustodyGroupCount;
+  }
+
+  private getCustodyColumnsIndex(custodyColumns: ColumnIndex[]): Uint8Array {
+    // custody columns map which column maps to which index in the array of columns custodied
+    // with zero representing it is not custodied
+    const custodyColumnsIndex = new Uint8Array(NUMBER_OF_COLUMNS);
+    let custodyAtIndex = 1;
+    for (const columnIndex of custodyColumns) {
+      custodyColumnsIndex[columnIndex] = custodyAtIndex;
+      custodyAtIndex++;
+    }
+    return custodyColumnsIndex;
+  }
 }
 
 function computeSubnetForDataColumn(columnIndex: ColumnIndex): number {
   return columnIndex % DATA_COLUMN_SIDECAR_SUBNET_COUNT;
 }
 
-function getCustodyColumnsMeta(custodyColumns: ColumnIndex[]): {
-  custodyColumnsIndex: Uint8Array;
-  custodyColumnsLen: number;
-} {
-  // custody columns map which column maps to which index in the array of columns custodied
-  // with zero representing it is not custodied
-  const custodyColumnsIndex = new Uint8Array(NUMBER_OF_COLUMNS);
-  let custodyAtIndex = 1;
-  for (const columnIndex of custodyColumns) {
-    custodyColumnsIndex[columnIndex] = custodyAtIndex;
-    custodyAtIndex++;
+/**
+ * Calculate the number of custody groups the node should subscribe to based on the node's effective balance
+ *
+ * SPEC FUNCTION
+ * https://github.com/ethereum/consensus-specs/blob/dev/specs/fulu/validator.md#validator-custody
+ */
+export function getValidatorsCustodyRequirement(
+  state: CachedBeaconStateAllForks,
+  validatorIndices: ValidatorIndex[],
+  config: ChainForkConfig
+): number {
+  if (validatorIndices.length === 0) {
+    return config.CUSTODY_REQUIREMENT;
   }
-  return {custodyColumnsIndex, custodyColumnsLen: custodyColumns.length};
+
+  const totalNodeEffectiveBalance = validatorIndices.reduce((total, validatorIndex) => {
+    return total + state.epochCtx.effectiveBalanceIncrements[validatorIndex] * EFFECTIVE_BALANCE_INCREMENT;
+  }, 0);
+
+  const count = Math.floor(totalNodeEffectiveBalance / config.BALANCE_PER_ADDITIONAL_CUSTODY_GROUP);
+  return Math.min(Math.max(count, config.VALIDATOR_CUSTODY_REQUIREMENT), NUMBER_OF_CUSTODY_GROUPS);
 }
 
 /**

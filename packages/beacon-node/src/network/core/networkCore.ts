@@ -158,7 +158,8 @@ export class NetworkCore implements INetworkCore {
     const onMetadataSetValue = function onMetadataSetValue(key: string, value: Uint8Array): void {
       discv5?.setEnrValue(key, value).catch((e) => logger.error("error on setEnrValue", {key}, e));
     };
-    const metadata = new MetadataController({}, {config, onSetValue: onMetadataSetValue});
+    const networkConfig = new NetworkConfig(peerId, config);
+    const metadata = new MetadataController({}, {networkConfig, onSetValue: onMetadataSetValue});
 
     const reqResp = new ReqRespBeaconNode(
       {
@@ -197,8 +198,16 @@ export class NetworkCore implements INetworkCore {
     // should be called before AttnetsService constructor so that node subscribe to deterministic attnet topics
     await gossip.start();
 
-    const networkConfig = new NetworkConfig(peerId, config);
-    const attnetsService = new AttnetsService(config, clock, gossip, metadata, logger, metrics, networkConfig.getNodeId(), opts);
+    const attnetsService = new AttnetsService(
+      config,
+      clock,
+      gossip,
+      metadata,
+      logger,
+      metrics,
+      networkConfig.getNodeId(),
+      opts
+    );
     const syncnetsService = new SyncnetsService(config, clock, gossip, metadata, logger, metrics, opts);
 
     const peerManager = await PeerManager.init(
@@ -348,6 +357,15 @@ export class NetworkCore implements INetworkCore {
   async publishGossip(topic: string, data: Uint8Array, opts?: PublishOpts | undefined): Promise<number> {
     const {recipients} = await this.gossip.publish(topic, data, opts);
     return recipients.length;
+  }
+
+  async setTargetGroupCount(count: number): Promise<void> {
+    this.networkConfig.setTargetGroupCount(count);
+  }
+
+  async setAdvertisedGroupCount(count: number): Promise<void> {
+    this.networkConfig.setAdvertisedGroupCount(count);
+    this.metadata.cgc = count;
   }
 
   // REST API queries
