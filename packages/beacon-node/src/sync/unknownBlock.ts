@@ -716,6 +716,7 @@ export class UnknownBlockSync {
             metrics: this.metrics,
             logger: this.logger,
             executionEngine: this.chain.executionEngine,
+            emitter: this.chain.emitter,
             blockInputsRetryTrackerCache: this.blockInputsRetryTrackerCache,
             engineGetBlobsCache: this.engineGetBlobsCache,
           }
