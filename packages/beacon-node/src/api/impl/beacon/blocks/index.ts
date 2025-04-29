@@ -87,7 +87,9 @@ export function getBeaconBlockApi({
       const fork = config.getForkName(signedBlock.message.slot);
       let blockData: BlockInputAvailableData;
       if (isForkPostFulu(fork)) {
-        dataColumnSidecars = computeDataColumnSidecars(config, signedBlock, signedBlockOrContents);
+        const cachedContents = chain.getContents(signedBlock.message as deneb.BeaconBlock);
+
+        dataColumnSidecars = computeDataColumnSidecars(config, signedBlock, cachedContents ?? signedBlockOrContents);
         blockData = {
           fork,
           dataColumnsLen: dataColumnSidecars.length,
