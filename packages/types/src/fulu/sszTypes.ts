@@ -23,7 +23,7 @@ export const Blob = denebSsz.Blob;
 export const Metadata = new ContainerType(
   {
     ...altariSsz.Metadata.fields,
-    cgc: UintNum64,
+    custodyGroupCount: UintNum64,
   },
   {typeName: "Metadata", jsonCase: "eth2"}
 );
