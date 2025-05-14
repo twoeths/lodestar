@@ -24,7 +24,7 @@ describe("network / gossip / topic", () => {
     [GossipType.data_column_sidecar]: [
       {
         topic: {type: GossipType.data_column_sidecar, subnet: 1, fork: ForkName.fulu, encoding},
-        topicStr: "/eth2/9eb2e7f0/data_column_sidecar_1/ssz_snappy",
+        topicStr: "/eth2/0570c363/data_column_sidecar_1/ssz_snappy",
       },
     ],
     [GossipType.beacon_aggregate_and_proof]: [
