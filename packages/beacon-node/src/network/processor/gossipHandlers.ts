@@ -348,7 +348,9 @@ function getSequentialHandlers(modules: ValidatorFnsModules, options: GossipHand
       events.emit(NetworkEvent.unknownBlockInput, {blockInput, peer: peerIdStr});
     } else if (blockInput.type === BlockInputType.availableData) {
       metrics?.blockInputFetchStats.totalDataAvailableBlockInputs.inc();
-      metrics?.blockInputFetchStats.totalDataAvailableBlockInputBlobs.inc((blockInput.block.message as deneb.BeaconBlock).body.blobKzgCommitments.length);
+      metrics?.blockInputFetchStats.totalDataAvailableBlockInputBlobs.inc(
+        (blockInput.block.message as deneb.BeaconBlock).body.blobKzgCommitments.length
+      );
     }
 
     chain

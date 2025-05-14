@@ -119,13 +119,20 @@ describe("prioritizePeers", () => {
         return {connectedPeers, attnets, syncnets, samplingGroups: []};
       },
       fn: ({connectedPeers, attnets, syncnets, samplingGroups}) => {
-        prioritizePeers(connectedPeers, attnets, syncnets, samplingGroups, {
-          ...defaultNetworkOptions,
-          status: ssz.phase0.Status.defaultValue(),
-          starved: false,
-          starvationPruneRatio: 0.05,
-          starvationThresholdSlots: SLOTS_PER_EPOCH * 2,
-        }, null);
+        prioritizePeers(
+          connectedPeers,
+          attnets,
+          syncnets,
+          samplingGroups,
+          {
+            ...defaultNetworkOptions,
+            status: ssz.phase0.Status.defaultValue(),
+            starved: false,
+            starvationPruneRatio: 0.05,
+            starvationThresholdSlots: SLOTS_PER_EPOCH * 2,
+          },
+          null
+        );
       },
     });
   }
