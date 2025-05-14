@@ -1,4 +1,4 @@
-import crypto from "node:crypto";
+import {generateKeyPair} from "@libp2p/crypto/keys";
 import path from "node:path";
 import {toHexString} from "@chainsafe/ssz";
 import {createBeaconConfig} from "@lodestar/config";
@@ -110,7 +110,7 @@ const forkChoiceTest =
             proposerBoostReorg: true,
           },
           {
-            nodeId: Buffer.alloc(32, crypto.randomBytes(32)),
+            privateKey: await generateKeyPair("secp256k1"),
             config: createBeaconConfig(config, state.genesisValidatorsRoot),
             db: getMockedBeaconDb(),
             dataDir: ".",
@@ -119,6 +119,7 @@ const forkChoiceTest =
             processShutdownCallback: () => {},
             clock,
             metrics: null,
+            validatorMonitor: null,
             anchorState,
             eth1,
             executionEngine,

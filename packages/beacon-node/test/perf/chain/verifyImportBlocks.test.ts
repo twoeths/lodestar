@@ -1,4 +1,4 @@
-import crypto from "node:crypto";
+import {generateKeyPair} from "@libp2p/crypto/keys";
 import {afterAll, beforeAll, bench, describe, setBenchOpts} from "@chainsafe/benchmark";
 import {config} from "@lodestar/config/default";
 import {LevelDbController} from "@lodestar/db";
@@ -89,7 +89,7 @@ describe.skip("verify+import blocks - range sync perf test", () => {
           archiveMode: ArchiveMode.Frequency,
         },
         {
-          nodeId: Buffer.alloc(32, crypto.randomBytes(32)),
+          privateKey: await generateKeyPair("secp256k1"),
           config: state.config,
           db,
           dataDir: ".",
@@ -97,6 +97,7 @@ describe.skip("verify+import blocks - range sync perf test", () => {
           logger,
           processShutdownCallback: () => {},
           metrics: null,
+          validatorMonitor: null,
           anchorState: state,
           eth1: new Eth1ForBlockProductionDisabled(),
           executionEngine: new ExecutionEngineDisabled(),

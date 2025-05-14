@@ -1,4 +1,4 @@
-import crypto from "node:crypto";
+import {generateKeyPair} from "@libp2p/crypto/keys";
 import {afterAll, beforeAll, bench, describe} from "@chainsafe/benchmark";
 import {fromHexString} from "@chainsafe/ssz";
 import {config} from "@lodestar/config/default";
@@ -40,7 +40,7 @@ describe("produceBlockBody", () => {
         archiveMode: ArchiveMode.Frequency,
       },
       {
-        nodeId: Buffer.alloc(32, crypto.randomBytes(32)),
+        privateKey: await generateKeyPair("secp256k1"),
         config: state.config,
         db,
         dataDir: ".",
@@ -48,6 +48,7 @@ describe("produceBlockBody", () => {
         logger,
         processShutdownCallback: () => {},
         metrics: null,
+        validatorMonitor: null,
         anchorState: state,
         eth1: new Eth1ForBlockProductionDisabled(),
         executionEngine: new ExecutionEngineDisabled(),

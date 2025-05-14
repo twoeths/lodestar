@@ -1,8 +1,8 @@
 import type {ChainForkConfig} from "@lodestar/config";
-import type {DataAvailabilityStatus, MaybeValidExecutionStatus} from "@lodestar/fork-choice";
+import {MaybeValidExecutionStatus} from "@lodestar/fork-choice";
 import {type ForkPostDeneb, ForkPostFulu, ForkPreFulu, ForkSeq} from "@lodestar/params";
-import {type CachedBeaconStateAllForks, computeEpochAtSlot} from "@lodestar/state-transition";
 import type {ColumnIndex, RootHex, SignedBeaconBlock, Slot, deneb, fulu} from "@lodestar/types";
+import {CachedBeaconStateAllForks, DataAvailabilityStatus, computeEpochAtSlot} from "@lodestar/state-transition";
 
 export enum BlockInputType {
   // preData is preDeneb

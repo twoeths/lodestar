@@ -3,10 +3,6 @@ import {BeaconConfig} from "@lodestar/config";
 import {ForkName, ForkPostAltair, isForkPostAltair} from "@lodestar/params";
 import {Protocol, ProtocolHandler, ReqRespRequest} from "@lodestar/reqresp";
 import {
-  LightClientBootstrap,
-  LightClientFinalityUpdate,
-  LightClientOptimisticUpdate,
-  LightClientUpdate,
   Metadata,
   Root,
   SignedBeaconBlock,
