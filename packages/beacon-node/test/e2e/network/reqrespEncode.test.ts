@@ -37,7 +37,7 @@ describe("reqresp encoder", () => {
     }
   });
 
-  async function getLibp2p(privateKey: PrivateKey) {
+  async function getLibp2p(privateKey?: PrivateKey) {
     const listen = `/ip4/127.0.0.1/tcp/${port++}`;
     const libp2p = await createLibp2p({
       privateKey,
@@ -114,7 +114,8 @@ describe("reqresp encoder", () => {
     reqresp["metadataController"].attnets.set(8, true);
     reqresp["metadataController"].syncnets.set(1, true);
 
-    const {libp2p: dialer} = await getLibp2p();
+    const privateKey = await generateKeyPair("secp256k1");
+    const {libp2p: dialer} = await getLibp2p(privateKey);
     await dialProtocol({
       dialer,
       toMultiaddr: serverMultiaddr,
