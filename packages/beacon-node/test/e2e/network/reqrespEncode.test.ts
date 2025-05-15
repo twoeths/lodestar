@@ -1,6 +1,8 @@
 import {noise} from "@chainsafe/libp2p-noise";
 import {generateKeyPair} from "@libp2p/crypto/keys";
+import {PrivateKey} from "@libp2p/interface";
 import {mplex} from "@libp2p/mplex";
+import {peerIdFromPrivateKey} from "@libp2p/peer-id";
 import {tcp} from "@libp2p/tcp";
 import {createBeaconConfig} from "@lodestar/config";
 import {ForkName} from "@lodestar/params";
@@ -23,8 +25,6 @@ import {PeersData} from "../../../src/network/peers/peersData.js";
 import {GetReqRespHandlerFn} from "../../../src/network/reqresp/types.js";
 import {LocalStatusCache} from "../../../src/network/statusCache.js";
 import {testLogger} from "../../utils/logger.js";
-import { peerIdFromPrivateKey } from "@libp2p/peer-id";
-import { PrivateKey } from "@libp2p/interface";
 
 describe("reqresp encoder", () => {
   let port = 60000;
@@ -53,7 +53,7 @@ describe("reqresp encoder", () => {
   }
 
   async function getReqResp(getHandler?: GetReqRespHandlerFn) {
-    const privateKey = await generateKeyPair('secp256k1');
+    const privateKey = await generateKeyPair("secp256k1");
     const {libp2p, multiaddr} = await getLibp2p(privateKey);
 
     const getHandlerNoop: GetReqRespHandlerFn = () =>
