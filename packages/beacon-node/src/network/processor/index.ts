@@ -113,10 +113,6 @@ export enum ReprocessRejectReason {
  */
 export enum CannotAcceptWorkReason {
   /**
-   * Validating or processing gossip block at current slot.
-   */
-  processingCurrentSlotBlock = "processing_current_slot_block",
-  /**
    * bls is busy.
    */
   bls = "bls_busy",
@@ -160,7 +156,6 @@ export class NetworkProcessor {
   // to be stored in this Map and reprocessed once the block comes
   private readonly awaitingGossipsubMessagesByRootBySlot: MapDef<Slot, MapDef<RootHex, Set<PendingGossipsubMessage>>>;
   private unknownBlockGossipsubMessagesCount = 0;
-  private isProcessingCurrentSlotBlock = false;
   private unknownRootsBySlot = new MapDef<Slot, Set<RootHex>>(() => new Set());
 
   constructor(
@@ -269,15 +264,6 @@ export class NetworkProcessor {
           });
           return;
         }
-        if (
-          slot === clockSlot &&
-          (topicType === GossipType.beacon_block ||
-            topicType === GossipType.blob_sidecar ||
-            topicType === GossipType.data_column_sidecar)
-        ) {
-          // in the worse case if the current slot block is not valid, this will be reset in the next slot
-          this.isProcessingCurrentSlotBlock = true;
-        }
         message.msgSlot = slot;
         // check if we processed a block with this root
         // no need to check if root is a descendant of the current finalized block, it will be checked once we validate the message if needed
@@ -324,7 +310,6 @@ export class NetworkProcessor {
     block: string;
     executionOptimistic: boolean;
   }): Promise<void> {
-    this.isProcessingCurrentSlotBlock = false;
     const byRootGossipsubMessages = this.awaitingGossipsubMessagesByRootBySlot.getOrDefault(slot);
     const waitingGossipsubMessages = byRootGossipsubMessages.getOrDefault(rootHex);
     if (waitingGossipsubMessages.size === 0) {
@@ -351,7 +336,6 @@ export class NetworkProcessor {
   }
 
   private onClockSlot(clockSlot: Slot): void {
-    this.isProcessingCurrentSlotBlock = false;
     const nowSec = Date.now() / 1000;
     for (const [slot, gossipMessagesByRoot] of this.awaitingGossipsubMessagesByRootBySlot.entries()) {
       if (slot < clockSlot) {
@@ -498,10 +482,6 @@ export class NetworkProcessor {
    * Return null if chain can accept work, otherwise return the reason why it cannot accept work
    */
   private checkAcceptWork(): null | CannotAcceptWorkReason {
-    if (this.isProcessingCurrentSlotBlock) {
-      return CannotAcceptWorkReason.processingCurrentSlotBlock;
-    }
-
     if (!this.chain.blsThreadPoolCanAcceptWork()) {
       return CannotAcceptWorkReason.bls;
     }
