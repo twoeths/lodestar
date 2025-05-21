@@ -111,8 +111,10 @@ describe("block archiver task", () => {
 
     const currentEpoch = 2;
 
-    vi.spyOn(forkChoiceStub, "getAllAncestorBlocks").mockReturnValue(canonicalBlocks);
-    vi.spyOn(forkChoiceStub, "getAllNonAncestorBlocks").mockReturnValue(nonCanonicalBlocks);
+    vi.spyOn(forkChoiceStub, "getAllAncestorAndNonAncestorBlocks").mockReturnValue({
+      ancestors: canonicalBlocks,
+      nonAncestors: nonCanonicalBlocks,
+    });
 
     await archiveBlocks(
       config,
