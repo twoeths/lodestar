@@ -922,10 +922,52 @@ export function createLodestarMetrics(
         help: "Total number of InsertOutcome as a result of adding a SyncCommitteeMessage to pool",
         labelNames: ["insertOutcome"],
       }),
-      syncContributionAndProofPoolSize: register.gauge({
-        name: "lodestar_oppool_sync_contribution_and_proof_pool_pool_size",
-        help: "Current size of the SyncContributionAndProofPool unique by slot subnet and block root",
-      }),
+      syncContributionAndProofPool: {
+        size: register.gauge({
+          name: "lodestar_oppool_sync_contribution_and_proof_pool_size",
+          help: "Current size of the SyncContributionAndProofPool unique by slot subnet and block root",
+        }),
+        gossipInsertOutcome: register.counter<{insertOutcome: InsertOutcome}>({
+          name: "lodestar_oppool_sync_contribution_and_proof_pool_gossip_insert_outcome_total",
+          help: "Total number of InsertOutcome as a result of adding a ContributionAndProof from gossip into the pool",
+          labelNames: ["insertOutcome"],
+        }),
+        apiInsertOutcome: register.counter<{insertOutcome: InsertOutcome}>({
+          name: "lodestar_oppool_sync_contribution_and_proof_pool_api_insert_outcome_total",
+          help: "Total number of InsertOutcome as a result of adding a ContributionAndProof from api into the pool",
+          labelNames: ["insertOutcome"],
+        }),
+        blockRootsPerSlot: register.gauge({
+          name: "lodestar_oppool_sync_contribution_and_proof_pool_block_roots_per_slot_total",
+          help: "Total number of block roots per slot in SyncContributionAndProofPool",
+        }),
+        subnetsByBlockRoot: register.gauge<{index: number}>({
+          name: "lodestar_oppool_sync_contribution_and_proof_pool_subnets_by_block_root_total",
+          help: "Total number of subnets per block root in SyncContributionAndProofPool",
+          labelNames: ["index"],
+        }),
+        participantsByBlockRoot: register.gauge<{index: number}>({
+          name: "lodestar_oppool_sync_contribution_and_proof_pool_participants_by_block_root_total",
+          help: "Total number of participants per block root in SyncContributionAndProofPool",
+          labelNames: ["index"],
+        }),
+        getAggregateRoots: register.gauge({
+          name: "lodestar_oppool_sync_contribution_and_proof_pool_get_aggregate_roots_total",
+          help: "Total number of block roots in SyncContributionAndProofPool.getAggregate(slot)",
+        }),
+        getAggregateSubnets: register.gauge({
+          name: "lodestar_oppool_sync_contribution_and_proof_pool_get_aggregate_subnets_total",
+          help: "Total number of subnets in SyncContributionAndProofPool.getAggregate(slot, root)",
+        }),
+        getAggregateParticipants: register.gauge({
+          name: "lodestar_oppool_sync_contribution_and_proof_pool_get_aggregate_participants_total",
+          help: "Total number of participants in SyncContributionAndProofPool.getAggregate(slot, root)",
+        }),
+        getAggregateReturnsEmpty: register.gauge({
+          name: "lodestar_oppool_sync_contribution_and_proof_pool_get_aggregate_returns_empty_total",
+          help: "Total number of empty returns in SyncContributionAndProofPool.getAggregate(slot, root)",
+        }),
+      },
     },
 
     chain: {
