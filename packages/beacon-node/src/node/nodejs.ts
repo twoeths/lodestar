@@ -161,7 +161,7 @@ export class BeaconNode {
     metricsRegistries = [],
   }: BeaconNodeInitModules): Promise<T> {
     if (hasher.name !== "hashtree") {
-      throw Error(`Loaded incorrect hasher ${hasher.name}, expected hashtree`);
+      logger.warn(`hashtree is not supported, using hasher ${hasher.name}`);
     }
 
     const controller = new AbortController();
@@ -192,7 +192,7 @@ export class BeaconNode {
     const validatorMonitor =
       opts.metrics.enabled || opts.validatorMonitor.validatorMonitorLogs
         ? createValidatorMonitor(
-            metrics,
+            metrics?.register ?? null,
             config,
             anchorState.genesisTime,
             logger.child({module: LoggerModule.vmon}),

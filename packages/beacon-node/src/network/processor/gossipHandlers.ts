@@ -260,7 +260,9 @@ function getSequentialHandlers(modules: ValidatorFnsModules, options: GossipHand
 
     // Handler - MUST NOT `await`, to allow validation result to be propagated
 
-    chain.validatorMonitor?.registerBeaconBlock(OpSource.gossip, seenTimestampSec, signedBlock.message);
+    const delaySec = seenTimestampSec - (chain.genesisTime + signedBlock.message.slot * config.SECONDS_PER_SLOT);
+    metrics?.gossipBlock.elapsedTimeTillReceived.observe({source: OpSource.gossip}, delaySec);
+    chain.validatorMonitor?.registerBeaconBlock(OpSource.gossip, delaySec, signedBlock.message);
     // if blobs are not yet fully available start an aggressive blob pull
     if (blockInput.type === BlockInputType.dataPromise) {
       events.emit(NetworkEvent.unknownBlockInput, {blockInput, peer: peerIdStr});
@@ -535,9 +537,12 @@ function getSequentialHandlers(modules: ValidatorFnsModules, options: GossipHand
         contributionAndProof.message,
         syncCommitteeParticipantIndices
       );
-
       try {
-        chain.syncContributionAndProofPool.add(contributionAndProof.message, syncCommitteeParticipantIndices.length);
+        const insertOutcome = chain.syncContributionAndProofPool.add(
+          contributionAndProof.message,
+          syncCommitteeParticipantIndices.length
+        );
+        metrics?.opPool.syncContributionAndProofPool.gossipInsertOutcome.inc({insertOutcome});
       } catch (e) {
         logger.error("Error adding to contributionAndProof pool", {}, e as Error);
       }

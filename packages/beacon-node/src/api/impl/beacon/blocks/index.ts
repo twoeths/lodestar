@@ -35,6 +35,7 @@ import {computeBlobSidecars} from "../../../../util/blobs.js";
 import {isOptimisticBlock} from "../../../../util/forkChoice.js";
 import {promiseAllMaybeAsync} from "../../../../util/promises.js";
 import {ApiModules} from "../../types.js";
+import {assertUniqueItems} from "../../utils.js";
 import {getBlockResponse, toBeaconHeaderResponse} from "./utils.js";
 
 type PublishBlockOpts = ImportBlockOpts;
@@ -53,6 +54,7 @@ const IDENTITY_PEER_ID = ""; // TODO: Compute identity keypair
 export function getBeaconBlockApi({
   chain,
   config,
+  metrics,
   network,
   db,
 }: Pick<
@@ -201,7 +203,11 @@ export function getBeaconBlockApi({
     chain.emitter.emit(routes.events.EventType.blockGossip, {slot, block: blockRoot});
 
     // TODO: Validate block
-    chain.validatorMonitor?.registerBeaconBlock(OpSource.api, seenTimestampSec, blockForImport.block.message);
+    const delaySec =
+      seenTimestampSec - (chain.genesisTime + blockForImport.block.message.slot * config.SECONDS_PER_SLOT);
+    metrics?.gossipBlock.elapsedTimeTillReceived.observe({source: OpSource.api}, delaySec);
+    chain.validatorMonitor?.registerBeaconBlock(OpSource.api, delaySec, blockForImport.block.message);
+
     chain.logger.info("Publishing block", valLogMeta);
     const publishPromises = [
       // Send the block, regardless of whether or not it is valid. The API
@@ -478,6 +484,8 @@ export function getBeaconBlockApi({
     },
 
     async getBlobSidecars({blockId, indices}) {
+      assertUniqueItems(indices, "Duplicate indices provided");
+
       const {block, executionOptimistic, finalized} = await getBlockResponse(chain, blockId);
       const blockRoot = config.getForkTypes(block.message.slot).BeaconBlock.hashTreeRoot(block.message);
 
