@@ -79,6 +79,7 @@ export type BlockAttributes = {
   graffiti: Bytes32;
   slot: Slot;
   parentBlockRoot: Root;
+  parentSlot: Slot;
   feeRecipient?: string;
 };
 
@@ -107,7 +108,6 @@ export async function produceBlockBody<T extends BlockType>(
   blockType: T,
   currentState: CachedBeaconStateAllForks,
   blockAttr: BlockAttributes & {
-    parentSlot: Slot;
     proposerIndex: ValidatorIndex;
     proposerPubKey: BLSPubkey;
     commonBlockBody?: CommonBlockBody;

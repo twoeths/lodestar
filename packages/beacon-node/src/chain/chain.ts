@@ -670,10 +670,7 @@ export class BeaconChain implements IBeaconChain {
     // TODO: To avoid breaking changes for metric define this attribute
     const blockType = BlockType.Full;
 
-    return produceCommonBlockBody.call(this, blockType, state, {
-      ...blockAttributes,
-      parentSlot: slot - 1,
-    });
+    return produceCommonBlockBody.call(this, blockType, state, blockAttributes);
   }
 
   produceBlock(blockAttributes: BlockAttributes & {commonBlockBody?: CommonBlockBody}): Promise<{
@@ -702,6 +699,7 @@ export class BeaconChain implements IBeaconChain {
       feeRecipient,
       commonBlockBody,
       parentBlockRoot,
+      parentSlot,
     }: BlockAttributes & {commonBlockBody?: CommonBlockBody}
   ): Promise<{
     block: AssembledBlockType<T>;
@@ -727,7 +725,7 @@ export class BeaconChain implements IBeaconChain {
         graffiti,
         slot,
         feeRecipient,
-        parentSlot: slot - 1,
+        parentSlot,
         parentBlockRoot,
         proposerIndex,
         proposerPubKey,
