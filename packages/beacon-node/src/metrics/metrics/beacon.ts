@@ -56,6 +56,21 @@ export function createBeaconMetrics(register: RegistryMetricCreator) {
       help: "number of validators in current epoch",
     }),
 
+    pendingDeposits: register.gauge({
+      name: "beacon_pending_deposits",
+      help: "Current number of pending deposits",
+    }),
+
+    pendingConsolidations: register.gauge({
+      name: "beacon_pending_consolidations",
+      help: "Current number of pending consolidations",
+    }),
+
+    pendingPartialWithdrawals: register.gauge({
+      name: "beacon_pending_partial_withdrawals",
+      help: "Current number of pending partial withdrawals",
+    }),
+
     // Non-spec'ed
 
     forkChoice: {
