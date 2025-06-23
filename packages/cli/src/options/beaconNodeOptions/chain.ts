@@ -14,6 +14,7 @@ export type ChainArgs = {
   // No need to define chain.persistInvalidSszObjects as part of ChainArgs
   // as this is defined as part of BeaconPaths
   // "chain.persistInvalidSszObjectsDir": string;
+  "chain.persistOrphanedBlocks"?: boolean;
   "chain.proposerBoost"?: boolean;
   "chain.proposerBoostReorg"?: boolean;
   "chain.disableImportExecutionFcU"?: boolean;
@@ -50,6 +51,9 @@ export function parseArgs(args: ChainArgs): IBeaconNodeOptions["chain"] {
     persistInvalidSszObjects: args["chain.persistInvalidSszObjects"],
     // biome-ignore lint/suspicious/noExplicitAny: <explanation>
     persistInvalidSszObjectsDir: undefined as any,
+    persistOrphanedBlocks: args["chain.persistOrphanedBlocks"],
+    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+    persistOrphanedBlocksDir: undefined as any,
     proposerBoost: args["chain.proposerBoost"],
     proposerBoostReorg: args["chain.proposerBoostReorg"],
     disableImportExecutionFcU: args["chain.disableImportExecutionFcU"],
@@ -151,6 +155,13 @@ Will double processing times. Use only for debugging purposes.",
     hidden: true,
     type: "boolean",
     description: "Persist invalid ssz objects or not for debugging purpose",
+    group: "chain",
+  },
+
+  "chain.persistOrphanedBlocks": {
+    hidden: true,
+    type: "boolean",
+    description: "Whether to persist orphaned blocks",
     group: "chain",
   },
 
