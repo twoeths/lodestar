@@ -1,4 +1,3 @@
-import * as path from "node:path";
 import {ArchiveMode, DEFAULT_ARCHIVE_MODE, IBeaconNodeOptions, defaultOptions} from "@lodestar/beacon-node";
 import {CliCommandOptions} from "@lodestar/utils";
 import {ensure0xPrefix} from "../../util/format.js";
@@ -23,7 +22,6 @@ export type ChainArgs = {
   "chain.computeUnrealized"?: boolean;
   "chain.assertCorrectProgressiveBalances"?: boolean;
   "chain.maxSkipSlots"?: number;
-  "chain.trustedSetup"?: string;
   "safe-slots-to-import-optimistically": number;
   emitPayloadAttributes?: boolean;
   broadcastValidationStrictness?: string;
@@ -60,7 +58,6 @@ export function parseArgs(args: ChainArgs): IBeaconNodeOptions["chain"] {
     computeUnrealized: args["chain.computeUnrealized"],
     assertCorrectProgressiveBalances: args["chain.assertCorrectProgressiveBalances"],
     maxSkipSlots: args["chain.maxSkipSlots"],
-    trustedSetup: args["chain.trustedSetup"],
     safeSlotsToImportOptimistically: args["safe-slots-to-import-optimistically"],
     emitPayloadAttributes: args.emitPayloadAttributes,
     broadcastValidationStrictness: args.broadcastValidationStrictness,
@@ -208,14 +205,6 @@ Will double processing times. Use only for debugging purposes.",
     type: "number",
     description: "Refuse to skip more than this many slots when processing a block or attestation",
     group: "chain",
-  },
-
-  "chain.trustedSetup": {
-    hidden: true,
-    type: "string",
-    description: "Use a customized trustedSetup to verify blobSidecars",
-    group: "chain",
-    coerce: (arg: string) => (arg ? path.resolve(arg) : undefined),
   },
 
   "chain.assertCorrectProgressiveBalances": {
