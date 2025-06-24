@@ -57,7 +57,7 @@ export async function beaconBlocksMaybeBlobsByRoot(
 
   const sampledColumns = network.custodyConfig.sampledColumns;
   const neededColumns = partialDownload ? partialDownload.pendingDataColumns : sampledColumns;
-  const peerColumns = network.getConnectedPeerCustody(peerId);
+  const {custodyGroups: peerColumns} = network.getConnectedPeerSyncMeta(peerId);
 
   // get match
   const columns = peerColumns.reduce((acc, elem) => {
@@ -589,7 +589,7 @@ export async function unavailableBeaconBlobsByRootPostFulu(
   );
 
   if (!gotColumnsFromExecution) {
-    const peerColumns = network.getConnectedPeerCustody(peerId);
+    const {custodyGroups: peerColumns} = network.getConnectedPeerSyncMeta(peerId);
 
     // get match
     const columns = peerColumns.reduce((acc, elem) => {

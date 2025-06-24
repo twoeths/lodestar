@@ -6,7 +6,7 @@ import {routes} from "@lodestar/api";
 import {BeaconConfig} from "@lodestar/config";
 import type {LoggerNode} from "@lodestar/logger/node";
 import {ResponseIncoming} from "@lodestar/reqresp";
-import {Epoch, phase0, ssz, sszTypesFor} from "@lodestar/types";
+import {Epoch, Status, sszTypesFor} from "@lodestar/types";
 import {multiaddr} from "@multiformats/multiaddr";
 import {formatNodePeer} from "../../api/impl/node/utils.js";
 import {RegistryMetricCreator} from "../../metrics/index.js";
@@ -63,7 +63,7 @@ export type BaseNetworkInit = {
   events: NetworkEventBus;
   getReqRespHandler: GetReqRespHandlerFn;
   activeValidatorCount: number;
-  initialStatus: phase0.Status;
+  initialStatus: Status;
 };
 
 /**
@@ -299,12 +299,14 @@ export class NetworkCore implements INetworkCore {
       .join("\n\n");
   }
 
-  async updateStatus(status: phase0.Status): Promise<void> {
+  async updateStatus(status: Status): Promise<void> {
     this.statusCache.update(status);
   }
+
   async reportPeer(peer: PeerIdStr, action: PeerAction, actionName: string): Promise<void> {
     this.peerManager.reportPeer(peerIdFromString(peer), action, actionName);
   }
+
   async reStatusPeers(peers: PeerIdStr[]): Promise<void> {
     this.peerManager.reStatusPeers(peers);
   }
@@ -352,6 +354,7 @@ export class NetworkCore implements INetworkCore {
     const peerId = peerIdFromString(data.peerId);
     return this.reqResp.sendRequestWithoutEncoding(peerId, data.method, data.versions, data.requestData);
   }
+
   async publishGossip(topic: string, data: Uint8Array, opts?: PublishOpts | undefined): Promise<number> {
     const {recipients} = await this.gossip.publish(topic, data, opts);
     return recipients.length;
@@ -418,8 +421,8 @@ export class NetworkCore implements INetworkCore {
     const fork = this.config.getForkName(this.clock.currentSlot);
     return {
       ...formatNodePeer(peerIdStr, connections),
+      status: peerData?.status ? sszTypesFor(fork).Status.toJson(peerData.status) : null,
       agentVersion: peerData?.agentVersion ?? "NA",
-      status: peerData?.status ? ssz.phase0.Status.toJson(peerData.status) : null,
       metadata: peerData?.metadata ? sszTypesFor(fork).Metadata.toJson(peerData.metadata) : null,
       agentClient: String(peerData?.agentClient ?? "Unknown"),
       lastReceivedMsgUnixTsMs: peerData?.lastReceivedMsgUnixTsMs ?? 0,
