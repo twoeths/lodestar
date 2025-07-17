@@ -1,6 +1,6 @@
 import {PeerId} from "@libp2p/interface";
-import {BeaconConfig} from "@lodestar/config";
-import {ForkName, ForkSeq} from "@lodestar/params";
+import {BeaconConfig, ForkBoundary} from "@lodestar/config";
+import {ForkName, ForkSeq, GENESIS_EPOCH} from "@lodestar/params";
 import {
   Encoding,
   ProtocolDescriptor,
@@ -12,12 +12,12 @@ import {
   ResponseIncoming,
   ResponseOutgoing,
 } from "@lodestar/reqresp";
-import {Metadata, Status, fulu, phase0, ssz, sszTypesFor} from "@lodestar/types";
+import {computeEpochAtSlot} from "@lodestar/state-transition";
+import {Metadata, Status, phase0, ssz, sszTypesFor} from "@lodestar/types";
 import {Logger} from "@lodestar/utils";
 import {Libp2p} from "libp2p";
 import {callInNextEventLoop} from "../../util/eventLoop.js";
 import {NetworkCoreMetrics} from "../core/metrics.js";
-import {SubscribeBoundary} from "../core/types.js";
 import {INetworkEventBus, NetworkEvent} from "../events.js";
 import {MetadataController} from "../metadata.js";
 import {PeersData} from "../peers/peersData.js";
@@ -120,7 +120,7 @@ export class ReqRespBeaconNode extends ReqResp {
   // pruneOnPeerDisconnect(peerId: PeerId): void {
   //   this.rateLimiter.prune(peerId);
 
-  registerProtocolsAtBoundary(boundary: SubscribeBoundary): void {
+  registerProtocolsAtBoundary(boundary: ForkBoundary): void {
     this.currentRegisteredFork = ForkSeq[boundary.fork];
 
     const mustSubscribeProtocols = this.getProtocolsAtBoundary(boundary);
@@ -227,8 +227,8 @@ export class ReqRespBeaconNode extends ReqResp {
    * Returns the list of protocols that must be subscribed during a specific fork.
    * Any protocol not in this list must be un-subscribed.
    */
-  private getProtocolsAtBoundary(boundary: SubscribeBoundary): [ProtocolNoHandler, ProtocolHandler][] {
-    const fork = boundary.fork;
+  private getProtocolsAtBoundary(boundary: ForkBoundary): [ProtocolNoHandler, ProtocolHandler][] {
+    const {fork} = boundary;
     const protocolsAtFork: [ProtocolNoHandler, ProtocolHandler][] = [
       [protocols.Ping(fork, this.config), this.onPing.bind(this)],
       [protocols.Goodbye(fork, this.config), this.onGoodbye.bind(this)],
@@ -330,8 +330,8 @@ export class ReqRespBeaconNode extends ReqResp {
 
     const status = this.statusCache.get();
     yield {
-      data: type.serialize(status as fulu.Status),
-      boundary: {fork},
+      data: type.serialize(status),
+      boundary: this.config.getForkBoundaryAtEpoch(computeEpochAtSlot(body.headSlot)),
     };
   }
 
@@ -342,7 +342,7 @@ export class ReqRespBeaconNode extends ReqResp {
     yield {
       data: ssz.phase0.Goodbye.serialize(BigInt(0)),
       // Goodbye topic is fork-agnostic
-      boundary: {fork: ForkName.phase0},
+      boundary: {fork: ForkName.phase0, epoch: GENESIS_EPOCH},
     };
   }
 
@@ -352,7 +352,7 @@ export class ReqRespBeaconNode extends ReqResp {
     yield {
       data: ssz.phase0.Ping.serialize(this.metadataController.seqNumber),
       // Ping topic is fork-agnostic
-      boundary: {fork: ForkName.phase0},
+      boundary: {fork: ForkName.phase0, epoch: GENESIS_EPOCH},
     };
   }
 
@@ -364,11 +364,12 @@ export class ReqRespBeaconNode extends ReqResp {
     // TODO(fulu): is this still correct?  there are three versions of Metadata now...
     // Metadata topic is fork-agnostic
     const fork = ForkName.phase0;
+    const epoch = GENESIS_EPOCH;
     const type = responseSszTypeByMethod[ReqRespMethod.Metadata](fork, req.version);
 
     yield {
       data: type.serialize(metadata),
-      boundary: {fork},
+      boundary: {fork, epoch},
     };
   }
 }

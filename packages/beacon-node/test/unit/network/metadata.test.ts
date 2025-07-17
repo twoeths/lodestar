@@ -7,6 +7,7 @@ import {ENRKey, MetadataController, getENRForkID} from "../../../src/network/met
 import {NetworkConfig} from "../../../src/network/networkConfig.js";
 import {serializeCgc} from "../../../src/util/metadata.js";
 import {config} from "../../utils/config.js";
+import {testLogger} from "../../utils/logger.js";
 import {getValidPeerId} from "../../utils/peer.js";
 
 describe("network / metadata", () => {
@@ -29,6 +30,8 @@ describe("network / metadata", () => {
   });
 
   describe("MetadataController", () => {
+    const logger = testLogger();
+
     it("should upstream CGC on all forks", () => {
       const onSetValue = vi.fn();
       const config = createBeaconConfig(
@@ -43,7 +46,7 @@ describe("network / metadata", () => {
         ZERO_HASH
       );
       const networkConfig = new NetworkConfig(getValidPeerId(), config);
-      const metadata = new MetadataController({}, {onSetValue, networkConfig});
+      const metadata = new MetadataController({}, {onSetValue, networkConfig, logger});
 
       metadata.upstreamValues(0);
 
@@ -53,7 +56,7 @@ describe("network / metadata", () => {
     it("should call onSetValue with the correct cgc", () => {
       const onSetValue = vi.fn();
       const networkConfig = new NetworkConfig(getValidPeerId(), config);
-      const metadata = new MetadataController({}, {onSetValue, networkConfig});
+      const metadata = new MetadataController({}, {onSetValue, networkConfig, logger});
       metadata.custodyGroupCount = 128;
       expect(onSetValue).toHaveBeenCalledWith(ENRKey.cgc, serializeCgc(128));
     });
@@ -61,7 +64,7 @@ describe("network / metadata", () => {
     it("should increment seqNumber when cgc is updated", () => {
       const onSetValue = vi.fn();
       const networkConfig = new NetworkConfig(getValidPeerId(), config);
-      const metadata = new MetadataController({}, {onSetValue, networkConfig});
+      const metadata = new MetadataController({}, {onSetValue, networkConfig, logger});
       const initialSeqNumber = metadata.seqNumber;
       metadata.custodyGroupCount = 128;
       expect(metadata.seqNumber).toBe(initialSeqNumber + 1n);
@@ -70,7 +73,7 @@ describe("network / metadata", () => {
     it("should not increment seqNumber when cgc is set to the same value", () => {
       const onSetValue = vi.fn();
       const networkConfig = new NetworkConfig(getValidPeerId(), config);
-      const metadata = new MetadataController({}, {onSetValue, networkConfig});
+      const metadata = new MetadataController({}, {onSetValue, networkConfig, logger});
       metadata.custodyGroupCount = 128;
       const initialSeqNumber = metadata.seqNumber;
       metadata.custodyGroupCount = 128;
