@@ -301,6 +301,7 @@ export function getBeaconBlockApi({
         blockForImport.blockData.fork === ForkName.fulu
       ) {
         const {dataColumns} = blockForImport.blockData;
+        metrics?.dataColumns.bySource.inc({source: DataColumnsSource.api}, dataColumns.length);
 
         for (const dataColumnSidecar of dataColumns) {
           chain.emitter.emit(routes.events.EventType.dataColumnSidecar, {

@@ -69,6 +69,7 @@ export type CachedBlobs = CachedDataItem &
 export enum DataColumnsSource {
   gossip = "gossip",
   api = "api",
+  engine = "engine",
   byRange = "req_resp_by_range",
   byRoot = "req_resp_by_root",
 }

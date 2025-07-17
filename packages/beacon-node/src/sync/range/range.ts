@@ -212,6 +212,7 @@ export class RangeSync extends (EventEmitter as {new (): RangeSyncEmitter}) {
       request,
       this.chain.clock.currentEpoch,
       partialDownload,
+      this.metrics,
       this.logger
     );
   };

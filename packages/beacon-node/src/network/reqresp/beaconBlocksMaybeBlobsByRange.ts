@@ -17,6 +17,7 @@ import {
   getBlockInputDataColumns,
 } from "../../chain/blocks/types.js";
 import {getEmptyBlockInputCacheEntry} from "../../chain/seenCache/seenGossipBlockInput.js";
+import {Metrics} from "../../metrics/index.js";
 import {PeerIdStr} from "../../util/peerId.js";
 import {INetwork, WithOptionalBytes} from "../interface.js";
 import {PeerSyncMeta} from "../peers/peersData.js";
@@ -29,6 +30,7 @@ export async function beaconBlocksMaybeBlobsByRange(
   request: phase0.BeaconBlocksByRangeRequest,
   currentEpoch: Epoch,
   partialDownload: PartialDownload,
+  metrics: Metrics | null,
   logger?: Logger
 ): Promise<{blocks: BlockInput[]; pendingDataColumns: null | number[]}> {
   const {peerId, client: peerClient, custodyGroups: peerColumns, earliestAvailableSlot} = peer;
@@ -142,6 +144,7 @@ export async function beaconBlocksMaybeBlobsByRange(
       DataColumnsSource.byRange,
       partialDownload,
       peerClient,
+      metrics,
       logger
     );
 
@@ -254,6 +257,7 @@ export function matchBlockWithDataColumns(
   dataColumnsSource: DataColumnsSource,
   prevPartialDownload: null | PartialDownload,
   peerClient: string,
+  metrics: Metrics | null,
   logger?: Logger
 ): BlockInput[] {
   const blockInputs: BlockInput[] = [];
@@ -281,6 +285,7 @@ export function matchBlockWithDataColumns(
       lastMatchedSlot = block.data.message.slot;
       dataColumnSideCarIndex++;
     }
+    metrics?.dataColumns.bySource.inc({source: DataColumnsSource.byRange}, dataColumnSidecars.length);
 
     const blobKzgCommitmentsLen = (block.data.message.body as deneb.BeaconBlockBody).blobKzgCommitments.length;
     logger?.debug("processing matchBlockWithDataColumns", {
