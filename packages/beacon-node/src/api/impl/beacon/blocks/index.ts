@@ -326,6 +326,7 @@ export function getBeaconBlockApi({
         .getPostBellatrixForkTypes(signedBlindedBlock.message.slot)
         .BlindedBeaconBlock.hashTreeRoot(signedBlindedBlock.message)
     );
+    const fork = config.getForkName(slot);
 
     // Either the payload/blobs are cached from i) engine locally or ii) they are from the builder
     //
@@ -345,19 +346,30 @@ export function getBeaconBlockApi({
     }
 
     const source = ProducedBlockSource.builder;
-    chain.logger.debug("Reconstructing  signedBlockOrContents", {slot, blockRoot, source});
 
-    const signedBlockOrContents = await reconstructBuilderBlockOrContents(chain, {
-      data: signedBlindedBlock,
-      bytes: context?.sszBytes,
-    });
+    if (isForkPostFulu(fork)) {
+      await submitBlindedBlockToBuilder(chain, {
+        data: signedBlindedBlock,
+        bytes: context?.sszBytes,
+      });
+      chain.logger.info("Submitted blinded block to builder for publishing", {slot, blockRoot});
+    } else {
+      // TODO: After fulu is live and all builders support submitBlindedBlockV2, we can safely remove
+      // this code block and related functions
+      chain.logger.debug("Reconstructing  signedBlockOrContents", {slot, blockRoot, source});
 
-    // the full block is published by relay and it's possible that the block is already known to us
-    // by gossip
-    //
-    // see: https://github.com/ChainSafe/lodestar/issues/5404
-    chain.logger.info("Publishing assembled block", {slot, blockRoot, source});
-    return publishBlock({signedBlockOrContents}, {...context, sszBytes: null}, {...opts, ignoreIfKnown: true});
+      const signedBlockOrContents = await reconstructBuilderBlockOrContents(chain, {
+        data: signedBlindedBlock,
+        bytes: context?.sszBytes,
+      });
+
+      // the full block is published by relay and it's possible that the block is already known to us
+      // by gossip
+      //
+      // see: https://github.com/ChainSafe/lodestar/issues/5404
+      chain.logger.info("Publishing assembled block", {slot, blockRoot, source});
+      return publishBlock({signedBlockOrContents}, {...context, sszBytes: null}, {...opts, ignoreIfKnown: true});
+    }
   };
 
   return {
@@ -599,4 +611,15 @@ async function reconstructBuilderBlockOrContents(
 
   const signedBlockOrContents = await executionBuilder.submitBlindedBlock(signedBlindedBlock);
   return signedBlockOrContents;
+}
+
+async function submitBlindedBlockToBuilder(
+  chain: ApiModules["chain"],
+  signedBlindedBlock: WithOptionalBytes<SignedBlindedBeaconBlock>
+): Promise<void> {
+  const executionBuilder = chain.executionBuilder;
+  if (!executionBuilder) {
+    throw Error("executionBuilder required to submit SignedBlindedBeaconBlock to builder");
+  }
+  await executionBuilder.submitBlindedBlockNoResponse(signedBlindedBlock);
 }
