@@ -279,7 +279,7 @@ export class BeaconChain implements IBeaconChain {
     this.seenContributionAndProof = new SeenContributionAndProof(metrics);
     this.seenAttestationDatas = new SeenAttestationDatas(metrics, this.opts?.attDataCacheSlotDistance);
     const nodeId = computeNodeIdFromPrivateKey(privateKey);
-    this.custodyConfig = new CustodyConfig(nodeId, config, metrics);
+    this.custodyConfig = new CustodyConfig(nodeId, config, metrics, this.opts);
     this.seenGossipBlockInput = new SeenGossipBlockInput(
       this.custodyConfig,
       this.executionEngine,
@@ -1248,7 +1248,9 @@ export class BeaconChain implements IBeaconChain {
     if (headState) {
       this.opPool.pruneAll(headBlock, headState);
 
-      if (!this.opts.noValidatorCustody) {
+      // Disable dynamic custody updates for supernodes since they must maintain custody
+      // of all custody groups regardless of validator effective balances
+      if (!this.opts.supernode) {
         // Update custody requirement based on finalized state
         const validatorIndices = this.beaconProposerCache.getValidatorIndices();
         const targetCustodyGroupCount = getValidatorsCustodyRequirement(headState, validatorIndices, this.config);
