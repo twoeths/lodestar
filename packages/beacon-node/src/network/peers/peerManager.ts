@@ -317,7 +317,7 @@ export class PeerManager {
   private onPing(peer: PeerId, seqNumber: phase0.Ping): void {
     // if the sequence number is unknown update the peer's metadata
     const metadata = this.connectedPeers.get(peer.toString())?.metadata;
-    this.logger.warn("onPing", {
+    this.logger.debug("onPing", {
       seqNumber,
       metaSeqNumber: metadata?.seqNumber,
       cond: !metadata || metadata.seqNumber < seqNumber,
@@ -334,7 +334,7 @@ export class PeerManager {
     // Store metadata always in case the peer updates attnets but not the sequence number
     // Trust that the peer always sends the latest metadata (From Lighthouse)
     const peerData = this.connectedPeers.get(peer.toString());
-    this.logger.warn("onMetadata", {
+    this.logger.debug("onMetadata", {
       peer: peer.toString(),
       peerData: peerData !== undefined,
       custodyGroupCount: (metadata as Partial<fulu.Metadata>).custodyGroupCount,
@@ -455,7 +455,7 @@ export class PeerManager {
       const hasAllColumns = matchingSubnetsNum === sampleSubnets.length;
       const clientAgent = peerData?.agentClient ?? ClientKind.Unknown;
 
-      this.logger.warn(`onStatus ${custodyGroupCount === undefined ? "undefined custody count assuming 4" : ""}`, {
+      this.logger.debug("onStatus", {
         nodeId: toHexString(nodeId),
         myNodeId: toHexString(this.nodeId),
         peerId: peer.toString(),
@@ -481,7 +481,6 @@ export class PeerManager {
   private async requestMetadata(peer: PeerId): Promise<void> {
     const peerIdStr = peer.toString();
     try {
-      this.logger.warn("requestMetadata", {peer: prettyPrintPeerIdStr(peerIdStr)});
       this.onMetadata(peer, await this.reqResp.sendMetadata(peer));
     } catch (e) {
       this.logger.verbose("invalid requestMetadata response", {peer: prettyPrintPeerIdStr(peerIdStr)}, e as Error);
@@ -492,7 +491,6 @@ export class PeerManager {
   private async requestPing(peer: PeerId): Promise<void> {
     const peerIdStr = peer.toString();
     try {
-      this.logger.warn("requestPing", {peer: peer.toString()});
       this.onPing(peer, await this.reqResp.sendPing(peer));
 
       // If peer replies a PING request also update lastReceivedMsg
