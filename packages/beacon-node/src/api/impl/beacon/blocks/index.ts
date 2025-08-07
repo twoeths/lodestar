@@ -304,9 +304,9 @@ export function getBeaconBlockApi({
         }
       } else if (
         chain.emitter.listenerCount(routes.events.EventType.dataColumnSidecar) &&
-        blockForImport.blockData.fork === ForkName.fulu
+        isForkPostFulu(blockForImport.blockData.fork)
       ) {
-        const {dataColumns} = blockForImport.blockData;
+        const {dataColumns} = blockForImport.blockData as BlockInputDataColumns;
         metrics?.dataColumns.bySource.inc({source: DataColumnsSource.api}, dataColumns.length);
 
         for (const dataColumnSidecar of dataColumns) {
