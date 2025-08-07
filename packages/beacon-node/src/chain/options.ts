@@ -41,6 +41,7 @@ export type IChainOptions = BlockProcessOpts &
     maxCachedProducedRoots?: number;
     /** Subscribe to and custody all data column sidecar subnets */
     supernode?: boolean;
+    initialCustodyGroupCount?: number;
     broadcastValidationStrictness?: string;
     minSameMessageSignatureSetsToBatch: number;
     archiveDateEpochs?: number;
