@@ -31,6 +31,7 @@ import {Metrics} from "../../metrics/index.js";
 import {PeerIdStr} from "../../util/peerId.js";
 import {INetwork} from "../interface.js";
 import {PeerSyncMeta} from "../peers/peersData.js";
+import {PeerAction} from "../peers/score/interface.js";
 
 export type PartialDownload = null | {blocks: BlockInput[]; pendingDataColumns: number[]};
 export async function beaconBlocksMaybeBlobsByRange(
@@ -255,7 +256,7 @@ export function matchBlockWithBlobs(
 }
 
 export function matchBlockWithDataColumns(
-  _network: INetwork,
+  network: INetwork,
   peerId: PeerIdStr,
   config: ChainForkConfig,
   sampledColumns: ColumnIndex[],
@@ -310,6 +311,7 @@ export function matchBlockWithDataColumns(
     });
     if (blobKzgCommitmentsLen === 0) {
       if (dataColumnSidecars.length > 0) {
+        network.reportPeer(peerId, PeerAction.LowToleranceError, "Missing or mismatching dataColumnSidecars");
         throw Error(
           `Missing or mismatching dataColumnSidecars from peerId=${peerId} for blockSlot=${block.data.message.slot} with blobKzgCommitmentsLen=0 dataColumnSidecars=${dataColumnSidecars.length}>0`
         );
@@ -348,6 +350,7 @@ export function matchBlockWithDataColumns(
             peerClient,
           }
         );
+        network.reportPeer(peerId, PeerAction.LowToleranceError, "Missing or mismatching dataColumnSidecars");
         throw Error(
           `Missing or mismatching dataColumnSidecars from peerId=${peerId} for blockSlot=${block.data.message.slot} blobKzgCommitmentsLen=${blobKzgCommitmentsLen} with numColumns=${sampledColumns.length} dataColumnSidecars=${dataColumnSidecars.length} requestedColumnsPresent=${requestedColumnsPresent} received dataColumnIndexes=${dataColumnIndexes.join(" ")} requested=${requestedColumns.join(" ")}`
         );
@@ -408,10 +411,11 @@ export function matchBlockWithDataColumns(
     // If there are no data columns, the data columns request can give 1 block outside the requested range
     allDataColumnSidecars[dataColumnSideCarIndex].signedBlockHeader.message.slot <= endSlot
   ) {
+    network.reportPeer(peerId, PeerAction.LowToleranceError, "Unmatched dataColumnSidecars");
     throw Error(
-      `Unmatched blobSidecars, blocks=${allBlocks.length}, blobs=${
+      `Unmatched dataColumnSidecars, blocks=${allBlocks.length}, blobs=${
         allDataColumnSidecars.length
-      } lastMatchedSlot=${lastMatchedSlot}, pending blobSidecars slots=${allDataColumnSidecars
+      } lastMatchedSlot=${lastMatchedSlot}, pending dataColumnSidecars slots=${allDataColumnSidecars
         .slice(dataColumnSideCarIndex)
         .map((blb) => blb.signedBlockHeader.message.slot)
         .join(" ")}`
