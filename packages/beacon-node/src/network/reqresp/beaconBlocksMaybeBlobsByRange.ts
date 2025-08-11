@@ -34,6 +34,13 @@ import {PeerSyncMeta} from "../peers/peersData.js";
 import {PeerAction} from "../peers/score/interface.js";
 
 export type PartialDownload = null | {blocks: BlockInput[]; pendingDataColumns: number[]};
+
+/**
+ * Download blocks and blobs (prefulu) or data columns (fulu) by range.
+ * returns:
+ *  - array of blocks with blobs or data columns
+ *  - pendingDataColumns: null if all data columns are present, or array of column indexes that are missing. Also null for prefulu
+ */
 export async function beaconBlocksMaybeBlobsByRange(
   config: ChainForkConfig,
   network: INetwork,
@@ -49,7 +56,7 @@ export async function beaconBlocksMaybeBlobsByRange(
   // Range sync satisfies this condition, but double check here for sanity
   const {startSlot, count} = request;
   if (count < 1) {
-    return {blocks: [], pendingDataColumns: null};
+    throw Error(`Invalid count=${count} in BeaconBlocksByRangeRequest`);
   }
   const endSlot = startSlot + count - 1;
 
@@ -66,6 +73,12 @@ export async function beaconBlocksMaybeBlobsByRange(
   // Note: Assumes all blocks in the same epoch
   if (forkSeq < ForkSeq.deneb) {
     const beaconBlocks = await network.sendBeaconBlocksByRange(peerId, request);
+    if (beaconBlocks.length === 0) {
+      throw Error(
+        `peerId=${peerId} peerClient=${peerClient} returned no blocks for BeaconBlocksByRangeRequest ${JSON.stringify(request)}`
+      );
+    }
+
     const blocks = beaconBlocks.map((block) => getBlockInput.preData(config, block.data, BlockSource.byRange));
     return {blocks, pendingDataColumns: null};
   }
@@ -79,6 +92,12 @@ export async function beaconBlocksMaybeBlobsByRange(
         network.sendBlobSidecarsByRange(peerId, request),
       ]);
 
+      if (allBlocks.length === 0) {
+        throw Error(
+          `peerId=${peerId} peerClient=${peerClient} returns no blocks allBlobSidecars=${allBlobSidecars.length} for BeaconBlocksByRangeRequest ${JSON.stringify(request)}`
+        );
+      }
+
       const blocks = matchBlockWithBlobs(
         config,
         allBlocks,
@@ -89,7 +108,8 @@ export async function beaconBlocksMaybeBlobsByRange(
       );
       return {blocks, pendingDataColumns: null};
     }
-    // get columns
+
+    // From fulu, get columns
     const sampledColumns = network.custodyConfig.sampledColumns;
     const neededColumns = partialDownload ? partialDownload.pendingDataColumns : sampledColumns;
 
@@ -142,6 +162,12 @@ export async function beaconBlocksMaybeBlobsByRange(
       prevPartialDownload: !!partialDownload,
     });
 
+    if (allBlocks.length === 0) {
+      throw Error(
+        `peerId=${peerId} peerClient=${peerClient} returns no blocks dataColumnSidecars=${allDataColumnSidecars.length} for BeaconBlocksByRangeRequest ${JSON.stringify(request)}`
+      );
+    }
+
     const blocks = matchBlockWithDataColumns(
       network,
       peerId,
@@ -174,10 +200,14 @@ export async function beaconBlocksMaybeBlobsByRange(
 
   // Data is out of range, only request blocks
   const blocks = await network.sendBeaconBlocksByRange(peerId, request);
+  if (blocks.length === 0) {
+    throw Error(
+      `peerId=${peerId} peerClient=${peerClient} returned no blocks for BeaconBlocksByRangeRequest ${JSON.stringify(request)}`
+    );
+  }
   return {
     blocks: blocks.map((block) => getBlockInput.outOfRangeData(config, block.data, BlockSource.byRange)),
-    // TODO: (@matthewkeil) this was a merge conflict when rebased on electra. Should this be a null or an empty array?  Should it
-    //       depend on which fork we are in?  Need to revisit
+    // null means all data columns are present
     pendingDataColumns: null,
   };
 }
