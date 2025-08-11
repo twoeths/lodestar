@@ -4,7 +4,7 @@ import {BeaconConfig} from "@lodestar/config";
 import {LoggerNode} from "@lodestar/logger/node";
 import {ForkSeq, SLOTS_PER_EPOCH, SYNC_COMMITTEE_SUBNET_COUNT} from "@lodestar/params";
 import {Metadata, Status, altair, fulu, phase0} from "@lodestar/types";
-import {toHex, withTimeout} from "@lodestar/utils";
+import {prettyPrintIndices, toHex, withTimeout} from "@lodestar/utils";
 import {GOODBYE_KNOWN_CODES, GoodByeReasonCode, Libp2pEvent} from "../../constants/index.js";
 import {IClock} from "../../util/clock.js";
 import {getCustodyGroups, getDataColumns} from "../../util/dataColumns.js";
@@ -437,12 +437,10 @@ export class PeerManager {
     }
     if (getConnection(this.libp2p, peer.toString())) {
       const nodeId = peerData?.nodeId ?? computeNodeId(peer);
-      const custodyGroupCount = peerData?.metadata?.custodyGroupCount;
-
-      const peerCustodyGroupCount = custodyGroupCount ?? this.config.CUSTODY_REQUIREMENT;
-      const dataColumns = getDataColumns(nodeId, peerCustodyGroupCount);
-      // on metadata, we should have custodyGroupss
-      const peerCustodyGroups = peerData?.metadata?.custodyGroups ?? getCustodyGroups(nodeId, peerCustodyGroupCount);
+      // TODO(fulu): Are we sure we've run Metadata before this?
+      const custodyGroupCount = peerData?.metadata?.custodyGroupCount ?? this.config.CUSTODY_REQUIREMENT;
+      const custodyGroups = peerData?.metadata?.custodyGroups ?? getCustodyGroups(nodeId, custodyGroupCount);
+      const dataColumns = getDataColumns(nodeId, custodyGroupCount);
 
       const sampleSubnets = this.networkConfig.custodyConfig.sampledSubnets;
       const matchingSubnetsNum = sampleSubnets.reduce((acc, elem) => acc + (dataColumns.includes(elem) ? 1 : 0), 0);
@@ -455,19 +453,18 @@ export class PeerManager {
         peerId: peer.toString(),
         custodyGroupCount,
         hasAllColumns,
-        dataColumns: dataColumns.join(" "),
+        dataColumns: prettyPrintIndices(dataColumns),
         matchingSubnetsNum,
-        peerCustodyGroups: peerCustodyGroups.join(" "),
+        custodyGroups: prettyPrintIndices(custodyGroups),
         mySampleSubnets: sampleSubnets.join(" "),
         clientAgent,
       });
 
-      // TODO @matthewkeil need to double check the dataColumns is received on the other end of this correctly
       this.networkEventBus.emit(NetworkEvent.peerConnected, {
         peer: peer.toString(),
         status,
-        dataColumns,
-        clientAgent: `${clientAgent}-cgc:${dataColumns.length}`,
+        clientAgent,
+        custodyGroups,
       });
     }
   }
