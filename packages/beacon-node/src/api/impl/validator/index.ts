@@ -3,9 +3,8 @@ import {routes} from "@lodestar/api";
 import {ApplicationMethods} from "@lodestar/api/server";
 import {ExecutionStatus} from "@lodestar/fork-choice";
 import {
+  ForkName,
   ForkPostBellatrix,
-  ForkPostDeneb,
-  ForkPreDeneb,
   ForkSeq,
   GENESIS_SLOT,
   SLOTS_PER_EPOCH,
@@ -44,7 +43,6 @@ import {
   Wei,
   bellatrix,
   getValidatorStatus,
-  isBlockContents,
   phase0,
   ssz,
 } from "@lodestar/types";
@@ -68,6 +66,7 @@ import {
 } from "../../../chain/errors/index.js";
 import {ChainEvent, CheckpointHex, CommonBlockBody} from "../../../chain/index.js";
 import {SCHEDULER_LOOKAHEAD_FACTOR} from "../../../chain/prepareNextSlot.js";
+import {BlockType, ProduceFullDeneb} from "../../../chain/produceBlock/index.js";
 import {RegenCaller} from "../../../chain/regen/index.js";
 import {validateApiAggregateAndProof} from "../../../chain/validation/index.js";
 import {validateSyncCommitteeGossipContributionAndProof} from "../../../chain/validation/syncCommitteeContributionAndProof.js";
@@ -112,17 +111,17 @@ const BLOCK_PRODUCTION_RACE_CUTOFF_MS = 2_000;
 /** Overall timeout for execution and block production apis */
 const BLOCK_PRODUCTION_RACE_TIMEOUT_MS = 12_000;
 
-type ProduceBlockOrContentsRes = {executionPayloadValue: Wei; consensusBlockValue: Wei} & (
-  | {data: BeaconBlock<ForkPreDeneb>; version: ForkPreDeneb}
-  | {data: BlockContents; version: ForkPostDeneb}
-);
+type ProduceBlockContentsRes = {executionPayloadValue: Wei; consensusBlockValue: Wei} & {
+  data: BlockContents;
+  version: ForkName;
+};
 type ProduceBlindedBlockRes = {executionPayloadValue: Wei; consensusBlockValue: Wei} & {
   data: BlindedBeaconBlock;
   version: ForkPostBellatrix;
 };
 
-type ProduceFullOrBlindedBlockOrContentsRes = {executionPayloadSource: ProducedBlockSource} & (
-  | (ProduceBlockOrContentsRes & {executionPayloadBlinded: false})
+type ProduceBlindedBlockOrBlockContentsRes = {executionPayloadSource: ProducedBlockSource} & (
+  | (ProduceBlockContentsRes & {executionPayloadBlinded: false})
   | (ProduceBlindedBlockRes & {executionPayloadBlinded: true})
 );
 
@@ -469,7 +468,7 @@ export function getValidatorApi(
     }
   }
 
-  async function produceEngineFullBlockOrContents(
+  async function produceEngineBlockContents(
     slot: Slot,
     randaoReveal: BLSSignature,
     graffiti: Bytes32,
@@ -484,7 +483,7 @@ export function getValidatorApi(
       parentBlockRoot: Root;
       parentSlot: Slot;
     }
-  ): Promise<ProduceBlockOrContentsRes & {shouldOverrideBuilder?: boolean}> {
+  ): Promise<ProduceBlockContentsRes & {shouldOverrideBuilder?: boolean}> {
     const source = ProducedBlockSource.engine;
     metrics?.blockProductionRequests.inc({source});
 
@@ -512,24 +511,36 @@ export function getValidatorApi(
       metrics?.blockProductionNumAggregated.observe({source}, block.body.attestations.length);
       metrics?.blockProductionConsensusBlockValue.observe({source}, Number(formatWeiToEth(consensusBlockValue)));
       metrics?.blockProductionExecutionPayloadValue.observe({source}, Number(formatWeiToEth(executionPayloadValue)));
+
+      const blockRoot = toRootHex(config.getForkTypes(slot).BeaconBlock.hashTreeRoot(block));
       logger.verbose("Produced execution block", {
         slot,
         executionPayloadValue,
         consensusBlockValue,
-        root: toRootHex(config.getForkTypes(slot).BeaconBlock.hashTreeRoot(block)),
+        root: blockRoot,
       });
       if (chain.opts.persistProducedBlocks) {
         void chain.persistBlock(block, "produced_engine_block");
       }
       if (isForkPostDeneb(version)) {
-        const blockHash = toRootHex((block as bellatrix.BeaconBlock).body.executionPayload.blockHash);
-        const contents = chain.producedContentsCache.get(blockHash);
-        if (contents === undefined) {
-          throw Error("contents missing in cache");
+        const produceResult = chain.blockProductionCache.get(blockRoot);
+        if (produceResult === undefined) {
+          throw Error("production result missing in cache");
         }
+        if (!isForkPostDeneb(produceResult.fork)) {
+          throw Error("production result is for pre-deneb fork");
+        }
+        if (produceResult.type !== BlockType.Full) {
+          throw Error("production result is not full block");
+        }
+        const blobsBundle = (produceResult as ProduceFullDeneb).blobsBundle;
 
         return {
-          data: {block, ...contents} as BlockContents,
+          data: {
+            block,
+            blobs: blobsBundle.blobs,
+            kzgProofs: blobsBundle.proofs,
+          },
           version,
           executionPayloadValue,
           consensusBlockValue,
@@ -537,7 +548,7 @@ export function getValidatorApi(
         };
       }
 
-      return {data: block, version, executionPayloadValue, consensusBlockValue, shouldOverrideBuilder};
+      return {data: {block}, version, executionPayloadValue, consensusBlockValue, shouldOverrideBuilder};
     } finally {
       if (timer) timer({source});
     }
@@ -551,7 +562,7 @@ export function getValidatorApi(
     _skipRandaoVerification?: boolean,
     builderBoostFactor?: bigint,
     {feeRecipient, builderSelection, strictFeeRecipientCheck}: routes.validator.ExtraProduceBlockOpts = {}
-  ): Promise<ProduceFullOrBlindedBlockOrContentsRes> {
+  ): Promise<ProduceBlindedBlockOrBlockContentsRes> {
     notWhileSyncing();
     await waitForSlot(slot); // Must never request for a future slot > currentSlot
 
@@ -630,7 +641,7 @@ export function getValidatorApi(
       : Promise.reject(new Error("Builder disabled"));
 
     const enginePromise = isEngineEnabled
-      ? produceEngineFullBlockOrContents(slot, randaoReveal, graffitiBytes, {
+      ? produceEngineBlockContents(slot, randaoReveal, graffitiBytes, {
           feeRecipient,
           strictFeeRecipientCheck,
           commonBlockBodyPromise,
@@ -871,16 +882,8 @@ export function getValidatorApi(
           return {data, meta};
         }
 
-        if (isBlockContents(data)) {
-          const {block} = data;
-          const blindedBlock = beaconBlockToBlinded(config, block as BeaconBlock<ForkPostBellatrix>);
-          return {
-            data: blindedBlock,
-            meta: {...meta, executionPayloadBlinded: true},
-          };
-        }
-
-        const blindedBlock = beaconBlockToBlinded(config, data as BeaconBlock<ForkPostBellatrix>);
+        const {block} = data as BlockContents;
+        const blindedBlock = beaconBlockToBlinded(config, block as BeaconBlock<ForkPostBellatrix>);
         return {
           data: blindedBlock,
           meta: {...meta, executionPayloadBlinded: true},
