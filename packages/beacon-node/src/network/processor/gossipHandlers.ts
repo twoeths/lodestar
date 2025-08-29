@@ -176,9 +176,7 @@ function getSequentialHandlers(modules: ValidatorFnsModules, options: GossipHand
 
       logger.debug("Validated gossip block", {...logCtx, recvToValidation, validationTime});
 
-      if (chain.emitter.listenerCount(routes.events.EventType.blockGossip)) {
-        chain.emitter.emit(routes.events.EventType.blockGossip, {slot, block: blockRootHex});
-      }
+      chain.emitter.emit(routes.events.EventType.blockGossip, {slot, block: blockRootHex});
 
       return blockInput;
     } catch (e) {
@@ -311,12 +309,14 @@ function getSequentialHandlers(modules: ValidatorFnsModules, options: GossipHand
       metrics?.gossipBlob.recvToValidation.observe(recvToValidation);
       metrics?.gossipBlob.validationTime.observe(validationTime);
 
-      chain.emitter.emit(routes.events.EventType.dataColumnSidecar, {
-        blockRoot: blockRootHex,
-        slot,
-        index: dataColumnSidecar.index,
-        kzgCommitments: dataColumnSidecar.kzgCommitments.map(toHex),
-      });
+      if (chain.emitter.listenerCount(routes.events.EventType.dataColumnSidecar)) {
+        chain.emitter.emit(routes.events.EventType.dataColumnSidecar, {
+          blockRoot: blockRootHex,
+          slot,
+          index: dataColumnSidecar.index,
+          kzgCommitments: dataColumnSidecar.kzgCommitments.map(toHex),
+        });
+      }
 
       logger.debug("Received gossip dataColumn", {
         slot: slot,
