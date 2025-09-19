@@ -12,7 +12,42 @@
   "assist": {
     "actions": {
       "source": {
-        "organizeImports": { "level": "off", "options": { "identifierOrder": "lexicographic" } },
+        "organizeImports": {
+          "level": "on",
+          "options": {
+            "identifierOrder": "lexicographic",
+            "groups": [
+              [
+                // Bun modules
+                ":BUN:",
+                // Node.js modules
+                ":NODE:"
+              ],
+              [
+                // Modules imported with the `npm:` protocol
+                "npm:*",
+                "npm:*/**"
+              ],
+              [
+                // Libraries
+                ":PACKAGE:",
+                // Libraries
+                ":PACKAGE_WITH_PROTOCOL:",
+                "!@chainsafe/**",
+                "!@lodestar/**"
+              ],
+              [
+                // URLs
+                ":URL:",
+                // Sharp aliases
+                ":ALIAS:"
+              ],
+              ["@chainsafe/**", "@lodestar/**"],
+              // All other paths
+              ":PATH:"
+            ]
+          }
+        },
         "useSortedKeys": { "level": "off", "options": { "sortOrder": "lexicographic" } }
       }
     }

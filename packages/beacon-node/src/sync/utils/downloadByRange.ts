@@ -14,8 +14,8 @@ import {validateBlockBlobSidecars} from "../../chain/validation/blobSidecar.js";
 import {validateBlockDataColumnSidecars} from "../../chain/validation/dataColumnSidecar.js";
 import {INetwork} from "../../network/index.js";
 import {PeerIdStr} from "../../util/peerId.js";
-import {DownloadByRootErrorCode} from "./downloadByRoot.js";
 import {WarnResult} from "../../util/wrapError.js";
+import {DownloadByRootErrorCode} from "./downloadByRoot.js";
 
 export type DownloadByRangeRequests = {
   blocksRequest?: phase0.BeaconBlocksByRangeRequest;

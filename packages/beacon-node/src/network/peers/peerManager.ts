@@ -1,5 +1,5 @@
-import {BitArray} from "@chainsafe/ssz";
 import {Connection, PeerId, PrivateKey} from "@libp2p/interface";
+import {BitArray} from "@chainsafe/ssz";
 import {BeaconConfig} from "@lodestar/config";
 import {LoggerNode} from "@lodestar/logger/node";
 import {ForkSeq, SLOTS_PER_EPOCH, SYNC_COMMITTEE_SUBNET_COUNT} from "@lodestar/params";

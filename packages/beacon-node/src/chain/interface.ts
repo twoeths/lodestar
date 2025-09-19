@@ -38,8 +38,10 @@ import {BeaconProposerCache, ProposerPreparationData} from "./beaconProposerCach
 import {IBlockInput} from "./blocks/blockInput/index.js";
 import {ImportBlockOpts} from "./blocks/types.js";
 import {IBlsVerifier} from "./bls/index.js";
+import {ColumnReconstructionTracker} from "./ColumnReconstructionTracker.js";
 import {ChainEventEmitter} from "./emitter.js";
 import {ForkchoiceCaller} from "./forkChoice/index.js";
+import {GetBlobsTracker} from "./GetBlobsTracker.js";
 import {LightClientServer} from "./lightClient/index.js";
 import {AggregatedAttestationPool} from "./opPools/aggregatedAttestationPool.js";
 import {AttestationPool, OpPool, SyncCommitteeMessagePool, SyncContributionAndProofPool} from "./opPools/index.js";
@@ -63,8 +65,6 @@ import {SeenBlockAttesters} from "./seenCache/seenBlockAttesters.js";
 import {SeenBlockInput} from "./seenCache/seenGossipBlockInput.js";
 import {ShufflingCache} from "./shufflingCache.js";
 import {ValidatorMonitor} from "./validatorMonitor.js";
-import {GetBlobsTracker} from "./GetBlobsTracker.js";
-import {ColumnReconstructionTracker} from "./ColumnReconstructionTracker.js";
 
 export {BlockType, type AssembledBlockType};
 export {type ProposerPreparationData};

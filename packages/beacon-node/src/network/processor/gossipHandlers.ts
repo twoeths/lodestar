@@ -5,8 +5,8 @@ import {
   ForkPostElectra,
   ForkPreElectra,
   ForkSeq,
-  isForkPostElectra,
   NUMBER_OF_COLUMNS,
+  isForkPostElectra,
 } from "@lodestar/params";
 import {computeTimeAtSlot} from "@lodestar/state-transition";
 import {

@@ -1,13 +1,12 @@
-import {BitArray} from "@chainsafe/ssz";
 import {TopicValidatorResult} from "@libp2p/interface";
+import {afterAll, beforeAll, describe, expect, it} from "vitest";
+import {BitArray} from "@chainsafe/ssz";
 import {routes} from "@lodestar/api";
 import {config} from "@lodestar/config/default";
 import {ForkName} from "@lodestar/params";
 import {ssz} from "@lodestar/types";
-import {afterAll, beforeAll, describe, expect, it} from "vitest";
 import {ZERO_HASH, ZERO_HASH_HEX} from "../../../../src/constants/constants.js";
-import {ReqRespBridgeEventData} from "../../../../src/network/core/events.js";
-import {ReqRespBridgeEvent} from "../../../../src/network/core/events.js";
+import {ReqRespBridgeEvent, ReqRespBridgeEventData} from "../../../../src/network/core/events.js";
 import {NetworkWorkerApi} from "../../../../src/network/core/index.js";
 import {
   GossipType,
