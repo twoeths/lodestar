@@ -254,20 +254,9 @@ export class BeaconChain implements IBeaconChain {
     if (!clock) clock = new Clock({config, genesisTime: this.genesisTime, signal});
 
     this.blacklistedBlocks = new Map((opts.blacklistedBlocks ?? []).map((hex) => [hex, null]));
-    const preAggregateCutOffTime = (2 / 3) * this.config.SECONDS_PER_SLOT;
-    this.attestationPool = new AttestationPool(
-      config,
-      clock,
-      preAggregateCutOffTime,
-      this.opts?.preaggregateSlotDistance,
-      metrics
-    );
+    this.attestationPool = new AttestationPool(config, clock, this.opts?.preaggregateSlotDistance, metrics);
     this.aggregatedAttestationPool = new AggregatedAttestationPool(this.config, metrics);
-    this.syncCommitteeMessagePool = new SyncCommitteeMessagePool(
-      clock,
-      preAggregateCutOffTime,
-      this.opts?.preaggregateSlotDistance
-    );
+    this.syncCommitteeMessagePool = new SyncCommitteeMessagePool(config, clock, this.opts?.preaggregateSlotDistance);
     this.syncContributionAndProofPool = new SyncContributionAndProofPool(clock, metrics, logger);
 
     this.seenAggregatedAttestations = new SeenAggregatedAttestations(metrics);

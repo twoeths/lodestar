@@ -19,8 +19,10 @@ describe("proposer boost reorg", () => {
   const ELECTRA_FORK_EPOCH = 0;
   const FULU_FORK_EPOCH = 1;
   const SECONDS_PER_SLOT = 2;
+  const SLOT_DURATION_MS = 2 * 1000;
   const testParams: Partial<ChainConfig> = {
     SECONDS_PER_SLOT,
+    SLOT_DURATION_MS,
     ALTAIR_FORK_EPOCH: ELECTRA_FORK_EPOCH,
     BELLATRIX_FORK_EPOCH: ELECTRA_FORK_EPOCH,
     CAPELLA_FORK_EPOCH: ELECTRA_FORK_EPOCH,

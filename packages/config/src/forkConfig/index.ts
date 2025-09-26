@@ -1,4 +1,5 @@
 import {
+  BASIS_POINTS,
   ForkAll,
   ForkName,
   ForkPostAltair,
@@ -198,6 +199,25 @@ export function createForkConfig(config: ChainConfig): ForkConfig {
       }
 
       return {epoch: config.ELECTRA_FORK_EPOCH, maxBlobsPerBlock: config.MAX_BLOBS_PER_BLOCK_ELECTRA};
+    },
+    getAttestationDueMs(_fork: ForkName): number {
+      return this.getSlotComponentDurationMs(config.ATTESTATION_DUE_BPS);
+    },
+    getAggregateDueMs(_fork: ForkName): number {
+      return this.getSlotComponentDurationMs(config.AGGREGATE_DUE_BPS);
+    },
+    getSyncMessageDueMs(_fork: ForkName): number {
+      return this.getSlotComponentDurationMs(config.SYNC_MESSAGE_DUE_BPS);
+    },
+    getSyncContributionDueMs(_fork: ForkName): number {
+      return this.getSlotComponentDurationMs(config.CONTRIBUTION_DUE_BPS);
+    },
+    getProposerReorgCutoffMs(_fork: ForkName): number {
+      return this.getSlotComponentDurationMs(config.PROPOSER_REORG_CUTOFF_BPS);
+    },
+
+    getSlotComponentDurationMs(basisPoints: number): number {
+      return Math.round((basisPoints * config.SLOT_DURATION_MS) / BASIS_POINTS);
     },
   };
 }

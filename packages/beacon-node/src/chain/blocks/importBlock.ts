@@ -7,14 +7,7 @@ import {
   ForkChoiceErrorCode,
   NotReorgedReason,
 } from "@lodestar/fork-choice";
-import {
-  ForkPostAltair,
-  ForkPostElectra,
-  ForkSeq,
-  INTERVALS_PER_SLOT,
-  MAX_SEED_LOOKAHEAD,
-  SLOTS_PER_EPOCH,
-} from "@lodestar/params";
+import {ForkPostAltair, ForkPostElectra, ForkSeq, MAX_SEED_LOOKAHEAD, SLOTS_PER_EPOCH} from "@lodestar/params";
 import {
   CachedBeaconStateAltair,
   EpochCache,
@@ -267,8 +260,9 @@ export async function importBlock(
       // We want to track recent blocks coming from gossip, unknown block sync, and API.
       if (delaySec < SLOTS_PER_EPOCH * this.config.SECONDS_PER_SLOT) {
         this.metrics.importBlock.elapsedTimeTillBecomeHead.observe(delaySec);
-        if (delaySec > this.config.SECONDS_PER_SLOT / INTERVALS_PER_SLOT) {
-          this.metrics.importBlock.setHeadAfterFirstInterval.inc();
+        const cutOffSec = this.config.getAttestationDueMs(this.config.getForkName(blockSlot)) / 1000;
+        if (delaySec > cutOffSec) {
+          this.metrics.importBlock.setHeadAfterCutoff.inc();
         }
       }
     }

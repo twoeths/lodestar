@@ -66,7 +66,7 @@ import {
   SyncCommitteeErrorCode,
 } from "../../../chain/errors/index.js";
 import {ChainEvent, CheckpointHex, CommonBlockBody} from "../../../chain/index.js";
-import {SCHEDULER_LOOKAHEAD_FACTOR} from "../../../chain/prepareNextSlot.js";
+import {PREPARE_NEXT_SLOT_BPS} from "../../../chain/prepareNextSlot.js";
 import {BlockType, ProduceFullDeneb} from "../../../chain/produceBlock/index.js";
 import {RegenCaller} from "../../../chain/regen/index.js";
 import {validateApiAggregateAndProof} from "../../../chain/validation/index.js";
@@ -108,6 +108,8 @@ export const SYNC_TOLERANCE_EPOCHS = 1;
  * Empirically the builder block resolves in ~1 second, and execution block resolves in <500 ms.
  * A cutoff of 2 seconds gives enough time and if there are unexpected delays it ensures we publish
  * in time as proposals post 4 seconds into the slot will likely be orphaned due to proposer boost reorg.
+ *
+ * TODO GLOAS: re-evaluate cutoff timing
  */
 const BLOCK_PRODUCTION_RACE_CUTOFF_MS = 2_000;
 /** Overall timeout for execution and block production apis */
@@ -666,7 +668,7 @@ export function getValidatorApi(
       : Promise.reject(new Error("Engine disabled"));
 
     // Calculate cutoff time based on start of the slot
-    const cutoffMs = Math.max(0, BLOCK_PRODUCTION_RACE_CUTOFF_MS - Math.round(chain.clock.secFromSlot(slot) * 1000));
+    const cutoffMs = Math.max(0, BLOCK_PRODUCTION_RACE_CUTOFF_MS - chain.clock.msFromSlot(slot));
 
     logger.verbose("Block production race (builder vs execution) starting", {
       ...loggerContext,
@@ -1017,7 +1019,7 @@ export function getValidatorApi(
       let state: CachedBeaconStateAllForks | undefined = undefined;
       const startSlot = computeStartSlotAtEpoch(epoch);
       const slotMs = config.SECONDS_PER_SLOT * 1000;
-      const prepareNextSlotLookAheadMs = slotMs / SCHEDULER_LOOKAHEAD_FACTOR;
+      const prepareNextSlotLookAheadMs = slotMs - config.getSlotComponentDurationMs(PREPARE_NEXT_SLOT_BPS);
       const toNextEpochMs = msToNextEpoch();
       // validators may request next epoch's duties when it's close to next epoch
       // this is to avoid missed block proposal due to 0 epoch look ahead

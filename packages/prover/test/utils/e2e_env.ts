@@ -26,6 +26,7 @@ export const config = {
   ELECTRA_FORK_EPOCH: electraForkEpoch,
   GENESIS_DELAY: genesisDelaySeconds,
   SECONDS_PER_SLOT: secondsPerSlot,
+  SLOT_DURATION_MS: secondsPerSlot * 1000,
 };
 
 export function waitForFinalized(): Promise<void> {

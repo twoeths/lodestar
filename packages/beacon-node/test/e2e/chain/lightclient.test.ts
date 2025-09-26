@@ -33,8 +33,9 @@ describe("chain / lightclient", () => {
   const targetSlotToReach = computeStartSlotAtEpoch(finalizedEpochToReach + 2) - 1;
   const restPort = 9000;
 
-  const testParams: Pick<ChainConfig, "SECONDS_PER_SLOT" | "ALTAIR_FORK_EPOCH"> = {
+  const testParams: Pick<ChainConfig, "SECONDS_PER_SLOT" | "SLOT_DURATION_MS" | "ALTAIR_FORK_EPOCH"> = {
     SECONDS_PER_SLOT: 1,
+    SLOT_DURATION_MS: 1000,
     ALTAIR_FORK_EPOCH: 0,
   };
 
