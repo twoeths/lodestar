@@ -1,6 +1,6 @@
 import {ChainForkConfig} from "@lodestar/config";
 import {GENESIS_SLOT, SLOTS_PER_EPOCH} from "@lodestar/params";
-import {computeEpochAtSlot, getCurrentSlot} from "@lodestar/state-transition";
+import {computeEpochAtSlot, computeTimeAtSlot, getCurrentSlot} from "@lodestar/state-transition";
 import {Epoch, Slot, TimeSeconds} from "@lodestar/types";
 import {ErrorAborted, Logger, isErrorAborted, sleep} from "@lodestar/utils";
 
@@ -36,7 +36,7 @@ export class Clock implements IClock {
 
   constructor(config: ChainForkConfig, logger: Logger, opts: {genesisTime: number}) {
     this.genesisTime = opts.genesisTime;
-    this.secondsPerSlot = config.SECONDS_PER_SLOT;
+    this.secondsPerSlot = config.SLOT_DURATION_MS / 1000;
     this.config = config;
     this.logger = logger;
   }
@@ -73,18 +73,17 @@ export class Clock implements IClock {
 
   /** Milliseconds from now to a specific slot */
   msToSlot(slot: Slot): number {
-    const timeAt = this.genesisTime + this.config.SECONDS_PER_SLOT * slot;
-    return timeAt * 1000 - Date.now();
+    return computeTimeAtSlot(this.config, slot, this.genesisTime) * 1000 - Date.now();
   }
 
   /** Milliseconds elapsed from a specific slot to now */
   msFromSlot(slot: Slot): number {
-    return Date.now() - (this.genesisTime * 1000 + this.config.SLOT_DURATION_MS * slot);
+    return Date.now() - computeTimeAtSlot(this.config, slot, this.genesisTime) * 1000;
   }
 
   /** Seconds elapsed from a specific slot to now */
   secFromSlot(slot: Slot): number {
-    return Date.now() / 1000 - (this.genesisTime + this.config.SECONDS_PER_SLOT * slot);
+    return Date.now() / 1000 - computeTimeAtSlot(this.config, slot, this.genesisTime);
   }
 
   /**
@@ -112,7 +111,7 @@ export class Clock implements IClock {
         if (timeItem === TimeItem.Slot) {
           if (nextSlot > slot + 1) {
             // It's not very likely that we skip more than one slot as HTTP timeout is set
-            // to SECONDS_PER_SLOT so we will fail task before skipping another slot.
+            // to SLOT_DURATION_MS so we will fail task before skipping another slot.
             this.logger.warn("Skipped slot due to task taking more than one slot to run", {
               skippedSlot: slot + 1,
             });
@@ -132,7 +131,7 @@ export class Clock implements IClock {
   }
 
   private timeUntilNext(timeItem: TimeItem): number {
-    const milliSecondsPerSlot = this.config.SECONDS_PER_SLOT * 1000;
+    const milliSecondsPerSlot = this.config.SLOT_DURATION_MS;
     const msFromGenesis = Date.now() - this.genesisTime * 1000;
 
     if (timeItem === TimeItem.Slot) {
@@ -154,7 +153,7 @@ export class Clock implements IClock {
  */
 export function getCurrentSlotAround(config: ChainForkConfig, genesisTime: TimeSeconds): Slot {
   const diffInSeconds = Date.now() / 1000 - genesisTime;
-  const slotsSinceGenesis = Math.round(diffInSeconds / config.SECONDS_PER_SLOT);
+  const slotsSinceGenesis = Math.round((diffInSeconds * 1000) / config.SLOT_DURATION_MS);
   return GENESIS_SLOT + slotsSinceGenesis;
 }
 
