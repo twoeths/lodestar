@@ -49,11 +49,25 @@ export type ChainConfig = {
   GLOAS_FORK_EPOCH: number;
 
   // Time parameters
+  /** @deprecated Use `SLOT_DURATION_MS` instead. */
   SECONDS_PER_SLOT: number;
+  SLOT_DURATION_MS: number;
   SECONDS_PER_ETH1_BLOCK: number;
   MIN_VALIDATOR_WITHDRAWABILITY_DELAY: number;
   SHARD_COMMITTEE_PERIOD: number;
   ETH1_FOLLOW_DISTANCE: number;
+  PROPOSER_REORG_CUTOFF_BPS: number;
+  ATTESTATION_DUE_BPS: number;
+  AGGREGATE_DUE_BPS: number;
+  // Altair
+  SYNC_MESSAGE_DUE_BPS: number;
+  CONTRIBUTION_DUE_BPS: number;
+
+  ATTESTATION_DUE_BPS_GLOAS: number;
+  AGGREGATE_DUE_BPS_GLOAS: number;
+  SYNC_MESSAGE_DUE_BPS_GLOAS: number;
+  CONTRIBUTION_DUE_BPS_GLOAS: number;
+  PAYLOAD_ATTESTATION_DUE_BPS: number;
 
   // Validator cycle
   INACTIVITY_SCORE_BIAS: number;
@@ -142,10 +156,23 @@ export const chainConfigTypes: SpecTypes<ChainConfig> = {
 
   // Time parameters
   SECONDS_PER_SLOT: "number",
+  SLOT_DURATION_MS: "number",
   SECONDS_PER_ETH1_BLOCK: "number",
   MIN_VALIDATOR_WITHDRAWABILITY_DELAY: "number",
   SHARD_COMMITTEE_PERIOD: "number",
   ETH1_FOLLOW_DISTANCE: "number",
+  PROPOSER_REORG_CUTOFF_BPS: "number",
+  ATTESTATION_DUE_BPS: "number",
+  AGGREGATE_DUE_BPS: "number",
+  // Altair
+  SYNC_MESSAGE_DUE_BPS: "number",
+  CONTRIBUTION_DUE_BPS: "number",
+
+  ATTESTATION_DUE_BPS_GLOAS: "number",
+  AGGREGATE_DUE_BPS_GLOAS: "number",
+  SYNC_MESSAGE_DUE_BPS_GLOAS: "number",
+  CONTRIBUTION_DUE_BPS_GLOAS: "number",
+  PAYLOAD_ATTESTATION_DUE_BPS: "number",
 
   // Validator cycle
   INACTIVITY_SCORE_BIAS: "number",

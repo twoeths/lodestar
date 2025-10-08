@@ -1,10 +1,11 @@
+import {multiaddr} from "@multiformats/multiaddr";
 import {ENR} from "@chainsafe/enr";
 import {IBeaconNodeOptions, defaultOptions} from "@lodestar/beacon-node";
 import {CliCommandOptions} from "@lodestar/utils";
-import {multiaddr} from "@multiformats/multiaddr";
 import {YargsError} from "../../util/index.js";
 
 export const defaultListenAddress = "0.0.0.0";
+export const defaultListenAddress6 = "::";
 export const defaultP2pPort = 9000;
 
 export type NetworkArgs = {
@@ -62,12 +63,13 @@ export function parseListenArgs(args: NetworkArgs) {
   // If listenAddress6 is not set, use defaultListenAddress
   const listenAddress = args.listenAddress ?? (args.listenAddress6 ? undefined : defaultListenAddress);
   const port = listenAddress ? (args.port ?? defaultP2pPort) : undefined;
-  const discoveryPort = listenAddress ? (args.discoveryPort ?? args.port ?? defaultP2pPort) : undefined;
+  const discoveryPort = listenAddress ? (args.discoveryPort ?? port) : undefined;
 
-  // Only use listenAddress6 if it is explicitly set
-  const listenAddress6 = args.listenAddress6;
-  const port6 = listenAddress6 ? (args.port6 ?? defaultP2pPort) : undefined;
-  const discoveryPort6 = listenAddress6 ? (args.discoveryPort6 ?? args.port6 ?? defaultP2pPort) : undefined;
+  // If listenAddress6 is explicitly set, use it
+  // If listenAddress is not set, use defaultListenAddress6
+  const listenAddress6 = args.listenAddress6 ?? (args.listenAddress ? undefined : defaultListenAddress6);
+  const port6 = listenAddress6 ? (args.port6 ?? args.port ?? defaultP2pPort) : undefined;
+  const discoveryPort6 = listenAddress6 ? (args.discoveryPort6 ?? port6) : undefined;
 
   return {listenAddress, port, discoveryPort, listenAddress6, port6, discoveryPort6};
 }
@@ -191,6 +193,7 @@ export const options: CliCommandOptions<NetworkArgs> = {
   listenAddress6: {
     type: "string",
     description: "The IPv6 address to listen for p2p UDP and TCP connections",
+    defaultDescription: defaultListenAddress6,
     group: "network",
   },
 

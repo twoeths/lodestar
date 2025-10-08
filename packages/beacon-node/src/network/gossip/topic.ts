@@ -8,7 +8,6 @@ import {
   isForkPostElectra,
 } from "@lodestar/params";
 import {Attestation, SingleAttestation, ssz, sszTypesFor} from "@lodestar/types";
-
 import {GossipAction, GossipActionError, GossipErrorCode} from "../../chain/errors/gossipValidation.js";
 import {NetworkConfig} from "../networkConfig.js";
 import {DEFAULT_ENCODING} from "./constants.js";
@@ -246,8 +245,8 @@ export function getCoreTopicsAtFork(
     topics.push(...getDataColumnSidecarTopics(networkConfig));
   }
 
-  // After Deneb also track blob_sidecar_{subnet_id}
-  if (ForkSeq[fork] >= ForkSeq.deneb) {
+  // After Deneb and before Fulu also track blob_sidecar_{subnet_id}
+  if (ForkSeq[fork] >= ForkSeq.deneb && ForkSeq[fork] < ForkSeq.fulu) {
     const {config} = networkConfig;
     const subnetCount = isForkPostElectra(fork)
       ? config.BLOB_SIDECAR_SUBNET_COUNT_ELECTRA

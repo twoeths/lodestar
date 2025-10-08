@@ -1,3 +1,4 @@
+import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
 import {fromHexString, toHexString} from "@chainsafe/ssz";
 import {routes} from "@lodestar/api";
 import {createBeaconConfig, createChainForkConfig, defaultChainConfig} from "@lodestar/config";
@@ -5,7 +6,6 @@ import {ProtoBlock} from "@lodestar/fork-choice";
 import {ForkName, SLOTS_PER_EPOCH, ZERO_HASH_HEX} from "@lodestar/params";
 import {CachedBeaconStateBellatrix, G2_POINT_AT_INFINITY, computeTimeAtSlot} from "@lodestar/state-transition";
 import {ssz} from "@lodestar/types";
-import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
 import {getValidatorApi} from "../../../../../src/api/impl/validator/index.js";
 import {defaultApiOptions} from "../../../../../src/api/options.js";
 import {BeaconChain} from "../../../../../src/chain/chain.js";
@@ -214,7 +214,6 @@ describe("api/validator - produceBlockV3", () => {
       graffiti: toGraffitiBytes(graffiti),
       slot,
       parentBlockRoot,
-      parentSlot: currentSlot - 1,
       feeRecipient,
       commonBlockBodyPromise: expect.any(Promise),
     });
@@ -227,7 +226,6 @@ describe("api/validator - produceBlockV3", () => {
       graffiti: toGraffitiBytes(graffiti),
       slot,
       parentBlockRoot,
-      parentSlot: currentSlot - 1,
       feeRecipient: undefined,
       commonBlockBodyPromise: expect.any(Promise),
     });
@@ -265,16 +263,30 @@ describe("api/validator - produceBlockV3", () => {
       executionPayloadValue,
     });
 
+    // Helper function to create a mock common block body promise
+    const createCommonBlockBodyPromise = async () => ({
+      attestations: [],
+      attesterSlashings: [],
+      proposerSlashings: [],
+      voluntaryExits: [],
+      blsToExecutionChanges: [],
+      syncAggregate: ssz.altair.SyncAggregate.defaultValue(),
+      eth1Data: ssz.phase0.Eth1Data.defaultValue(),
+      deposits: [],
+      randaoReveal,
+      graffiti: toGraffitiBytes(graffiti),
+    });
+
     // use fee recipient passed in produceBlockBody call for payload gen in engine notifyForkchoiceUpdate
     await produceBlockBody.call(modules.chain as unknown as BeaconChain, BlockType.Full, state, {
       randaoReveal,
       graffiti: toGraffitiBytes(graffiti),
       slot,
       feeRecipient,
-      parentSlot: slot - 1,
       parentBlockRoot: fromHexString(ZERO_HASH_HEX),
       proposerIndex: 0,
       proposerPubKey: new Uint8Array(32).fill(1),
+      commonBlockBodyPromise: createCommonBlockBodyPromise(),
     });
 
     expect(modules.chain["executionEngine"].notifyForkchoiceUpdate).toBeCalledWith(
@@ -291,14 +303,15 @@ describe("api/validator - produceBlockV3", () => {
 
     // use fee recipient set in beaconProposerCacheStub if none passed
     modules.chain["beaconProposerCache"].getOrDefault.mockReturnValue("0x fee recipient address");
+
     await produceBlockBody.call(modules.chain as unknown as BeaconChain, BlockType.Full, state, {
       randaoReveal,
       graffiti: toGraffitiBytes(graffiti),
       slot,
-      parentSlot: slot - 1,
       parentBlockRoot: fromHexString(ZERO_HASH_HEX),
       proposerIndex: 0,
       proposerPubKey: new Uint8Array(32).fill(1),
+      commonBlockBodyPromise: createCommonBlockBodyPromise(),
     });
 
     expect(modules.chain["executionEngine"].notifyForkchoiceUpdate).toBeCalledWith(

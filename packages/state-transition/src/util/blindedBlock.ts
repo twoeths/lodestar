@@ -3,6 +3,7 @@ import {
   ForkName,
   ForkPostBellatrix,
   ForkPostDeneb,
+  ForkPreGloas,
   ForkSeq,
   isForkPostBellatrix,
   isForkPostDeneb,
@@ -22,7 +23,6 @@ import {
   isBlindedBeaconBlock,
   isExecutionPayloadAndBlobsBundle,
 } from "@lodestar/types";
-
 import {executionPayloadToPayloadHeader} from "./execution.js";
 
 export function blindedOrFullBlockHashTreeRoot(
@@ -65,7 +65,7 @@ export function blindedOrFullBlockToHeader(
 
 export function beaconBlockToBlinded(
   config: ChainForkConfig,
-  block: BeaconBlock<ForkPostBellatrix>
+  block: BeaconBlock<ForkPostBellatrix & ForkPreGloas>
 ): BlindedBeaconBlock {
   const fork = config.getForkName(block.slot);
   const executionPayloadHeader = executionPayloadToPayloadHeader(ForkSeq[fork], block.body.executionPayload);
@@ -75,7 +75,7 @@ export function beaconBlockToBlinded(
 
 export function signedBeaconBlockToBlinded(
   config: ChainForkConfig,
-  signedBlock: SignedBeaconBlock<ForkPostBellatrix>
+  signedBlock: SignedBeaconBlock<ForkPostBellatrix & ForkPreGloas>
 ): SignedBlindedBeaconBlock {
   return {
     message: beaconBlockToBlinded(config, signedBlock.message),

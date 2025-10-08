@@ -1,9 +1,9 @@
-import {createChainForkConfig, defaultChainConfig} from "@lodestar/config";
-import {ForkName, ForkPostCapella, ForkPostDeneb} from "@lodestar/params";
-import {computeStartSlotAtEpoch, signedBlockToSignedHeader} from "@lodestar/state-transition";
-import {SignedBeaconBlock, deneb, ssz} from "@lodestar/types";
-import {toRootHex} from "@lodestar/utils";
 import {describe, expect, it} from "vitest";
+import {createChainForkConfig, defaultChainConfig} from "@lodestar/config";
+import {ForkName, ForkPostCapella, ForkPostDeneb, ForkPreGloas} from "@lodestar/params";
+import {computeStartSlotAtEpoch, signedBlockToSignedHeader} from "@lodestar/state-transition";
+import {BeaconBlockBody, SignedBeaconBlock, deneb, ssz} from "@lodestar/types";
+import {toRootHex} from "@lodestar/utils";
 import {
   AddBlob,
   AddBlock,
@@ -58,7 +58,7 @@ type BlockAndBlobTestSet<F extends ForkPostDeneb = ForkPostDeneb> = BlockTestSet
 function buildBlockAndBlobsTestSet(forkName: ForkPostDeneb, numberOfBlobs: number): BlockAndBlobTestSet<ForkPostDeneb> {
   const {block, blockRoot, rootHex} = buildBlockTestSet<ForkPostDeneb>(forkName);
   const commitments = Array.from({length: numberOfBlobs}, () => Buffer.alloc(48, 0x77));
-  block.message.body.blobKzgCommitments = commitments;
+  (block.message.body as BeaconBlockBody<ForkPostDeneb & ForkPreGloas>).blobKzgCommitments = commitments;
   const signedBlockHeader = signedBlockToSignedHeader(config, block);
   const blobSidecars: deneb.BlobSidecars = [];
   for (const kzgCommitment of commitments) {
@@ -126,7 +126,7 @@ describe("BlockInput", () => {
             blockRootHex: rootHex,
             daOutOfRange: false,
             forkName: ForkName.deneb,
-            seenTimestampSec: Date.now(),
+            seenTimestampSec: Date.now() / 1000,
             source: BlockInputSource.gossip,
           } as AddBlob & CreateBlockInputMeta);
         }
@@ -135,10 +135,8 @@ describe("BlockInput", () => {
           blockRootHex: rootHex,
           daOutOfRange: false,
           forkName: ForkName.deneb,
-          source: {
-            source: BlockInputSource.gossip,
-            seenTimestampSec: Date.now(),
-          },
+          source: BlockInputSource.gossip,
+          seenTimestampSec: Date.now() / 1000,
         } as AddBlock<ForkBlobsDA> & CreateBlockInputMeta);
         for (const blobSidecar of blobSidecars) {
           testArray.push({
@@ -146,7 +144,7 @@ describe("BlockInput", () => {
             blockRootHex: rootHex,
             daOutOfRange: false,
             forkName: ForkName.deneb,
-            seenTimestampSec: Date.now(),
+            seenTimestampSec: Date.now() / 1000,
             source: BlockInputSource.gossip,
           } as AddBlob & CreateBlockInputMeta);
         }
