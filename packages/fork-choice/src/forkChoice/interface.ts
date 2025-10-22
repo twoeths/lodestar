@@ -196,6 +196,7 @@ export interface IForkChoice {
   getBlockHex(blockRoot: RootHex): ProtoBlock | null;
   getFinalizedBlock(): ProtoBlock;
   getJustifiedBlock(): ProtoBlock;
+  getFinalizedCheckpointSlot(): Slot;
   /**
    * Returns true if the `descendantRoot` has an ancestor with `ancestorRoot`.
    *
