@@ -1,12 +1,12 @@
 {
-  "name": "@lodestar/reqresp",
-  "description": "A Typescript implementation of the Ethereum Consensus Req/Resp protocol",
+  "name": "@lodestar/era",
+  "description": "Era file handling module for Lodestar",
   "license": "Apache-2.0",
   "author": "ChainSafe Systems",
   "homepage": "https://github.com/ChainSafe/lodestar#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com:ChainSafe/lodestar.git"
+    "url": "git+https://github.com/ChainSafe/lodestar.git"
   },
   "bugs": {
     "url": "https://github.com/ChainSafe/lodestar/issues"
@@ -18,17 +18,6 @@
       "bun": "./src/index.ts",
       "types": "./lib/index.d.ts",
       "import": "./lib/index.js"
-    },
-    "./utils": {
-      "bun": "./src/utils/index.ts",
-      "types": "./lib/utils/index.d.ts",
-      "import": "./lib/utils/index.js"
-    }
-  },
-  "imports": {
-    "#snappy": {
-      "bun": "./src/utils/snappy_bun.ts",
-      "default": "./lib/utils/snappy.js"
     }
   },
   "files": [
@@ -50,32 +39,11 @@
     "check-readme": "typescript-docs-verifier"
   },
   "dependencies": {
-    "@chainsafe/fast-crc32c": "^4.2.0",
-    "@libp2p/interface": "^2.7.0",
+    "@chainsafe/blst": "^2.2.0",
     "@lodestar/config": "^1.36.0",
     "@lodestar/params": "^1.36.0",
-    "@lodestar/utils": "^1.36.0",
-    "it-all": "^3.0.4",
-    "it-pipe": "^3.0.1",
-    "snappy": "^7.2.2",
-    "snappyjs": "^0.7.0",
-    "uint8-varint": "^2.0.2",
-    "uint8arraylist": "^2.4.7"
-  },
-  "devDependencies": {
-    "@lodestar/logger": "^1.36.0",
+    "@lodestar/reqresp": "^1.36.0",
     "@lodestar/types": "^1.36.0",
-    "libp2p": "2.9.0"
-  },
-  "peerDependencies": {
-    "libp2p": "~2.9.0"
-  },
-  "keywords": [
-    "ethereum",
-    "eth-consensus",
-    "beacon",
-    "p2p",
-    "reqresp",
-    "blockchain"
-  ]
+    "uint8arraylist": "^2.4.7"
+  }
 }
