@@ -1,6 +1,7 @@
 import {Message} from "@libp2p/interface";
+// snappyjs is better for compression for smaller payloads
+import {compress, uncompress} from "snappyjs";
 import xxhashFactory from "xxhash-wasm";
-import {compress, uncompress} from "#snappy";
 import {digest} from "@chainsafe/as-sha256";
 import {RPC} from "@chainsafe/libp2p-gossipsub/message";
 import {DataTransform} from "@chainsafe/libp2p-gossipsub/types";
