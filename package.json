@@ -2,7 +2,7 @@
   "name": "root",
   "private": true,
   "engines": {
-    "node": ">=22 <23"
+    "node": ">=22 <25"
   },
   "packageManager": "yarn@1.22.22+sha256.c17d3797fb9a9115bf375e31bfd30058cac6bc9c3b8807a3d8cb2094794b51ca",
   "workspaces": [
@@ -45,7 +45,11 @@
     "@biomejs/biome": "^2.2.0",
     "@chainsafe/benchmark": "^1.2.3",
     "@chainsafe/biomejs-config": "^1.0.0",
-    "@types/node": "^22.18.6",
+    "@lerna-lite/cli": "^4.9.4",
+    "@lerna-lite/publish": "^4.9.4",
+    "@lerna-lite/run": "^4.9.4",
+    "@lerna-lite/version": "^4.9.4",
+    "@types/node": "^24.10.1",
     "@types/react": "^19.1.12",
     "@vitest/browser": "^4.0.7",
     "@vitest/browser-playwright": "^4.0.7",
@@ -56,7 +60,6 @@
     "electron": "^26.2.2",
     "https-browserify": "^1.0.0",
     "jsdom": "^23.0.1",
-    "lerna": "^7.3.0",
     "libp2p": "2.9.0",
     "node-gyp": "^9.4.0",
     "npm-run-all": "^4.1.5",
@@ -82,7 +85,6 @@
   "resolutions": {
     "dns-over-http-resolver": "^2.1.1",
     "loupe": "^2.3.6",
-    "testcontainers/**/nan": "^2.19.0",
     "elliptic": ">=6.6.1"
   }
 }
