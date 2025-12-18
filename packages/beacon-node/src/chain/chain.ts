@@ -142,7 +142,7 @@ export class BeaconChain implements IBeaconChain {
   readonly aggregatedAttestationPool: AggregatedAttestationPool;
   readonly syncCommitteeMessagePool: SyncCommitteeMessagePool;
   readonly syncContributionAndProofPool;
-  readonly opPool = new OpPool();
+  readonly opPool: OpPool;
 
   // Gossip seen cache
   readonly seenAttesters = new SeenAttesters();
@@ -260,6 +260,7 @@ export class BeaconChain implements IBeaconChain {
     this.aggregatedAttestationPool = new AggregatedAttestationPool(this.config, metrics);
     this.syncCommitteeMessagePool = new SyncCommitteeMessagePool(config, clock, this.opts?.preaggregateSlotDistance);
     this.syncContributionAndProofPool = new SyncContributionAndProofPool(config, clock, metrics, logger);
+    this.opPool = new OpPool(config);
 
     this.seenAggregatedAttestations = new SeenAggregatedAttestations(metrics);
     this.seenContributionAndProof = new SeenContributionAndProof(metrics);
@@ -334,6 +335,7 @@ export class BeaconChain implements IBeaconChain {
       this.cpStateDatastore = fileDataStore ? new FileCPStateDatastore(dataDir) : new DbCPStateDatastore(this.db);
       checkpointStateCache = new PersistentCheckpointStateCache(
         {
+          config,
           metrics,
           logger,
           clock,
@@ -1306,7 +1308,7 @@ export class BeaconChain implements IBeaconChain {
 
     const postState = this.regen.getStateSync(toRootHex(block.stateRoot)) ?? undefined;
 
-    return computeBlockRewards(block, preState.clone(), postState?.clone());
+    return computeBlockRewards(this.config, block, preState.clone(), postState?.clone());
   }
 
   async getAttestationsRewards(
@@ -1330,7 +1332,7 @@ export class BeaconChain implements IBeaconChain {
       throw Error(`State is not in cache for slot ${slot}`);
     }
 
-    const rewards = await computeAttestationsRewards(this.pubkey2index, cachedState, validatorIds);
+    const rewards = await computeAttestationsRewards(this.config, this.pubkey2index, cachedState, validatorIds);
 
     return {rewards, executionOptimistic, finalized};
   }
@@ -1347,6 +1349,6 @@ export class BeaconChain implements IBeaconChain {
 
     preState = processSlots(preState, block.slot); // Dial preState's slot to block.slot
 
-    return computeSyncCommitteeRewards(this.index2pubkey, block, preState.clone(), validatorIds);
+    return computeSyncCommitteeRewards(this.config, this.index2pubkey, block, preState.clone(), validatorIds);
   }
 }

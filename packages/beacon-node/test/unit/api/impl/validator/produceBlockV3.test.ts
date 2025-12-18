@@ -32,7 +32,7 @@ describe("api/validator - produceBlockV3", () => {
   const config = createBeaconConfig(chainConfig, genesisValidatorsRoot);
 
   beforeEach(() => {
-    modules = getApiTestModules();
+    modules = getApiTestModules({config});
     api = getValidatorApi(defaultApiOptions, {...modules, config});
     state = generateCachedBellatrixState();
 
