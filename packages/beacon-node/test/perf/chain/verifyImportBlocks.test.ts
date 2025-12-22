@@ -91,6 +91,8 @@ describe.skip("verify+import blocks - range sync perf test", () => {
         {
           privateKey: await generateKeyPair("secp256k1"),
           config: state.config,
+          pubkey2index: state.epochCtx.pubkey2index,
+          index2pubkey: state.epochCtx.index2pubkey,
           db,
           dataDir: ".",
           dbName: ".",
