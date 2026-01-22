@@ -418,6 +418,13 @@ export async function importBlock(
     this.logger.verbose("After importBlock caching postState without SSZ cache", {slot: postState.slot});
   }
 
+  // Cache shufflings when crossing an epoch boundary
+  const parentEpoch = computeEpochAtSlot(parentBlockSlot);
+  if (parentEpoch < blockEpoch) {
+    this.shufflingCache.processState(postState);
+    this.logger.verbose("Processed shuffling for next epoch", {parentEpoch, blockEpoch, slot: blockSlot});
+  }
+
   if (blockSlot % SLOTS_PER_EPOCH === 0) {
     // Cache state to preserve epoch transition work
     const checkpointState = postState;

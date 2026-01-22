@@ -52,6 +52,7 @@ import {computeNodeIdFromPrivateKey} from "../network/subnets/interface.js";
 import {BufferPool} from "../util/bufferPool.js";
 import {Clock, ClockEvent, IClock} from "../util/clock.js";
 import {CustodyConfig, getValidatorsCustodyRequirement} from "../util/dataColumns.js";
+import {callInNextEventLoop} from "../util/eventLoop.js";
 import {ensureDir, writeIfNotExist} from "../util/file.js";
 import {isOptimisticBlock} from "../util/forkChoice.js";
 import {SerializedCache} from "../util/serializedCache.js";
@@ -291,7 +292,8 @@ export class BeaconChain implements IBeaconChain {
     });
 
     this._earliestAvailableSlot = anchorState.slot;
-    this.shufflingCache = anchorState.epochCtx.shufflingCache = new ShufflingCache(metrics, logger, this.opts, [
+
+    this.shufflingCache = new ShufflingCache(metrics, logger, this.opts, [
       {
         shuffling: anchorState.epochCtx.previousShuffling,
         decisionRoot: anchorState.epochCtx.previousDecisionRoot,
@@ -417,6 +419,7 @@ export class BeaconChain implements IBeaconChain {
     clock.addListener(ClockEvent.epoch, this.onClockEpoch.bind(this));
     emitter.addListener(ChainEvent.forkChoiceFinalized, this.onForkChoiceFinalized.bind(this));
     emitter.addListener(ChainEvent.forkChoiceJustified, this.onForkChoiceJustified.bind(this));
+    emitter.addListener(ChainEvent.checkpoint, this.onCheckpoint.bind(this));
   }
 
   async init(): Promise<void> {
@@ -980,8 +983,8 @@ export class BeaconChain implements IBeaconChain {
       this.metrics?.gossipAttestation.useHeadBlockState.inc({caller: regenCaller});
       state = await this.regen.getState(attHeadBlock.stateRoot, regenCaller);
     }
-
-    // should always be the current epoch of the active context so no need to await a result from the ShufflingCache
+    // resolve the promise to unblock other calls of the same epoch and dependent root
+    this.shufflingCache.processState(state);
     return state.epochCtx.getShufflingAtEpoch(attEpoch);
   }
 
@@ -1163,6 +1166,13 @@ export class BeaconChain implements IBeaconChain {
 
   private onForkChoiceJustified(this: BeaconChain, cp: CheckpointWithHex): void {
     this.logger.verbose("Fork choice justified", {epoch: cp.epoch, root: cp.rootHex});
+  }
+
+  private onCheckpoint(this: BeaconChain, _checkpoint: phase0.Checkpoint, state: CachedBeaconStateAllForks): void {
+    // Defer to not block other checkpoint event handlers, which can cause lightclient update delays
+    callInNextEventLoop(() => {
+      this.shufflingCache.processState(state);
+    });
   }
 
   private async onForkChoiceFinalized(this: BeaconChain, cp: CheckpointWithHex): Promise<void> {
