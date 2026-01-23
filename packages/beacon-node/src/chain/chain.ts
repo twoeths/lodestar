@@ -507,7 +507,7 @@ export class BeaconChain implements IBeaconChain {
   async getStateBySlot(
     slot: Slot,
     opts?: StateGetOpts
-  ): Promise<{state: BeaconStateAllForks; executionOptimistic: boolean; finalized: boolean} | null> {
+  ): Promise<{state: CachedBeaconStateAllForks; executionOptimistic: boolean; finalized: boolean} | null> {
     const finalizedBlock = this.forkChoice.getFinalizedBlock();
 
     if (slot < finalizedBlock.slot) {
@@ -562,7 +562,7 @@ export class BeaconChain implements IBeaconChain {
   async getStateByStateRoot(
     stateRoot: RootHex,
     opts?: StateGetOpts
-  ): Promise<{state: BeaconStateAllForks; executionOptimistic: boolean; finalized: boolean} | null> {
+  ): Promise<{state: CachedBeaconStateAllForks | Uint8Array; executionOptimistic: boolean; finalized: boolean} | null> {
     if (opts?.allowRegen) {
       const state = await this.regen.getState(stateRoot, RegenCaller.restApi);
       const block = this.forkChoice.getBlock(state.latestBlockHeader.hashTreeRoot());
@@ -590,7 +590,8 @@ export class BeaconChain implements IBeaconChain {
       };
     }
 
-    const data = await this.db.stateArchive.getByRoot(fromHex(stateRoot));
+    // this is mostly useful for a node with `--chain.archiveStateEpochFrequency 1`
+    const data = await this.db.stateArchive.getBinaryByRoot(fromHex(stateRoot));
     return data && {state: data, executionOptimistic: false, finalized: true};
   }
 
@@ -1305,9 +1306,9 @@ export class BeaconChain implements IBeaconChain {
 
     preState = processSlots(preState, block.slot); // Dial preState's slot to block.slot
 
-    const postState = this.regen.getStateSync(toRootHex(block.stateRoot)) ?? undefined;
+    const proposerRewards = this.regen.getStateSync(toRootHex(block.stateRoot))?.proposerRewards ?? undefined;
 
-    return computeBlockRewards(this.config, block, preState.clone(), postState?.clone());
+    return computeBlockRewards(this.config, block, preState, proposerRewards);
   }
 
   async getAttestationsRewards(
@@ -1348,6 +1349,6 @@ export class BeaconChain implements IBeaconChain {
 
     preState = processSlots(preState, block.slot); // Dial preState's slot to block.slot
 
-    return computeSyncCommitteeRewards(this.config, this.index2pubkey, block, preState.clone(), validatorIds);
+    return computeSyncCommitteeRewards(this.config, this.index2pubkey, block, preState, validatorIds);
   }
 }

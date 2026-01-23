@@ -86,5 +86,5 @@ export interface IStateRegeneratorInternal {
   /**
    * Return the exact state with `stateRoot`
    */
-  getState(stateRoot: RootHex, rCaller: RegenCaller, opts?: StateRegenerationOpts): Promise<CachedBeaconStateAllForks>;
+  getState(stateRoot: RootHex, rCaller: RegenCaller): Promise<CachedBeaconStateAllForks>;
 }
