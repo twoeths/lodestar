@@ -238,6 +238,12 @@ export function getLodestarApi({
         },
       };
     },
+
+    async getMonitoredValidatorIndices() {
+      return {
+        data: chain.validatorMonitor?.getMonitoredValidatorIndices() ?? [],
+      };
+    },
   };
 }
 
