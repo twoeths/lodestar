@@ -46,7 +46,14 @@ import {ForkchoiceCaller} from "./forkChoice/index.js";
 import {GetBlobsTracker} from "./GetBlobsTracker.js";
 import {LightClientServer} from "./lightClient/index.js";
 import {AggregatedAttestationPool} from "./opPools/aggregatedAttestationPool.js";
-import {AttestationPool, OpPool, SyncCommitteeMessagePool, SyncContributionAndProofPool} from "./opPools/index.js";
+import {
+  AttestationPool,
+  ExecutionPayloadBidPool,
+  OpPool,
+  PayloadAttestationPool,
+  SyncCommitteeMessagePool,
+  SyncContributionAndProofPool,
+} from "./opPools/index.js";
 import {IChainOptions} from "./options.js";
 import {AssembledBlockType, BlockAttributes, BlockType, ProduceResult} from "./produceBlock/produceBlockBody.js";
 import {IStateRegenerator, RegenCaller} from "./regen/index.js";
@@ -56,6 +63,9 @@ import {
   SeenAttesters,
   SeenBlockProposers,
   SeenContributionAndProof,
+  SeenExecutionPayloadBids,
+  SeenExecutionPayloadEnvelopes,
+  SeenPayloadAttesters,
   SeenSyncCommitteeMessages,
 } from "./seenCache/index.js";
 import {SeenAggregatedAttestations} from "./seenCache/seenAggregateAndProof.js";
@@ -116,12 +126,17 @@ export interface IBeaconChain {
   readonly aggregatedAttestationPool: AggregatedAttestationPool;
   readonly syncCommitteeMessagePool: SyncCommitteeMessagePool;
   readonly syncContributionAndProofPool: SyncContributionAndProofPool;
+  readonly executionPayloadBidPool: ExecutionPayloadBidPool;
+  readonly payloadAttestationPool: PayloadAttestationPool;
   readonly opPool: OpPool;
 
   // Gossip seen cache
   readonly seenAttesters: SeenAttesters;
   readonly seenAggregators: SeenAggregators;
+  readonly seenPayloadAttesters: SeenPayloadAttesters;
   readonly seenAggregatedAttestations: SeenAggregatedAttestations;
+  readonly seenExecutionPayloadEnvelopes: SeenExecutionPayloadEnvelopes;
+  readonly seenExecutionPayloadBids: SeenExecutionPayloadBids;
   readonly seenBlockProposers: SeenBlockProposers;
   readonly seenSyncCommitteeMessages: SeenSyncCommitteeMessages;
   readonly seenContributionAndProof: SeenContributionAndProof;

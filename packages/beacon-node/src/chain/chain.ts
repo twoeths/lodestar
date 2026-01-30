@@ -79,7 +79,9 @@ import {LightClientServer} from "./lightClient/index.js";
 import {
   AggregatedAttestationPool,
   AttestationPool,
+  ExecutionPayloadBidPool,
   OpPool,
+  PayloadAttestationPool,
   SyncCommitteeMessagePool,
   SyncContributionAndProofPool,
 } from "./opPools/index.js";
@@ -95,6 +97,9 @@ import {
   SeenAttesters,
   SeenBlockProposers,
   SeenContributionAndProof,
+  SeenExecutionPayloadBids,
+  SeenExecutionPayloadEnvelopes,
+  SeenPayloadAttesters,
   SeenSyncCommitteeMessages,
 } from "./seenCache/index.js";
 import {SeenAggregatedAttestations} from "./seenCache/seenAggregateAndProof.js";
@@ -156,12 +161,17 @@ export class BeaconChain implements IBeaconChain {
   readonly aggregatedAttestationPool: AggregatedAttestationPool;
   readonly syncCommitteeMessagePool: SyncCommitteeMessagePool;
   readonly syncContributionAndProofPool;
+  readonly executionPayloadBidPool: ExecutionPayloadBidPool;
+  readonly payloadAttestationPool: PayloadAttestationPool;
   readonly opPool: OpPool;
 
   // Gossip seen cache
   readonly seenAttesters = new SeenAttesters();
   readonly seenAggregators = new SeenAggregators();
+  readonly seenPayloadAttesters = new SeenPayloadAttesters();
   readonly seenAggregatedAttestations: SeenAggregatedAttestations;
+  readonly seenExecutionPayloadEnvelopes = new SeenExecutionPayloadEnvelopes();
+  readonly seenExecutionPayloadBids = new SeenExecutionPayloadBids();
   readonly seenBlockProposers = new SeenBlockProposers();
   readonly seenSyncCommitteeMessages = new SeenSyncCommitteeMessages();
   readonly seenContributionAndProof: SeenContributionAndProof;
@@ -278,6 +288,8 @@ export class BeaconChain implements IBeaconChain {
     this.aggregatedAttestationPool = new AggregatedAttestationPool(this.config, metrics);
     this.syncCommitteeMessagePool = new SyncCommitteeMessagePool(config, clock, this.opts?.preaggregateSlotDistance);
     this.syncContributionAndProofPool = new SyncContributionAndProofPool(config, clock, metrics, logger);
+    this.executionPayloadBidPool = new ExecutionPayloadBidPool();
+    this.payloadAttestationPool = new PayloadAttestationPool(config, clock, metrics);
     this.opPool = new OpPool(config);
 
     this.seenAggregatedAttestations = new SeenAggregatedAttestations(metrics);
@@ -488,6 +500,8 @@ export class BeaconChain implements IBeaconChain {
       this.seenAttesters.isKnown(epoch, index) ||
       //   seenAggregators = single aggregator index, not participants of the aggregate
       this.seenAggregators.isKnown(epoch, index) ||
+      //   seenPayloadAttesters = single signer of payload attestation message
+      this.seenPayloadAttesters.isKnown(epoch, index) ||
       //   seenBlockProposers = single block proposer
       this.seenBlockProposers.seenAtEpoch(epoch, index)
     );
@@ -1262,6 +1276,8 @@ export class BeaconChain implements IBeaconChain {
     metrics.opPool.proposerSlashingPoolSize.set(this.opPool.proposerSlashingsSize);
     metrics.opPool.voluntaryExitPoolSize.set(this.opPool.voluntaryExitsSize);
     metrics.opPool.syncCommitteeMessagePoolSize.set(this.syncCommitteeMessagePool.size);
+    metrics.opPool.payloadAttestationPool.size.set(this.payloadAttestationPool.size);
+    metrics.opPool.executionPayloadBidPool.size.set(this.executionPayloadBidPool.size);
     // syncContributionAndProofPool tracks metrics on its own
     metrics.opPool.blsToExecutionChangePoolSize.set(this.opPool.blsToExecutionChangeSize);
     metrics.chain.blacklistedBlocks.set(this.blacklistedBlocks.size);
@@ -1292,6 +1308,9 @@ export class BeaconChain implements IBeaconChain {
     this.aggregatedAttestationPool.prune(slot);
     this.syncCommitteeMessagePool.prune(slot);
     this.seenSyncCommitteeMessages.prune(slot);
+    this.payloadAttestationPool.prune(slot);
+    this.executionPayloadBidPool.prune(slot);
+    this.seenExecutionPayloadBids.prune(slot);
     this.seenAttestationDatas.onSlot(slot);
     this.reprocessController.onSlot(slot);
 
@@ -1315,6 +1334,7 @@ export class BeaconChain implements IBeaconChain {
 
     this.seenAttesters.prune(epoch);
     this.seenAggregators.prune(epoch);
+    this.seenPayloadAttesters.prune(epoch);
     this.seenAggregatedAttestations.prune(epoch);
     this.seenBlockAttesters.prune(epoch);
     this.beaconProposerCache.prune(epoch);
@@ -1338,7 +1358,9 @@ export class BeaconChain implements IBeaconChain {
 
   private async onForkChoiceFinalized(this: BeaconChain, cp: CheckpointWithHex): Promise<void> {
     this.logger.verbose("Fork choice finalized", {epoch: cp.epoch, root: cp.rootHex});
-    this.seenBlockProposers.prune(computeStartSlotAtEpoch(cp.epoch));
+    const finalizedSlot = computeStartSlotAtEpoch(cp.epoch);
+    this.seenBlockProposers.prune(finalizedSlot);
+    this.seenExecutionPayloadEnvelopes.prune(finalizedSlot);
 
     // Update validator custody to account for effective balance changes
     await this.updateValidatorsCustodyRequirement(cp);
