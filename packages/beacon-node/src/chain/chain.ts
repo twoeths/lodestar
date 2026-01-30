@@ -530,7 +530,7 @@ export class BeaconChain implements IBeaconChain {
     // only use regen queue if necessary, it'll cache in checkpointStateCache if regen gets through epoch transition
     const head = this.forkChoice.getHead();
     const startSlot = computeStartSlotAtEpoch(epoch);
-    return this.regen.getBlockSlotState(head.blockRoot, startSlot, {dontTransferCache: true}, regenCaller);
+    return this.regen.getBlockSlotState(head, startSlot, {dontTransferCache: true}, regenCaller);
   }
 
   async getStateBySlot(
@@ -548,12 +548,7 @@ export class BeaconChain implements IBeaconChain {
     if (opts?.allowRegen) {
       // Find closest canonical block to slot, then trigger regen
       const block = this.forkChoice.getCanonicalBlockClosestLteSlot(slot) ?? finalizedBlock;
-      const state = await this.regen.getBlockSlotState(
-        block.blockRoot,
-        slot,
-        {dontTransferCache: true},
-        RegenCaller.restApi
-      );
+      const state = await this.regen.getBlockSlotState(block, slot, {dontTransferCache: true}, RegenCaller.restApi);
       return {
         state,
         executionOptimistic: isOptimisticBlock(block),
@@ -854,9 +849,9 @@ export class BeaconChain implements IBeaconChain {
   }
 
   async produceCommonBlockBody(blockAttributes: BlockAttributes): Promise<CommonBlockBody> {
-    const {slot, parentBlockRoot} = blockAttributes;
+    const {slot, parentBlock} = blockAttributes;
     const state = await this.regen.getBlockSlotState(
-      toRootHex(parentBlockRoot),
+      parentBlock,
       slot,
       {dontTransferCache: true},
       RegenCaller.produceBlock
@@ -893,7 +888,7 @@ export class BeaconChain implements IBeaconChain {
       slot,
       feeRecipient,
       commonBlockBodyPromise,
-      parentBlockRoot,
+      parentBlock,
     }: BlockAttributes & {commonBlockBodyPromise: Promise<CommonBlockBody>}
   ): Promise<{
     block: AssembledBlockType<T>;
@@ -902,7 +897,7 @@ export class BeaconChain implements IBeaconChain {
     shouldOverrideBuilder?: boolean;
   }> {
     const state = await this.regen.getBlockSlotState(
-      toRootHex(parentBlockRoot),
+      parentBlock,
       slot,
       {dontTransferCache: true},
       RegenCaller.produceBlock
@@ -919,7 +914,7 @@ export class BeaconChain implements IBeaconChain {
         graffiti,
         slot,
         feeRecipient,
-        parentBlockRoot,
+        parentBlock,
         proposerIndex,
         proposerPubKey,
         commonBlockBodyPromise,
@@ -942,7 +937,7 @@ export class BeaconChain implements IBeaconChain {
     const block = {
       slot,
       proposerIndex,
-      parentRoot: parentBlockRoot,
+      parentRoot: fromHex(parentBlock.blockRoot),
       stateRoot: ZERO_HASH,
       body,
     } as AssembledBlockType<T>;
@@ -1138,12 +1133,7 @@ export class BeaconChain implements IBeaconChain {
       // thanks to one epoch look ahead, we don't need to dial up to attEpoch
       const targetSlot = computeStartSlotAtEpoch(attEpoch - 1);
       this.metrics?.gossipAttestation.useHeadBlockStateDialedToTargetEpoch.inc({caller: regenCaller});
-      state = await this.regen.getBlockSlotState(
-        attHeadBlock.blockRoot,
-        targetSlot,
-        {dontTransferCache: true},
-        regenCaller
-      );
+      state = await this.regen.getBlockSlotState(attHeadBlock, targetSlot, {dontTransferCache: true}, regenCaller);
     } else if (blockEpoch > attEpoch) {
       // should not happen, handled inside attestation verification code
       throw Error(`Block epoch ${blockEpoch} is after attestation epoch ${attEpoch}`);
