@@ -82,7 +82,7 @@ export async function importBlock(
   const prevFinalizedEpoch = this.forkChoice.getFinalizedCheckpoint().epoch;
   const blockDelaySec =
     fullyVerifiedBlock.seenTimestampSec - computeTimeAtSlot(this.config, blockSlot, postState.genesisTime);
-  const recvToValLatency = Date.now() / 1000 - (opts.seenTimestampSec ?? Date.now() / 1000);
+  const recvToValLatency = opts.seenTimestampSec !== undefined ? Date.now() / 1000 - opts.seenTimestampSec : 0;
   const fork = this.config.getForkSeq(blockSlot);
 
   // this is just a type assertion since blockinput with dataPromise type will not end up here
@@ -422,7 +422,11 @@ export async function importBlock(
     this.logger.verbose("After importBlock caching postState without SSZ cache", {slot: postState.slot});
   }
 
-  // Cache shufflings when crossing an epoch boundary
+  // Cache shufflings when crossing an epoch boundary.
+  // Note: this triggers on any block that crosses an epoch boundary (e.g. parent at slot 31, block at slot 32),
+  // not just the first slot of the epoch. The checkpoint state cache below uses `blockSlot % SLOTS_PER_EPOCH === 0`
+  // because checkpoint states are only meaningful at epoch-start slots, whereas shufflings must be cached as soon
+  // as the boundary is crossed so the next block can reference them.
   const parentEpoch = computeEpochAtSlot(parentBlockSlot);
   if (parentEpoch < blockEpoch) {
     this.shufflingCache.processState(postState);
@@ -437,7 +441,7 @@ export async function importBlock(
     // consumers should not mutate state ever
     this.emitter.emit(ChainEvent.checkpoint, cp, checkpointState);
 
-    // Note: in-lined code from previos handler of ChainEvent.checkpoint
+    // Note: in-lined code from previous handler of ChainEvent.checkpoint
     this.logger.verbose("Checkpoint processed", toCheckpointHex(cp));
 
     const activeValidatorsCount = checkpointState.epochCtx.currentShuffling.activeIndices.length;
@@ -481,7 +485,7 @@ export async function importBlock(
         this.emitter.emit(routes.events.EventType.block, {
           block: blockRootHex,
           slot: blockSlot,
-          executionOptimistic: blockSummary != null && isOptimisticBlock(blockSummary),
+          executionOptimistic: isOptimisticBlock(blockSummary),
         });
       }
       if (this.emitter.listenerCount(routes.events.EventType.voluntaryExit)) {
